@@ -200,6 +200,131 @@ Since your budget is flexible, you're unsure on agent count, and you might want 
 
 ---
 
+---
+
+## 8. YOUR THINKPAD T14s Gen 6 - What You Already Own
+
+**UPDATE: Your existing hardware changes the entire equation.**
+
+### ThinkPad T14s Gen 6 Specs (21QA0036US)
+| Spec | Details |
+|------|---------|
+| CPU | Intel Core Ultra 7 268V (Lunar Lake, 8-core, 2.2GHz, built-in NPU) |
+| GPU | Intel Arc 140V (16GB dedicated VRAM) |
+| RAM | 32GB DDR5-8533 (soldered - already locked in) |
+| Storage | 954GB SSD (713GB free) |
+| OS | Windows 11 Pro 25H2 |
+| Form | Laptop - pen & touch, can leave plugged in 24/7 |
+
+### Why Your ThinkPad Beats the Mac Mini M4 24GB
+| Factor | ThinkPad T14s Gen 6 | Mac Mini M4 24GB |
+|--------|---------------------|-----------------|
+| RAM | **32 GB** | 24 GB |
+| GPU VRAM | **16 GB (Arc 140V)** | 0 (shared memory) |
+| NPU | **Yes (Lunar Lake)** | Yes |
+| Local AI | **7B-13B models** | 7B (limited) |
+| New Cost | **$0 (already owned)** | $999 |
+| Storage | **954 GB** | 512 GB |
+| Idle Power | ~10W | **2.6W** |
+| 5-Year Cost | **$275 (electricity only)** | $1,199 |
+
+---
+
+## 9. Supply Chain Crisis (March 2026)
+
+### Helium Shortage
+- Qatar's LNG facility damaged March 2026, removing **27-30% of global helium supply**
+- Spot helium prices surged **40-100%**
+- Semiconductor fabs have only **6-12 weeks of helium buffer**
+- Samsung most exposed (~65% of South Korea's helium from Qatar)
+- Recovery unlikely until **late 2026-2027**
+- Impact: **10-20% chip price increases** through 2026
+
+### DDR5 RAM Crisis
+- 16GB DDR5 chips up **298% in 3 months** (Sept-Dec 2025)
+- 32GB DDR5 kits now $300-450 (were ~$100 in 2024)
+- AI data centers hoarding HBM production, starving consumer supply
+- Relief unlikely until **late 2027**
+- **Your ThinkPad's 32GB is soldered = already protected from price increases**
+
+### SSD Storage Apocalypse
+- **ALL 2026 NAND production already sold out** (confirmed by Phison CEO)
+- 1TB NVMe: went from $50-62 (2024) to $118-220 (March 2026) = **255% increase**
+- Cloud giants locked in supply contracts through 2027
+- New production lines won't come online until **late 2027**
+- Action: Consider buying a 2TB NVMe ($227-300) NOW as insurance
+
+---
+
+## 10. Cloud vs Local: The Real Math
+
+### Cloud Costs (Claude API + GPT API)
+- Claude API: ~$15/M input tokens, ~$75/M output tokens (Opus)
+- 3-agent team running 8hrs/day: ~500K-1M tokens/day
+- Monthly: **$500-$2,000+**
+- Annual: **$6,000-$24,000**
+- 5-Year: **$30,000-$120,000**
+- Prices may INCREASE as AI demand grows
+
+### Local Compute (ThinkPad + Optional DGX Spark)
+- ThinkPad: **$0 hardware** + $55/yr electricity
+- Open-source models (Llama, Mistral, Phi): **FREE** after hardware
+- DGX Spark ($4,699): Run 200B models locally, 5-year cost: **$5,099**
+- Break-even vs cloud: **3-6 months**
+
+### Recommended Hybrid Strategy
+1. Use ThinkPad NOW for Claude Code agents (API-based)
+2. Run open-source models locally for tasks that don't need Claude/GPT quality
+3. Use Claude API for complex reasoning (worth the cost)
+4. Consider DGX Spark in 6-12 months when supply stabilizes
+5. Result: **$0 upfront + $50-200/mo API = $600-2,400/yr** instead of $6,000-24,000/yr
+
+---
+
+## 11. NVIDIA DGX Spark - The Future-Proof Option
+
+| Spec | Details |
+|------|---------|
+| Price | $4,699 (shipping NOW as of March 2026) |
+| CPU | 20-core ARM (10x Cortex-X925 + 10x Cortex-A725) |
+| GPU | NVIDIA Blackwell GB10 Superchip |
+| RAM | 128GB unified LPDDR5x |
+| Storage | 4TB SSD |
+| AI Performance | 1,000 TOPS (1 Petaflop FP4) |
+| Model Capacity | Run up to 200B parameter models |
+| Power | 240W |
+| Size | 5.9" x 5.9" x 2" |
+
+---
+
+## 12. Updated Final Recommendation
+
+### Phase 1 - NOW (Q1-Q2 2026): Use Your ThinkPad ($0)
+- Set it up as always-on (disable sleep, enable SSH, install Tailscale)
+- Install WSL2 + Claude Code CLI + tmux + Ollama
+- Run 7B-13B models on Arc 140V GPU
+- Leave it plugged in - modern charge management handles this
+
+### Phase 2 - OPTIONAL (Q3-Q4 2026): Dedicated Server ($0-$999)
+- Mac Mini M4 24GB ($999) IF you want:
+  - iPhone ecosystem integration
+  - Lower power draw (2.6W vs ~10W)
+  - Dedicated machine separate from daily driver
+- OR buy extra NVMe storage (1-2TB) for model weights
+
+### Phase 3 - SCALE UP (2027): Local AI Powerhouse ($3,000-$5,000)
+- DGX Spark or next-gen equivalent
+- DDR5 prices should normalize by late 2027
+- 200B+ open-source models will be common
+- Cloud API costs will likely increase 20-40%
+
+### Phase 4 - FULL LOCAL (2028): Home AI Lab
+- 500B+ parameter models locally
+- ThinkPad = mobile interface; DGX Spark = home brain
+- Cloud only for bleeding-edge models
+
+---
+
 ## Sources
 - Apple Mac Mini Tech Specs (support.apple.com)
 - Jeff Geerling M4 Mac Mini efficiency benchmarks
@@ -208,3 +333,9 @@ Since your budget is flexible, you're unsure on agent count, and you might want 
 - Hetzner, DigitalOcean, Vultr, AWS pricing pages
 - MacRumors refurbished pricing data
 - Claude Code Agent Teams documentation
+- NVIDIA DGX Spark product page (marketplace.nvidia.com)
+- Tom's Hardware: Qatar helium shutdown / chip supply chain
+- CNBC: Iran war helium supply impact (March 2026)
+- Tom's Hardware: Hetzner April 2026 price increases
+- TrendForce: NAND/DDR5 pricing forecasts
+- Phison CEO: 2026 NAND production sold out confirmation
