@@ -1,0 +1,1804 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0a" />
+<title>Glow Math · Keaton</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0708;
+    --ink:#1a1013;
+    --card:#141013;
+    --card-2:#1c1519;
+    --line:rgba(255,255,255,.08);
+    --text:#f6ecec;
+    --muted:#c9b7bb;
+    --dim:#8a7a80;
+    --rose:#e0879a;
+    --rose-2:#b76e79;
+    --deep:#8b3a62;
+    --magenta:#c71585;
+    --blush:#fadadd;
+    --gold:#d4af37;
+    --gold-2:#b8912a;
+    --good:#7bd88f;
+    --bad:#ff6b81;
+    --shadow:0 20px 40px -20px rgba(199,21,133,.35), 0 8px 20px -12px rgba(0,0,0,.6);
+    --radius:20px;
+    --radius-sm:12px;
+    --f-serif:'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+    --f-sans:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:var(--f-sans);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(199,21,133,.18), transparent 50%),
+      radial-gradient(900px 500px at 110% 20%, rgba(212,175,55,.10), transparent 50%),
+      linear-gradient(180deg, #0b0708 0%, #0a0507 100%);
+    background-attachment:fixed;
+    color:var(--text);
+    min-height:100vh;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    padding-block: env(safe-area-inset-top) env(safe-area-inset-bottom);
+  }
+  .app{
+    max-width:480px;
+    margin:0 auto;
+    padding:16px 16px 120px;
+    min-height:100vh;
+    position:relative;
+  }
+  h1,h2,h3{font-family:var(--f-serif); font-weight:700; letter-spacing:-.01em; margin:0;}
+  h1{font-size:32px; line-height:1.05;}
+  h2{font-size:22px;}
+  h3{font-size:17px;}
+  .serif{font-family:var(--f-serif);}
+  .muted{color:var(--muted);}
+  .dim{color:var(--dim); font-size:13px;}
+  .row{display:flex; align-items:center; gap:12px;}
+  .between{justify-content:space-between;}
+  .stack{display:flex; flex-direction:column;}
+  .grow{flex:1;}
+
+  /* Top bar */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:6px 4px 18px;
+  }
+  .wordmark{
+    font-family:var(--f-serif); font-weight:700; font-size:22px;
+    letter-spacing:.02em;
+    background:linear-gradient(90deg, var(--blush), var(--rose), var(--gold));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .wordmark small{font-family:var(--f-sans); font-weight:500; font-size:11px; letter-spacing:.24em; color:var(--dim); display:block; margin-top:-2px;}
+  .avatar{
+    width:38px; height:38px; border-radius:50%;
+    background:conic-gradient(from 210deg, #f8c8dc, #b76e79, #c71585, #d4af37, #f8c8dc);
+    display:grid; place-items:center; color:#fff; font-weight:700; font-family:var(--f-serif);
+    box-shadow:0 4px 12px rgba(199,21,133,.35); cursor:pointer;
+    border:2px solid rgba(255,255,255,.15);
+  }
+
+  /* Hero tier card */
+  .hero{
+    position:relative;
+    padding:22px 20px 20px;
+    border-radius:var(--radius);
+    background:
+      linear-gradient(160deg, rgba(255,255,255,.03), rgba(255,255,255,0) 40%),
+      linear-gradient(135deg, #1e0e14 0%, #2a0f1c 55%, #1a0a12 100%);
+    border:1px solid rgba(224,135,154,.22);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .hero::before{
+    content:""; position:absolute; inset:auto -30% -60% auto; width:80%; aspect-ratio:1;
+    background:radial-gradient(circle, rgba(212,175,55,.22), transparent 60%); pointer-events:none;
+  }
+  .hero::after{
+    content:""; position:absolute; inset:-40% auto auto -20%; width:70%; aspect-ratio:1;
+    background:radial-gradient(circle, rgba(199,21,133,.22), transparent 60%); pointer-events:none;
+  }
+  .tier-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:5px 10px; border-radius:999px;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+    font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--blush);
+  }
+  .tier-name{ font-family:var(--f-serif); font-size:34px; line-height:1; margin-top:10px;
+    background:linear-gradient(90deg, #fff, var(--blush) 40%, var(--gold) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .points{ display:flex; align-items:baseline; gap:6px; margin-top:6px; }
+  .points b{ font-family:var(--f-serif); font-size:26px; }
+  /* Lipstick-tube progress */
+  .lipstick{
+    margin-top:16px; height:14px; border-radius:999px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.08);
+    overflow:hidden; position:relative;
+  }
+  .lipstick > span{
+    display:block; height:100%;
+    background:linear-gradient(90deg, #f8c8dc 0%, #e0879a 40%, #c71585 100%);
+    box-shadow:inset 0 -3px 6px rgba(0,0,0,.25), inset 0 2px 3px rgba(255,255,255,.35);
+    transition:width .8s cubic-bezier(.2,.9,.25,1);
+  }
+  .lipstick-labels{ display:flex; justify-content:space-between; margin-top:8px; font-size:12px; color:var(--muted);}
+  .hero-actions{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;}
+
+  /* Stats strip */
+  .stats{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px;
+  }
+  .stat{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:12px 12px 10px; text-align:center;
+  }
+  .stat b{ font-family:var(--f-serif); font-size:22px; display:block; }
+  .stat span{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+
+  /* Section */
+  .section{ margin-top:26px; }
+  .section-head{
+    display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; padding:0 2px;
+  }
+  .section-head .link{ font-size:13px; color:var(--rose); }
+
+  /* Cards */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px; box-shadow:0 8px 20px -14px rgba(0,0,0,.6);
+  }
+  .daily{
+    background:
+      linear-gradient(140deg, rgba(199,21,133,.14), rgba(212,175,55,.10) 60%, rgba(0,0,0,0)),
+      linear-gradient(180deg, #1c1216, #180e13);
+    border:1px solid rgba(224,135,154,.28);
+    padding:18px;
+  }
+  .kicker{ font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--gold); }
+
+  /* Topic grid */
+  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .tile{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:14px; text-align:left; cursor:pointer; position:relative; overflow:hidden;
+    transition:transform .15s ease, border-color .2s ease;
+  }
+  .tile:active{ transform:scale(.98); }
+  .tile:hover{ border-color:rgba(224,135,154,.35); }
+  .tile .em{ font-size:22px; display:block; margin-bottom:6px; }
+  .tile b{ font-family:var(--f-serif); font-size:16px; display:block; }
+  .tile .mini{ font-size:11px; color:var(--muted); margin-top:6px; letter-spacing:.06em; }
+  .tile .bar{ margin-top:10px; height:5px; border-radius:999px; background:rgba(255,255,255,.06); overflow:hidden; }
+  .tile .bar > span{ display:block; height:100%; background:linear-gradient(90deg, var(--rose), var(--magenta)); }
+  .tile.locked{ opacity:.55; }
+  .tile.locked .lock{ position:absolute; top:10px; right:12px; font-size:12px; color:var(--muted);}
+
+  /* Buttons */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:12px 16px; border-radius:999px; font-weight:600; font-family:var(--f-sans);
+    border:1px solid transparent; cursor:pointer; font-size:14px;
+    transition:transform .1s ease, filter .15s ease, background .15s ease;
+    white-space:nowrap;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn-primary{
+    color:#160408;
+    background:linear-gradient(180deg, #fadadd 0%, #e0879a 55%, #c71585 100%);
+    box-shadow:0 8px 18px -8px rgba(199,21,133,.7), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .btn-primary:hover{ filter:brightness(1.05); }
+  .btn-ghost{
+    color:var(--text); background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.1);
+  }
+  .btn-gold{
+    color:#241a03; background:linear-gradient(180deg, #f6d976, #d4af37 60%, #a17c15);
+    box-shadow:0 8px 18px -8px rgba(212,175,55,.6), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .btn-block{ width:100%; }
+  .btn-sm{ padding:8px 12px; font-size:12px; }
+
+  /* Nav */
+  .nav{
+    position:fixed; left:0; right:0; bottom:0; z-index:20;
+    padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
+    display:flex; justify-content:center; pointer-events:none;
+  }
+  .nav-inner{
+    pointer-events:auto;
+    display:flex; gap:2px; padding:6px;
+    background:rgba(18,12,15,.85); backdrop-filter: blur(14px) saturate(140%);
+    border:1px solid rgba(255,255,255,.08); border-radius:999px;
+    box-shadow:0 12px 40px -18px rgba(0,0,0,.7);
+  }
+  .nav-btn{
+    background:transparent; border:0; color:var(--muted); padding:10px 14px;
+    border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:2px; min-width:64px;
+  }
+  .nav-btn .em{ font-size:16px; }
+  .nav-btn.active{ background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+    color:var(--blush); box-shadow: inset 0 0 0 1px rgba(224,135,154,.35);}
+
+  /* Screens */
+  .screen{ display:none; animation:fade .25s ease; }
+  .screen.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  /* Problem view */
+  .qcard{
+    background:linear-gradient(180deg, #17101a, #120a10);
+    border:1px solid var(--line); border-radius:var(--radius); padding:20px;
+    min-height:280px; display:flex; flex-direction:column; gap:14px;
+  }
+  .qprompt{ font-family:var(--f-serif); font-size:24px; line-height:1.25; }
+  .qprompt math, .qprompt .m{ font-family: 'Cambria Math', 'STIX Two Math', Cambria, Georgia, serif; }
+  .qmeta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:11px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; }
+  .qmeta .pill{ padding:3px 8px; border-radius:999px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); }
+  .qmeta .pill.hot{ color:var(--rose); border-color:rgba(224,135,154,.3); }
+  .choices{ display:grid; gap:8px; margin-top:6px; }
+  .choice{
+    background:var(--card-2); border:1px solid var(--line); border-radius:14px;
+    padding:14px 16px; text-align:left; color:var(--text); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; gap:12px; font-family:'Cambria Math', 'STIX Two Math', Cambria, Georgia, serif;
+    transition:border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .choice:hover{ border-color:rgba(224,135,154,.35); }
+  .choice:active{ transform:scale(.99); }
+  .choice .letter{
+    width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.06);
+    display:grid; place-items:center; font-family:var(--f-sans); font-size:12px; color:var(--muted);
+  }
+  .choice.correct{ border-color:rgba(123,216,143,.6); background:rgba(123,216,143,.08); }
+  .choice.wrong{ border-color:rgba(255,107,129,.6); background:rgba(255,107,129,.08); }
+  .choice.dim{ opacity:.5; }
+
+  .freeinput{
+    width:100%; padding:16px; border-radius:14px;
+    background:var(--card-2); border:1px solid var(--line); color:var(--text);
+    font-family:'Cambria Math','STIX Two Math', Cambria, Georgia, serif; font-size:18px;
+  }
+  .freeinput:focus{ outline:none; border-color:var(--rose); box-shadow:0 0 0 3px rgba(224,135,154,.15);}
+
+  .feedback{
+    padding:14px 16px; border-radius:14px; font-size:14px;
+    display:none; animation:fade .2s ease;
+  }
+  .feedback.ok{ display:block; background:rgba(123,216,143,.08); border:1px solid rgba(123,216,143,.35); color:#c5edcd;}
+  .feedback.no{ display:block; background:rgba(255,107,129,.08); border:1px solid rgba(255,107,129,.35); color:#ffd0d8;}
+  .feedback .head{ font-weight:700; font-family:var(--f-serif); font-size:15px; letter-spacing:.02em; }
+
+  .steps{ margin-top:6px; padding:14px 16px; border-radius:14px; background:rgba(255,255,255,.04); border:1px solid var(--line); font-size:14px;}
+  .steps ol{ margin:6px 0 0 16px; padding:0; }
+  .steps li{ margin:4px 0; font-family:'Cambria Math','STIX Two Math', Cambria, Georgia, serif; font-size:15px;}
+  .steps b{ font-family:var(--f-sans); color:var(--rose); font-weight:700; letter-spacing:.02em; }
+
+  .hint{ font-size:13px; color:var(--muted); font-style:italic; padding:10px 12px; border-left:2px solid var(--gold); background:rgba(212,175,55,.06); border-radius:0 8px 8px 0;}
+
+  .progress-mini{ height:6px; border-radius:999px; background:rgba(255,255,255,.06); overflow:hidden; }
+  .progress-mini > span{ display:block; height:100%; background:linear-gradient(90deg, var(--rose), var(--magenta)); transition:width .3s ease;}
+
+  /* Badges */
+  .badges{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .badge{
+    aspect-ratio:1; border-radius:20px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:10px;
+    background:var(--card); border:1px solid var(--line); position:relative; overflow:hidden;
+    font-size:11px; color:var(--muted);
+  }
+  .badge .em{ font-size:32px; margin-bottom:4px; filter:grayscale(1) opacity(.5);}
+  .badge.earned{ border-color:rgba(224,135,154,.35); background:linear-gradient(180deg, #23131a, #170c12); color:var(--text); box-shadow:0 8px 20px -14px rgba(199,21,133,.5);}
+  .badge.earned .em{ filter:none;}
+  .badge b{ font-family:var(--f-serif); font-size:12px; display:block; margin-top:2px; color:var(--text);}
+
+  /* Share card */
+  .share-card{
+    border-radius:24px; padding:22px; color:#fff;
+    background:
+      radial-gradient(120% 80% at 10% 0%, rgba(255,255,255,.18), transparent 45%),
+      linear-gradient(160deg, #2a0f1c 0%, #4a1734 45%, #1b0710 100%);
+    border:1px solid rgba(255,255,255,.15);
+    box-shadow:var(--shadow);
+  }
+  .share-card .brand{ font-family:var(--f-serif); font-size:20px; letter-spacing:.02em;
+    background:linear-gradient(90deg, var(--blush), var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .share-card .big{ font-family:var(--f-serif); font-size:44px; line-height:1; margin-top:8px;}
+  .share-card .grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:16px; }
+  .share-card .grid3 > div{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:10px; text-align:center; }
+  .share-card .grid3 b{ font-family:var(--f-serif); font-size:20px; display:block; }
+  .share-card .grid3 span{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; opacity:.85; }
+  .share-card .note{ margin-top:14px; font-size:13px; opacity:.85; font-style:italic;}
+
+  /* Modal */
+  .modal-bg{ position:fixed; inset:0; background:rgba(6,3,5,.7); backdrop-filter:blur(4px); z-index:40; display:none; align-items:flex-end; justify-content:center;}
+  .modal-bg.on{ display:flex; }
+  .modal{ background:linear-gradient(180deg, #1a1015, #12080d); border:1px solid var(--line); border-radius:24px 24px 0 0; padding:22px; width:100%; max-width:480px; max-height:88vh; overflow-y:auto; animation:up .25s ease;}
+  @keyframes up{ from{transform:translateY(20px); opacity:0;} to{transform:translateY(0); opacity:1;} }
+  .modal .close{ float:right; background:transparent; border:0; color:var(--muted); font-size:22px; cursor:pointer;}
+
+  /* Confetti */
+  .confetti{ position:fixed; inset:0; pointer-events:none; z-index:30; overflow:hidden;}
+  .conf-piece{ position:absolute; width:8px; height:14px; border-radius:2px; animation:fall 1.6s ease-out forwards;}
+  @keyframes fall{
+    0%{ transform:translateY(-40px) rotate(0);}
+    100%{ transform:translateY(105vh) rotate(720deg); opacity:.2;}
+  }
+
+  /* Boss */
+  .boss-timer{ font-family:var(--f-serif); font-size:24px; }
+  .boss-timer.low{ color:var(--bad); }
+
+  /* Copy field */
+  .code-field{ display:flex; gap:8px; align-items:stretch; margin-top:10px;}
+  .code-field input{
+    flex:1; padding:12px 14px; border-radius:12px; background:var(--card-2); border:1px solid var(--line);
+    color:var(--text); font-family:'Menlo', 'Consolas', monospace; font-size:12px;
+  }
+
+  /* Utility */
+  .center{text-align:center;}
+  .mt-1{margin-top:8px;} .mt-2{margin-top:14px;} .mt-3{margin-top:22px;}
+  .mb-1{margin-bottom:8px;} .mb-2{margin-bottom:14px;}
+  .divider{ height:1px; background:var(--line); margin:16px 0;}
+  a{ color:var(--rose); text-decoration:none;}
+  a:hover{ text-decoration:underline; }
+
+  /* Dad-view banner */
+  .dad-banner{
+    background:linear-gradient(90deg, rgba(212,175,55,.14), rgba(224,135,154,.14));
+    border:1px solid rgba(212,175,55,.25);
+    padding:10px 14px; border-radius:14px; font-size:13px; margin-bottom:14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .dad-banner b{ font-family:var(--f-serif); font-size:14px; }
+
+  @media (max-width:380px){
+    h1{ font-size:28px;} .tier-name{font-size:28px;} .qprompt{font-size:20px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="wordmark">Glow Math<small>ALGEBRA · ROUGE EDITION</small></div>
+    <button class="avatar" id="avatarBtn" title="Settings">K</button>
+  </header>
+
+  <div id="dadBanner" class="dad-banner" hidden>
+    <span>💌</span>
+    <div class="grow">
+      <b>Dad view</b><br>
+      <span class="muted" style="font-size:12px;">You're viewing Keaton's live stats. Read-only.</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="exitDadView()">Exit</button>
+  </div>
+
+  <!-- ================= HOME ================= -->
+  <section id="screen-home" class="screen active">
+
+    <div class="hero">
+      <span class="tier-chip">✨ <span id="tierChip">Insider</span></span>
+      <div class="tier-name" id="tierName">Insider</div>
+      <div class="points"><b id="ptsBig">0</b> <span class="muted">Glow Points</span></div>
+
+      <div class="lipstick" aria-label="Progress to next tier"><span id="tierBar" style="width:0%"></span></div>
+      <div class="lipstick-labels">
+        <span id="tierNow">Insider</span>
+        <span id="tierNext">Glow · 500 pts</span>
+      </div>
+
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="startDaily()">💋 Today's Look</button>
+        <button class="btn btn-gold" onclick="openBoss()">👑 The Runway</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b id="stStreak">0</b><span>🔥 Streak</span></div>
+      <div class="stat"><b id="stCoins">0</b><span>💎 Coins</span></div>
+      <div class="stat"><b id="stAcc">—</b><span>% Aim</span></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Daily Challenge</h2>
+        <span class="dim" id="dailyDateLabel"></span>
+      </div>
+      <div class="card daily">
+        <div class="kicker">✦ TODAY'S LOOK ✦</div>
+        <h3 class="serif mt-1" id="dailyTitle" style="font-size:20px;">—</h3>
+        <p class="muted" id="dailyBlurb" style="font-size:14px; margin:6px 0 0;">5 problems · 2× points</p>
+        <div class="mt-2">
+          <div class="progress-mini"><span id="dailyProg" style="width:0%"></span></div>
+          <div class="dim mt-1"><span id="dailyStatus">Not started</span></div>
+        </div>
+        <div class="mt-2">
+          <button class="btn btn-primary btn-block" id="dailyBtn" onclick="startDaily()">Begin ›</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>The Collection</h2>
+        <span class="dim">Algebra 2</span>
+      </div>
+      <div class="grid" id="topicGrid"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>Badges</h2><span class="dim" id="badgeCount">0 / 12</span></div>
+      <div class="badges" id="badgesShort"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>Send Dad Your Glow</h2><span class="dim">📱</span></div>
+      <div class="card">
+        <p class="muted" style="font-size:14px; margin:0 0 12px;">
+          Text Dad your progress — one tap. Or copy your Glow Code so he can open the same app and see your live stats.
+        </p>
+        <div class="row" style="gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="textDad()">📱 Text Dad</button>
+          <button class="btn btn-ghost" onclick="showShareCard()">📸 Screenshot Card</button>
+          <button class="btn btn-ghost" onclick="copyGlowCode()">🔗 Copy Glow Code</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TOPIC ================= -->
+  <section id="screen-topic" class="screen">
+    <button class="btn btn-ghost btn-sm mb-2" onclick="go('home')">‹ Back</button>
+    <div class="card">
+      <div class="row between">
+        <div>
+          <span class="tier-chip" id="topicEmoji">💋</span>
+          <h2 class="mt-1" id="topicTitle">Topic</h2>
+          <div class="dim mt-1" id="topicBlurb"></div>
+        </div>
+        <div class="stack" style="align-items:flex-end;">
+          <div class="dim">Mastery</div>
+          <b class="serif" style="font-size:22px;" id="topicMastery">0%</b>
+        </div>
+      </div>
+      <div class="progress-mini mt-2"><span id="topicBar" style="width:0%"></span></div>
+    </div>
+
+    <div class="section">
+      <h3 class="serif mb-1">Pick your level</h3>
+      <div class="grid" id="levelGrid"></div>
+    </div>
+  </section>
+
+  <!-- ================= PROBLEM ================= -->
+  <section id="screen-problem" class="screen">
+    <div class="row between mb-2">
+      <button class="btn btn-ghost btn-sm" onclick="quitSession()">✕ Quit</button>
+      <div class="row" style="gap:8px;">
+        <span class="dim" id="sessLabel">—</span>
+      </div>
+    </div>
+
+    <div class="progress-mini mb-2"><span id="sessBar" style="width:0%"></span></div>
+
+    <div class="qcard">
+      <div class="qmeta">
+        <span class="pill" id="qTopic">Topic</span>
+        <span class="pill hot" id="qDiff">Level</span>
+        <span class="pill" id="qWorth">+10 pts</span>
+        <span class="pill" id="qTimer" hidden>⏱ 0:00</span>
+      </div>
+      <div class="qprompt" id="qPrompt">—</div>
+
+      <div id="qChoices" class="choices"></div>
+      <div id="qFreeWrap" hidden>
+        <input class="freeinput" id="qFree" placeholder="Type your answer (e.g., 3/4 or -2)" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <button class="btn btn-primary btn-block mt-1" onclick="submitFree()">Check</button>
+      </div>
+
+      <div id="qHint" class="hint" hidden></div>
+
+      <div id="qFeedback" class="feedback"></div>
+      <div id="qSteps" class="steps" hidden></div>
+
+      <div class="row" style="gap:8px; margin-top:auto;">
+        <button class="btn btn-ghost btn-sm" id="hintBtn" onclick="revealHint()">💡 Hint (−3 pts)</button>
+        <div class="grow"></div>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextProblem()" hidden>Next ›</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SESSION SUMMARY ================= -->
+  <section id="screen-summary" class="screen">
+    <div class="card center">
+      <div class="kicker">SESSION COMPLETE</div>
+      <div class="serif" style="font-size:44px; margin-top:8px;" id="sumEmoji">💋</div>
+      <h2 class="serif mt-1" id="sumTitle">Beautiful.</h2>
+      <p class="muted" id="sumBlurb" style="margin:8px 0 0;">You showed up. That's the whole thing.</p>
+      <div class="stats mt-3">
+        <div class="stat"><b id="sumCorrect">0</b><span>Correct</span></div>
+        <div class="stat"><b id="sumPoints">+0</b><span>Points</span></div>
+        <div class="stat"><b id="sumStreak">0</b><span>🔥 Streak</span></div>
+      </div>
+      <div class="mt-3" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="go('home')">Home</button>
+        <button class="btn btn-ghost" onclick="repeatSession()">Again</button>
+        <button class="btn btn-gold" onclick="textDad()">📱 Text Dad</button>
+      </div>
+    </div>
+
+    <div class="section" id="newBadgesWrap" hidden>
+      <div class="section-head"><h2>New Badge</h2></div>
+      <div class="badges" id="newBadges"></div>
+    </div>
+  </section>
+
+  <!-- ================= COLLECTION ================= -->
+  <section id="screen-collection" class="screen">
+    <h1>Your Collection</h1>
+    <p class="muted mt-1" style="margin:6px 0 0;">Mastery of every topic + badges you've unlocked.</p>
+
+    <div class="section">
+      <div class="section-head"><h2>Mastery</h2></div>
+      <div class="stack" id="masteryList" style="gap:10px;"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>Badges</h2><span class="dim" id="badgeCount2">0 / 12</span></div>
+      <div class="badges" id="badgesAll"></div>
+    </div>
+  </section>
+
+  <!-- ================= DAD ================= -->
+  <section id="screen-dad" class="screen">
+    <h1>Send Dad Your Glow</h1>
+    <p class="muted mt-1">Three ways. Pick your favorite.</p>
+
+    <div class="section">
+      <h3 class="serif mb-1">📱 Text</h3>
+      <div class="card">
+        <p class="muted" style="font-size:14px; margin:0 0 12px;">Opens your Messages app with a pre-filled text.</p>
+        <button class="btn btn-primary btn-block" onclick="textDad()">Open Messages ›</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="serif mb-1">📸 Screenshot Card</h3>
+      <div class="card">
+        <p class="muted" style="font-size:14px; margin:0 0 12px;">A pretty card you can screenshot and post/send.</p>
+        <button class="btn btn-ghost btn-block" onclick="showShareCard()">Show Card ›</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="serif mb-1">🔗 Glow Code</h3>
+      <div class="card">
+        <p class="muted" style="font-size:14px; margin:0 0 12px;">
+          Dad opens the same app with this code and sees your live dashboard (read-only).
+          Update it whenever — send the code again.
+        </p>
+        <div class="code-field">
+          <input id="glowCodeField" readonly value="—" />
+          <button class="btn btn-primary" onclick="copyGlowCode()">Copy</button>
+        </div>
+        <div class="dim mt-1">Tell Dad to open the app and add <code>?d=THECODE</code> to the URL — or just tap "Load Code" in the avatar menu.</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-inner">
+    <button class="nav-btn active" data-goto="home"><span class="em">🏠</span>Home</button>
+    <button class="nav-btn" data-goto="collection"><span class="em">💼</span>Collection</button>
+    <button class="nav-btn" data-goto="dad"><span class="em">💌</span>Dad</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <button class="close" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="confetti" id="confetti" aria-hidden="true"></div>
+
+<script>
+/* ============================================================
+   GLOW MATH — Sephora-flavored Algebra 2 tutor
+   Single-file, offline-friendly, localStorage-backed.
+   Built for Keaton, with love. — Dad
+   ============================================================ */
+
+/* ---------- Utility ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const randSign = () => Math.random()<.5?-1:1;
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const gcd = (a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a||1;};
+function reduceFrac(n,d){ if(d<0){n=-n;d=-d;} const g=gcd(n,d); return [n/g, d/g]; }
+function fmtFrac(n,d){
+  if(d===0) return 'undefined';
+  if(d<0){n=-n;d=-d;}
+  const [nn,dd] = reduceFrac(n,d);
+  if(dd===1) return String(nn);
+  return `${nn}/${dd}`;
+}
+function fmtFracPretty(n,d){
+  if(d===0) return 'undefined';
+  const [nn,dd] = reduceFrac(n,d);
+  if(dd===1) return String(nn);
+  return `<span class="m" style="display:inline-flex; flex-direction:column; text-align:center; vertical-align:middle; margin:0 3px; font-size:.85em;">
+    <span style="border-bottom:1px solid currentColor; padding:0 4px;">${nn}</span>
+    <span style="padding:0 4px;">${dd}</span></span>`;
+}
+const SUP = {'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+function sup(n){ return String(n).split('').map(c=>SUP[c]||c).join(''); }
+function coefStr(c, isFirst, varStr){
+  if(c===0) return '';
+  const sign = c<0 ? (isFirst?'−':' − ') : (isFirst?'':' + ');
+  const abs = Math.abs(c);
+  const body = varStr==='' ? String(abs) : (abs===1?varStr:`${abs}${varStr}`);
+  return sign+body;
+}
+function polyStr(coefs, varLetter='x'){
+  // coefs highest first, e.g. [1,-3,2] => x^2 - 3x + 2
+  const n = coefs.length;
+  let out = '';
+  let first = true;
+  for(let i=0;i<n;i++){
+    const power = n-1-i;
+    const c = coefs[i];
+    if(c===0) continue;
+    const v = power===0?'' : power===1?varLetter : `${varLetter}${sup(power)}`;
+    out += coefStr(c, first, v);
+    first = false;
+  }
+  return out || '0';
+}
+// Format a signed term to append after an existing expression: " + 5", " − 5"
+function signTerm(n, varStr=''){
+  if(n===0) return '';
+  const abs = Math.abs(n);
+  const body = varStr==='' ? String(abs) : (abs===1 ? varStr : `${abs}${varStr}`);
+  return n>=0 ? ` + ${body}` : ` − ${body}`;
+}
+// Format a leading term: "3x", "-x", "5"
+function leadTerm(n, varStr=''){
+  if(n===0) return varStr==='' ? '0' : '';
+  const abs = Math.abs(n);
+  const body = varStr==='' ? String(abs) : (abs===1 ? varStr : `${abs}${varStr}`);
+  return n<0 ? `−${body}` : body;
+}
+// Format a complex number a+bi with clean handling of zeros / ±1
+function complexStr(re, im){
+  if(im===0) return String(re);
+  const iPart = Math.abs(im)===1 ? 'i' : `${Math.abs(im)}i`;
+  if(re===0) return im<0 ? `−${iPart}` : iPart;
+  return im>=0 ? `${re} + ${iPart}` : `${re} − ${iPart}`;
+}
+
+/* ---------- Persistence ---------- */
+const KEY = 'glowmath.keaton.v1';
+const defaultState = () => ({
+  totalPoints:0, coins:0,
+  streak:0, lastDay:null,
+  mastery:{}, // topicKey -> {correct, total, xp}
+  badges:{}, // key -> {earnedAt}
+  dailyProgress:{}, // 'YYYY-MM-DD' -> {done:n, correct:n, points:n}
+  runwayBest:0,
+  answered:0, correctTotal:0,
+  createdAt: Date.now()
+});
+let state = load();
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return {...defaultState(), ...parsed};
+  }catch(e){ return defaultState(); }
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+  if(!DAD_VIEW) refreshGlowCode();
+}
+function resetAll(){
+  if(!confirm('Reset all Glow Math progress? This cannot be undone.')) return;
+  state = defaultState();
+  save();
+  renderAll();
+  closeModal();
+}
+
+/* ---------- Tiers ---------- */
+const TIERS = [
+  {key:'insider', name:'Insider',  min:0,    color:'#e0879a'},
+  {key:'glow',    name:'Glow',     min:500,  color:'#f8c8dc'},
+  {key:'rouge',   name:'Rouge',    min:2000, color:'#c71585'},
+  {key:'icon',    name:'Icon',     min:5000, color:'#d4af37'},
+];
+function tierOf(pts){
+  let cur = TIERS[0];
+  for(const t of TIERS){ if(pts>=t.min) cur = t; }
+  const idx = TIERS.indexOf(cur);
+  const next = TIERS[idx+1];
+  return { cur, next };
+}
+
+/* ---------- Topics ---------- */
+const TOPICS = [
+  { key:'linear',   name:'Linear Equations',   em:'💋', blurb:'Solve for x. The classic.', gens:['linearEasy','linearMed','linearHard'] },
+  { key:'systems',  name:'Systems',            em:'💎', blurb:'Two equations, two unknowns.', gens:['sysEasy','sysMed','sysHard'] },
+  { key:'quadratic',name:'Quadratics',         em:'💄', blurb:'Factor. Formula. Vertex.',    gens:['qEasy','qMed','qHard'] },
+  { key:'functions',name:'Functions',          em:'👛', blurb:'Domain, evaluate, compose.',  gens:['fnEasy','fnMed','fnHard'] },
+  { key:'polynomial',name:'Polynomials',       em:'🎀', blurb:'Add, subtract, multiply.',    gens:['polyEasy','polyMed','polyHard'] },
+  { key:'rational', name:'Rational Expr.',     em:'🌹', blurb:'Simplify & combine.',         gens:['ratEasy','ratMed','ratHard'] },
+  { key:'exp',      name:'Exponents & Logs',   em:'✨', blurb:'Rules, evaluate, solve.',     gens:['expEasy','expMed','expHard'] },
+  { key:'radical',  name:'Radicals & Complex', em:'💅', blurb:'Roots, i, and friends.',      gens:['radEasy','radMed','radHard'] },
+];
+const topicByKey = Object.fromEntries(TOPICS.map(t=>[t.key,t]));
+
+const LEVELS = [
+  {key:'easy',   name:'Warm-Up',   pts:10, sub:'5 problems · new to it'},
+  {key:'medium', name:'Full Face', pts:20, sub:'5 problems · getting fluent'},
+  {key:'hard',   name:'Runway',    pts:40, sub:'5 problems · own it'},
+];
+
+/* ---------- Badges ---------- */
+const BADGES = [
+  {key:'first',    em:'💋', name:'First Look',       desc:'Complete your first problem'},
+  {key:'streak3',  em:'🔥', name:'3-Day Glow',       desc:'3-day streak'},
+  {key:'streak7',  em:'⚡', name:'Full Week',        desc:'7-day streak'},
+  {key:'daily5',   em:'🌸', name:'Regular',          desc:'5 Daily Looks done'},
+  {key:'linear',   em:'💎', name:'Solver',           desc:'Master Linear (80%+)'},
+  {key:'quad',     em:'💄', name:'Formula Queen',    desc:'Master Quadratics'},
+  {key:'fn',       em:'👛', name:'Function Icon',    desc:'Master Functions'},
+  {key:'poly',     em:'🎀', name:'Polynomial Pro',   desc:'Master Polynomials'},
+  {key:'rat',      em:'🌹', name:'Reducer',          desc:'Master Rationals'},
+  {key:'exp',      em:'✨', name:'Log Legend',       desc:'Master Exp/Logs'},
+  {key:'runway',   em:'👑', name:'On the Runway',    desc:'Pass a Runway (8/10)'},
+  {key:'flawless', em:'💯', name:'Flawless',         desc:'5/5 on a session'},
+];
+const BADGE_MASTERY_MAP = { linear:'linear', quadratic:'quad', functions:'fn', polynomial:'poly', rational:'rat', exp:'exp' };
+
+/* ---------- Problem generators ---------- */
+/* Each returns { q:htmlString, choices:[strings], correct:index, steps:[str], type:'mc'|'free', answer:string, hint:string, tag:{topic, level} } */
+
+function mc(q, choices, correctIdx, steps, hint, meta){
+  return { type:'mc', q, choices, correct:correctIdx, steps, hint, ...meta };
+}
+function free(q, answer, steps, hint, validator, meta){
+  return { type:'free', q, answer, steps, hint, validator, ...meta };
+}
+
+/* -- Linear -- */
+function linearEasy(){
+  // ax + b = c
+  const a = rand(2,9), x = rand(-8,8);
+  let b = rand(-9,9); if(b===0) b = pick([-3,3]);
+  const c = a*x + b;
+  const q = `Solve for <i>x</i>:  ${a}x${signTerm(b)} = ${c}`;
+  const answer = String(x);
+  const wrong = new Set([String(x)]);
+  while(wrong.size<4){
+    const off = rand(-4,4); if(off===0) continue;
+    wrong.add(String(x+off));
+  }
+  const opts = [...wrong]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(answer), [
+    `<b>Isolate the x term.</b> Subtract ${b} from both sides: ${a}x = ${c-b}`,
+    `<b>Divide.</b> x = ${c-b} ÷ ${a} = <b>${x}</b>`
+  ], 'Undo the constant first, then divide by the coefficient.', {tag:{topic:'linear', level:'easy'}});
+}
+function linearMed(){
+  // ax + b = cx + d, a != c, both nonzero
+  let a=rand(2,7); let c=rand(-6,6); while(a===c || c===0) c=rand(-6,6);
+  const x = rand(-6,6);
+  let b = rand(-9,9); if(b===0) b = pick([-2,2]);
+  const d = a*x + b - c*x;
+  const q = `Solve:  ${leadTerm(a,'x')}${signTerm(b)} = ${leadTerm(c,'x')}${signTerm(d)}`;
+  const answer = String(x);
+  const wrong = new Set([answer]);
+  while(wrong.size<4){ const o=rand(-6,6); if(o!==x) wrong.add(String(o)); }
+  const opts=[...wrong]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(answer), [
+    `<b>Collect x on one side.</b> ${leadTerm(a-c,'x')}${signTerm(b)} = ${d}`,
+    `<b>Isolate.</b> ${leadTerm(a-c,'x')} = ${d-b}`,
+    `<b>Divide.</b> x = ${d-b}/${a-c} = <b>${x}</b>`
+  ], 'Move variables to one side, numbers to the other.', {tag:{topic:'linear', level:'medium'}});
+}
+function linearHard(){
+  // Distribution: a(x + p) = b(x + q) + r
+  const a = rand(2,5), b = rand(2,5); if(a===b) return linearHard();
+  let p = rand(-6,6); if(p===0) p = pick([-2,2]);
+  let q = rand(-6,6); if(q===0) q = pick([-2,2]);
+  const x = rand(-5,5);
+  // ax + ap = bx + bq + r => r = (a-b)x + ap - bq
+  const r = (a-b)*x + a*p - b*q;
+  const qStr = `Solve:  ${a}(x${signTerm(p)}) = ${b}(x${signTerm(q)})${signTerm(r)}`;
+  const answer = String(x);
+  const wrong = new Set([answer]);
+  while(wrong.size<4){ const o=rand(-6,6); if(o!==x) wrong.add(String(o)); }
+  const opts=[...wrong]; shuffle(opts);
+  return mc(qStr, opts, opts.indexOf(answer), [
+    `<b>Distribute.</b> ${a}x${signTerm(a*p)} = ${b}x${signTerm(b*q)}${signTerm(r)}`,
+    `<b>Combine like terms.</b> ${leadTerm(a-b,'x')} = ${b*q - a*p + r}`,
+    `<b>Divide.</b> x = <b>${x}</b>`
+  ], 'Distribute first — nothing survives the parentheses.', {tag:{topic:'linear', level:'hard'}});
+}
+
+/* -- Systems 2x2 -- */
+function sysEasy(){
+  // solution (x,y) integers, simple, non-trivial
+  let x=rand(-4,4), y=rand(-4,4);
+  if(x===0 && y===0){ x = pick([-2,-1,1,2]); }
+  const a=rand(1,3), b=rand(1,3), c=rand(1,3), d=rand(1,3);
+  if(a*d - c*b === 0) return sysEasy();
+  const e = a*x + b*y, f = c*x + d*y;
+  const q = `Solve the system:<br>${leadTerm(a,'x')}${signTerm(b,'y')} = ${e}<br>${leadTerm(c,'x')}${signTerm(d,'y')} = ${f}`;
+  return sysMake(q, x, y, 'easy');
+}
+function sysMed(){
+  let x=rand(-6,6), y=rand(-6,6);
+  if(x===0 && y===0){ y = pick([-2,-1,1,2]); }
+  const a=rand(-4,4)||1, b=rand(-4,4)||1, c=rand(-4,4)||1, d=rand(-4,4)||1;
+  if(a*d - c*b === 0) return sysMed();
+  const e = a*x + b*y, f = c*x + d*y;
+  const q = `Solve the system:<br>${leadTerm(a,'x')}${signTerm(b,'y')} = ${e}<br>${leadTerm(c,'x')}${signTerm(d,'y')} = ${f}`;
+  return sysMake(q, x, y, 'medium');
+}
+function sysHard(){
+  let x=rand(-6,6), y=rand(-6,6);
+  if(x===0 && y===0){ x = pick([-3,-2,2,3]); }
+  const a=rand(2,5), b=rand(2,5), c=rand(2,5), d=rand(2,5);
+  if(a*d - c*b === 0) return sysHard();
+  const e = a*x - b*y, f = -c*x + d*y;
+  const q = `Solve:<br>${leadTerm(a,'x')} − ${leadTerm(b,'y')} = ${e}<br>${leadTerm(-c,'x')}${signTerm(d,'y')} = ${f}`;
+  return sysMake(q, x, y, 'hard');
+}
+function sysMake(q,x,y,level){
+  const answer = `(${x}, ${y})`;
+  const wrong = new Set([answer]);
+  while(wrong.size<4){
+    const dx=rand(-3,3), dy=rand(-3,3); if(dx===0&&dy===0) continue;
+    wrong.add(`(${x+dx}, ${y+dy})`);
+  }
+  const opts=[...wrong]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(answer), [
+    `<b>Pick a method.</b> Elimination or substitution.`,
+    `<b>Solve for x.</b> x = <b>${x}</b>`,
+    `<b>Back-sub.</b> y = <b>${y}</b>`
+  ], 'Line up a variable to eliminate — or solve one equation for x and substitute.', {tag:{topic:'systems', level}});
+}
+
+/* -- Quadratics -- */
+function qEasy(){
+  // Factor x^2 + bx + c => (x-r)(x-s), keep non-degenerate
+  let r = rand(-6,6), s = rand(-6,6);
+  if(r===0 && s===0) return qEasy();
+  const b = -(r+s), c = r*s;
+  if(b===0 && c===0) return qEasy();
+  const q = `Factor:  x²${signTerm(b,'x')}${signTerm(c)}`;
+  const showR = -r, showS = -s;
+  const factorStr = (v)=> v===0 ? 'x' : `(x${signTerm(v)})`;
+  const answer = `${factorStr(showR)}${factorStr(showS)}`;
+  const wrongs = new Set([answer]);
+  let guard = 0;
+  while(wrongs.size<4 && guard++<50){
+    const rr = rand(-6,6), ss = rand(-6,6);
+    const w = `${factorStr(-rr)}${factorStr(-ss)}`;
+    if(w!==answer) wrongs.add(w);
+  }
+  const opts=[...wrongs]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(answer), [
+    `<b>Find two numbers that multiply to ${c} and add to ${b}.</b>`,
+    `They are ${r} and ${s}.`,
+    `Answer: <b>${answer}</b>`
+  ], `Two numbers, product = ${c}, sum = ${b}.`, {tag:{topic:'quadratic', level:'easy'}});
+}
+function qMed(){
+  // Solve x^2 + bx + c = 0 by factoring
+  const r = rand(-8,8), s = rand(-8,8);
+  if(r===s) return qMed();
+  const b = -(r+s), c = r*s;
+  if(b===0 && c===0) return qMed();
+  const q = `Solve:  x²${signTerm(b,'x')}${signTerm(c)} = 0`;
+  const sortRoots = [r,s].sort((a,b)=>a-b);
+  const answer = `x = ${sortRoots[0]}, ${sortRoots[1]}`;
+  const wrongs = new Set([answer]);
+  while(wrongs.size<4){
+    let rr = rand(-8,8), ss = rand(-8,8);
+    if(rr===r && ss===s) continue;
+    const w = `x = ${Math.min(rr,ss)}, ${Math.max(rr,ss)}`;
+    wrongs.add(w);
+  }
+  const opts=[...wrongs]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(answer), [
+    `<b>Factor.</b> (x ${(-r)>=0?'+ '+(-r):'− '+r})(x ${(-s)>=0?'+ '+(-s):'− '+s}) = 0`,
+    `<b>Set each factor to 0.</b> x = ${r}  or  x = ${s}`
+  ], 'Two numbers that multiply and add correctly, then zero-product.', {tag:{topic:'quadratic', level:'medium'}});
+}
+function qHard(){
+  // Quadratic formula, integer or simple radical answers.
+  // We'll pick a,b,c so discriminant is perfect square.
+  let a=rand(1,3), r=rand(-5,5), s=rand(-5,5);
+  if(r===s) s+=1;
+  // a(x-r)(x-s) = a x^2 - a(r+s) x + a r s
+  const b = -a*(r+s), c = a*r*s;
+  if(b===0 || c===0) return qHard(); // keep it interesting
+  const aStr = a===1 ? 'x²' : `${a}x²`;
+  const q = `Use the Quadratic Formula:  ${aStr}${signTerm(b,'x')}${signTerm(c)} = 0`;
+  const disc = b*b - 4*a*c;
+  const rootDisc = Math.sqrt(disc);
+  const sorted = [r,s].sort((x,y)=>x-y);
+  const answer = `x = ${sorted[0]}, ${sorted[1]}`;
+  const wrongs = new Set([answer]);
+  while(wrongs.size<4){
+    let rr=rand(-5,5), ss=rand(-5,5); if(rr===r&&ss===s) continue;
+    wrongs.add(`x = ${Math.min(rr,ss)}, ${Math.max(rr,ss)}`);
+  }
+  const opts=[...wrongs]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(answer), [
+    `<b>Plug in.</b> x = (−(${b}) ± √(${b}² − 4·${a}·${c})) / (2·${a})`,
+    `<b>Discriminant.</b> ${b}² − ${4*a*c} = ${disc}, so √Δ = ${rootDisc}`,
+    `<b>Two solutions.</b> x = <b>${r}</b> and x = <b>${s}</b>`
+  ], 'x = (−b ± √(b² − 4ac)) / (2a).', {tag:{topic:'quadratic', level:'hard'}});
+}
+
+/* -- Functions -- */
+function fnEasy(){
+  const a=rand(2,5); let b=rand(-6,6); if(b===0) b=pick([-3,3]);
+  const k=rand(-5,5);
+  const q = `If f(x) = ${a}x${signTerm(b)}, find f(${k}).`;
+  const ans = a*k+b;
+  const wrongs = new Set([String(ans)]);
+  while(wrongs.size<4){ const o=ans+rand(-6,6); if(o!==ans) wrongs.add(String(o)); }
+  const opts=[...wrongs]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(String(ans)), [
+    `<b>Substitute.</b> f(${k}) = ${a}·(${k})${signTerm(b)}`,
+    `= ${a*k}${signTerm(b)} = <b>${ans}</b>`
+  ], 'Just plug the number into every x.', {tag:{topic:'functions', level:'easy'}});
+}
+function fnMed(){
+  // Domain of rational: f(x) = 1/(x - k), k != 0
+  let denomZero = rand(-6,6); if(denomZero===0) denomZero = pick([-3,-2,2,3]);
+  const q = `What value must x avoid in the domain of  f(x) = 1 / (x${signTerm(-denomZero)})?`;
+  const ans = `x = ${denomZero}`;
+  const wrongs = new Set([ans]);
+  while(wrongs.size<4){ const o=denomZero+(rand(-4,4)||1); if(o!==denomZero) wrongs.add(`x = ${o}`); }
+  const opts=[...wrongs]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>Set denominator = 0.</b> x${signTerm(-denomZero)} = 0`,
+    `x = <b>${denomZero}</b>. That value is excluded.`
+  ], 'Denominator can never be 0.', {tag:{topic:'functions', level:'medium'}});
+}
+function fnHard(){
+  // Composition (f∘g)(k)
+  const a=rand(2,4); let b=rand(-4,4); if(b===0) b=pick([-2,2]);
+  const c=rand(2,4); let d=rand(-4,4); if(d===0) d=pick([-2,2]);
+  const k=rand(-4,4);
+  const inner = c*k+d;
+  const ans = a*inner+b;
+  const q = `If f(x) = ${a}x${signTerm(b)} and g(x) = ${c}x${signTerm(d)}, find (f∘g)(${k}).`;
+  const wrongs = new Set([String(ans)]);
+  while(wrongs.size<4){ const o=ans+rand(-8,8); if(o!==ans) wrongs.add(String(o)); }
+  const opts=[...wrongs]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(String(ans)), [
+    `<b>Inside first.</b> g(${k}) = ${c}·${k}${signTerm(d)} = ${inner}`,
+    `<b>Then outside.</b> f(${inner}) = ${a}·${inner}${signTerm(b)} = <b>${ans}</b>`
+  ], 'Do g first, then plug into f.', {tag:{topic:'functions', level:'hard'}});
+}
+
+/* -- Polynomials -- */
+function polyEasy(){
+  // (a x^2 + b x + c) + (d x^2 + e x + f)
+  const a=rand(-4,4)||1,b=rand(-5,5),c=rand(-5,5),d=rand(-4,4)||1,e=rand(-5,5),f=rand(-5,5);
+  const q = `Simplify:  (${polyStr([a,b,c])}) + (${polyStr([d,e,f])})`;
+  const ans = polyStr([a+d, b+e, c+f]);
+  const wrongs = new Set([ans]);
+  while(wrongs.size<4){
+    const w = polyStr([a+d+rand(-2,2), b+e+rand(-2,2), c+f+rand(-2,2)]);
+    if(w!==ans) wrongs.add(w);
+  }
+  const opts=[...wrongs]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>Combine like terms.</b> x²: ${a}+${d}=${a+d};  x: ${b}+${e}=${b+e};  const: ${c}+${f}=${c+f}`,
+    `Result: <b>${ans}</b>`
+  ], 'Add coefficients of matching powers.', {tag:{topic:'polynomial', level:'easy'}});
+}
+function polyMed(){
+  // (a x + b)(c x + d)
+  const a=rand(-4,4)||1; let b=rand(-6,6); if(b===0) b=pick([-2,2]);
+  const c=rand(-4,4)||1; let d=rand(-6,6); if(d===0) d=pick([-2,2]);
+  const ac=a*c, ad=a*d+b*c, bd=b*d;
+  const q = `Multiply:  (${leadTerm(a,'x')}${signTerm(b)})(${leadTerm(c,'x')}${signTerm(d)})`;
+  const ans = polyStr([ac,ad,bd]);
+  const wrongs = new Set([ans]);
+  while(wrongs.size<4){
+    const w = polyStr([ac+rand(-2,2), ad+rand(-3,3), bd+rand(-3,3)]);
+    if(w!==ans) wrongs.add(w);
+  }
+  const opts=[...wrongs]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>FOIL.</b> First: ${a*c}x²; Outer+Inner: (${a*d}+${b*c})x = ${a*d+b*c}x; Last: ${b*d}`,
+    `Answer: <b>${ans}</b>`
+  ], 'First · Outer · Inner · Last.', {tag:{topic:'polynomial', level:'medium'}});
+}
+function polyHard(){
+  // (x + a)(x^2 + bx + c) expand — keep b,c nonzero for interest
+  const a=rand(-5,5)||1;
+  let b=rand(-5,5); if(b===0) b=pick([-2,2]);
+  let c=rand(-5,5); if(c===0) c=pick([-3,3]);
+  const co3 = 1;
+  const co2 = b + a;
+  const co1 = c + a*b;
+  const co0 = a*c;
+  const q = `Expand:  (x${signTerm(a)})(x²${signTerm(b,'x')}${signTerm(c)})`;
+  const ans = polyStr([co3,co2,co1,co0]);
+  const wrongs = new Set([ans]);
+  while(wrongs.size<4){
+    const w = polyStr([1, co2+rand(-2,2), co1+rand(-2,2), co0+rand(-3,3)]);
+    if(w!==ans) wrongs.add(w);
+  }
+  const opts=[...wrongs]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>Distribute x through the trinomial, then ${a} through it.</b>`,
+    `x³ + ${b}x² + ${c}x + ${a}x² + ${a*b}x + ${a*c}`,
+    `Combine: <b>${ans}</b>`
+  ], 'Distribute each term of the binomial across every term of the trinomial.', {tag:{topic:'polynomial', level:'hard'}});
+}
+
+/* -- Rationals -- */
+function ratEasy(){
+  // simplify (a b x) / (c b) style — actually: (n x) / (m) with common factor
+  const g = pick([2,3,4,5]);
+  const n = g*rand(1,5), d = g*rand(1,5);
+  const q = `Simplify:  ${n}x / ${d}`;
+  const [nn,dd] = reduceFrac(n,d);
+  const ans = dd===1 ? `${nn}x` : `${nn}x/${dd}`;
+  const wrongs = new Set([ans]);
+  while(wrongs.size<4){
+    const w = pick([`${n}x/${d}`, `${nn+1}x/${dd}`, `${nn}x/${dd+1}`, `${nn-1}x/${dd}`]);
+    if(w!==ans) wrongs.add(w);
+  }
+  const opts=[...wrongs]; shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>GCF of ${n} and ${d} is ${gcd(n,d)}.</b>`,
+    `Divide top and bottom: <b>${ans}</b>`
+  ], 'Reduce the fraction — divide by the greatest common factor.', {tag:{topic:'rational', level:'easy'}});
+}
+function ratMed(){
+  // (x^2 - a^2) / (x - a) = x + a
+  const a = rand(2,8);
+  const q = `Simplify:  (x² − ${a*a}) / (x − ${a})`;
+  const ans = `x + ${a}`;
+  const wrongs = new Set([ans, `x − ${a}`, `x + ${a*a}`, `x²`]);
+  const opts=[...wrongs].slice(0,4); shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>Factor the top.</b> x² − ${a*a} = (x − ${a})(x + ${a})`,
+    `<b>Cancel the common factor.</b> (x + ${a}) remains`,
+  ], 'Difference of squares: a² − b² = (a−b)(a+b).', {tag:{topic:'rational', level:'medium'}});
+}
+function ratHard(){
+  // Add fractions with unlike denominators (linear)
+  const a=rand(2,7), b=rand(2,7); if(a===b) return ratHard();
+  // 1/(x+a) + 1/(x+b) => (2x + a + b) / ((x+a)(x+b))
+  const q = `Add:  1/(x + ${a}) + 1/(x + ${b})`;
+  const ans = `(2x + ${a+b}) / ((x + ${a})(x + ${b}))`;
+  const wrongs = new Set([ans,
+    `2 / (2x + ${a+b})`,
+    `(x + ${a+b}) / ((x + ${a})(x + ${b}))`,
+    `(2x + ${a*b}) / ((x + ${a})(x + ${b}))`
+  ]);
+  const opts=[...wrongs].slice(0,4); shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>Common denominator</b>: (x + ${a})(x + ${b}).`,
+    `Rewrite: (x + ${b})/CD + (x + ${a})/CD`,
+    `Combine numerator: 2x + ${a+b}. Answer: <b>${ans}</b>`
+  ], 'Same denominator = product of the two.', {tag:{topic:'rational', level:'hard'}});
+}
+
+/* -- Exponents / Logs -- */
+function expEasy(){
+  // x^a * x^b
+  const a=rand(2,7), b=rand(2,7);
+  const q = `Simplify:  x${sup(a)} · x${sup(b)}`;
+  const ans = `x${sup(a+b)}`;
+  const wrongs = new Set([ans, `x${sup(a*b)}`, `x${sup(a-b)}`, `${a+b}x`]);
+  const opts=[...wrongs].slice(0,4); shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>Same base, add exponents.</b> ${a} + ${b} = ${a+b}`,
+    `Answer: <b>${ans}</b>`
+  ], 'Same base multiplied → add the exponents.', {tag:{topic:'exp', level:'easy'}});
+}
+function expMed(){
+  // Evaluate log_b(b^n) or log_b(x) with easy value
+  const b = pick([2,3,4,5,10]);
+  const n = rand(1,5);
+  const val = Math.pow(b,n);
+  const q = `Evaluate:  log<sub>${b}</sub>(${val})`;
+  const ans = String(n);
+  const wrongs = new Set([ans, String(n+1), String(n-1), String(val/b)]);
+  const opts=[...wrongs].slice(0,4); shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>Ask: ${b} to what power gives ${val}?</b>`,
+    `${b}${sup(n)} = ${val}, so the log is <b>${n}</b>`
+  ], `log_b(x) = the exponent that makes b^? = x.`, {tag:{topic:'exp', level:'medium'}});
+}
+function expHard(){
+  // Solve b^x = val
+  const b = pick([2,3,5]);
+  const n = rand(2,5);
+  const val = Math.pow(b,n);
+  const q = `Solve for x:  ${b}<sup>x</sup> = ${val}`;
+  const ans = String(n);
+  const wrongs = new Set([ans, String(n+1), String(n-1), String(b*n)]);
+  const opts=[...wrongs].slice(0,4); shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>Take log base ${b} of both sides.</b> x = log<sub>${b}</sub>(${val})`,
+    `${b}${sup(n)} = ${val}, so x = <b>${n}</b>`
+  ], 'Rewrite the right side as the base to some power.', {tag:{topic:'exp', level:'hard'}});
+}
+
+/* -- Radicals & Complex -- */
+function radEasy(){
+  // Simplify √(a^2 * b) where b squarefree small
+  const a = rand(2,6);
+  const b = pick([2,3,5,6,7,10,11,13]);
+  const inside = a*a*b;
+  const q = `Simplify:  √${inside}`;
+  const ans = `${a}√${b}`;
+  const wrongs = new Set([ans, `${a}√${b+1}`, `${a+1}√${b}`, `√${inside}`]);
+  const opts=[...wrongs].slice(0,4); shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>Find perfect-square factor.</b> ${inside} = ${a*a} · ${b}`,
+    `√(${a*a}·${b}) = ${a}√${b}`
+  ], 'Pull out the biggest perfect-square factor.', {tag:{topic:'radical', level:'easy'}});
+}
+function radMed(){
+  // Rationalize: a / √b
+  const a = rand(2,8), b = pick([2,3,5,7,11]);
+  const q = `Rationalize the denominator:  ${a} / √${b}`;
+  const ans = `${a}√${b} / ${b}`;
+  const wrongs = new Set([ans, `${a} / ${b}`, `${a*b}√${b}`, `√(${a*b})`]);
+  const opts=[...wrongs].slice(0,4); shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>Multiply top & bottom by √${b}.</b>`,
+    `= ${a}√${b} / ${b}`
+  ], 'Multiply top and bottom by whatever kills the radical below.', {tag:{topic:'radical', level:'medium'}});
+}
+function radHard(){
+  // (a + bi)(c + di) — ensure product's imag part ≠ 0 so it stays "complex"
+  let a,b,c,d,re,im,guard=0;
+  do {
+    a=rand(-5,5)||1; b=rand(-5,5)||1; c=rand(-5,5)||1; d=rand(-5,5)||1;
+    re = a*c - b*d; im = a*d + b*c;
+  } while(im===0 && guard++<20);
+  const q = `Multiply:  (${a}${signTerm(b,'i')})(${c}${signTerm(d,'i')})`;
+  const ans = complexStr(re, im);
+  const wrongs = new Set([ans,
+    complexStr(a*c, im),
+    complexStr(re, -im),
+    complexStr(a*c + b*d, im)
+  ]);
+  const opts=[...wrongs].slice(0,4); shuffle(opts);
+  return mc(q, opts, opts.indexOf(ans), [
+    `<b>FOIL.</b> ${a}·${c} + ${a}·${d}i + ${b}i·${c} + ${b}i·${d}i`,
+    `<b>i² = −1.</b> Real: ${a*c} − (${b*d}) = ${re};  Imag: ${a*d} + ${b*c} = ${im}`,
+    `Answer: <b>${ans}</b>`
+  ], 'FOIL, then replace i² with −1.', {tag:{topic:'radical', level:'hard'}});
+}
+
+const GEN_MAP = {
+  linearEasy, linearMed, linearHard,
+  sysEasy, sysMed, sysHard,
+  qEasy, qMed, qHard,
+  fnEasy, fnMed, fnHard,
+  polyEasy, polyMed, polyHard,
+  ratEasy, ratMed, ratHard,
+  expEasy, expMed, expHard,
+  radEasy, radMed, radHard,
+};
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+
+/* ---------- Session engine ---------- */
+let sess = null;
+function startSession({topic, level, size=5, kind='topic', title=null, mixed=false, timed=false}){
+  const problems = [];
+  const gens = mixed
+    ? TOPICS.flatMap(t=>t.gens).map(k=>GEN_MAP[k])
+    : [GEN_MAP[topicByKey[topic].gens[LEVELS.findIndex(l=>l.key===level)]]];
+  for(let i=0;i<size;i++){
+    const g = mixed ? pick(gens) : gens[0];
+    problems.push(g());
+  }
+  sess = {
+    problems, idx:0, correct:0, points:0, kind, title, mixed, timed,
+    startedAt: Date.now(),
+    topic, level,
+    hintUsed:false,
+    answered:new Array(size).fill(null),
+    timer:null, timeLeft: timed?300:0
+  };
+  go('problem');
+  renderProblem();
+  if(timed) startTimer();
+}
+function startTimer(){
+  const el = $('#qTimer'); el.hidden = false;
+  const tick = ()=>{
+    if(!sess) return;
+    sess.timeLeft--;
+    el.textContent = `⏱ ${Math.floor(sess.timeLeft/60)}:${String(sess.timeLeft%60).padStart(2,'0')}`;
+    el.classList.toggle('low', sess.timeLeft<=30);
+    if(sess.timeLeft<=0){ clearInterval(sess.timer); finishSession(); return; }
+  };
+  tick();
+  sess.timer = setInterval(tick, 1000);
+}
+
+function renderProblem(){
+  const p = sess.problems[sess.idx];
+  $('#sessLabel').textContent = sess.title || `${topicByKey[sess.topic]?.name || 'Mixed'} · ${sess.idx+1}/${sess.problems.length}`;
+  $('#sessBar').style.width = `${(sess.idx/sess.problems.length)*100}%`;
+  $('#qTopic').textContent = topicByKey[p.tag.topic]?.name || p.tag.topic;
+  $('#qDiff').textContent = p.tag.level;
+  const worth = LEVELS.find(l=>l.key===p.tag.level).pts * (sess.kind==='daily'?2:1);
+  $('#qWorth').textContent = `+${worth} pts`;
+  $('#qPrompt').innerHTML = p.q;
+  $('#qFeedback').className = 'feedback';
+  $('#qFeedback').textContent = '';
+  $('#qSteps').hidden = true;
+  $('#qHint').hidden = true;
+  $('#nextBtn').hidden = true;
+  $('#hintBtn').disabled = false; $('#hintBtn').style.opacity = 1;
+  sess.hintUsed = false;
+
+  if(p.type==='mc'){
+    $('#qChoices').hidden = false;
+    $('#qFreeWrap').hidden = true;
+    const letters = ['A','B','C','D','E','F'];
+    $('#qChoices').innerHTML = '';
+    p.choices.forEach((c,i)=>{
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${c}</span>`;
+      btn.onclick = ()=>chooseMC(i, btn);
+      $('#qChoices').appendChild(btn);
+    });
+  } else {
+    $('#qChoices').hidden = true;
+    $('#qFreeWrap').hidden = false;
+    $('#qFree').value = '';
+    setTimeout(()=>$('#qFree').focus(), 100);
+  }
+}
+
+function chooseMC(i, btn){
+  const p = sess.problems[sess.idx];
+  if(sess.answered[sess.idx]!==null) return;
+  const isRight = i===p.correct;
+  sess.answered[sess.idx] = i;
+  $$('#qChoices .choice').forEach((b,k)=>{
+    b.disabled = true;
+    if(k===p.correct) b.classList.add('correct');
+    else if(k===i) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  handleResult(isRight);
+}
+function submitFree(){
+  const p = sess.problems[sess.idx];
+  if(sess.answered[sess.idx]!==null) return;
+  const raw = $('#qFree').value.trim();
+  const isRight = p.validator ? p.validator(raw) : (raw.replace(/\s+/g,'') === String(p.answer).replace(/\s+/g,''));
+  sess.answered[sess.idx] = raw;
+  handleResult(isRight);
+}
+function handleResult(isRight){
+  const p = sess.problems[sess.idx];
+  const base = LEVELS.find(l=>l.key===p.tag.level).pts;
+  const multi = sess.kind==='daily' ? 2 : (sess.kind==='boss' ? 1.5 : 1);
+  const streakBonus = Math.min(2, 1 + state.streak*0.05);
+  let pts = 0;
+  if(isRight){
+    pts = Math.round(base * multi * streakBonus);
+    if(sess.hintUsed) pts = Math.max(1, pts - 3);
+    sess.correct++;
+    sess.points += pts;
+  }
+  // record mastery
+  const tk = p.tag.topic;
+  if(!state.mastery[tk]) state.mastery[tk] = {correct:0, total:0, xp:0};
+  state.mastery[tk].total++;
+  if(isRight){ state.mastery[tk].correct++; state.mastery[tk].xp += pts; }
+  state.answered++;
+  if(isRight) state.correctTotal++;
+  save();
+
+  const fb = $('#qFeedback');
+  const compliments = ['💋 Iconic.','✨ Gorgeous.','💯 Chef’s kiss.','🔥 Serve.','💎 Clean.','👑 Queen.','🌹 Divine.'];
+  const nudges = ['Almost — see the walkthrough.','Not quite. Look at the steps.','Close! Peek at the solve.','Try again next round — here’s how it works.'];
+  fb.className = 'feedback ' + (isRight?'ok':'no');
+  fb.innerHTML = isRight
+    ? `<span class="head">${pick(compliments)}</span>  +${pts} pts${state.streak>=3?` · ×${streakBonus.toFixed(2)} streak`:''}`
+    : `<span class="head">${pick(nudges)}</span>`;
+  const steps = $('#qSteps');
+  steps.hidden = false;
+  steps.innerHTML = `<div class="dim mb-1">HOW TO GET IT</div><ol>${p.steps.map(s=>`<li>${s}</li>`).join('')}</ol>`;
+  $('#nextBtn').hidden = false;
+  $('#nextBtn').textContent = sess.idx===sess.problems.length-1 ? 'Finish ›' : 'Next ›';
+
+  if(isRight) confetti(6);
+}
+function revealHint(){
+  const p = sess.problems[sess.idx];
+  if(!p.hint) return;
+  sess.hintUsed = true;
+  $('#qHint').hidden = false;
+  $('#qHint').textContent = `💡 ${p.hint}`;
+  $('#hintBtn').disabled = true; $('#hintBtn').style.opacity = .5;
+}
+function nextProblem(){
+  if(sess.idx < sess.problems.length-1){
+    sess.idx++;
+    renderProblem();
+  } else {
+    finishSession();
+  }
+}
+function quitSession(){
+  if(sess && sess.timer) clearInterval(sess.timer);
+  sess = null;
+  go('home');
+}
+function repeatSession(){
+  if(!lastSess) return go('home');
+  startSession(lastSess);
+}
+let lastSess = null;
+function finishSession(){
+  if(sess.timer) clearInterval(sess.timer);
+  lastSess = { topic: sess.topic, level: sess.level, size: sess.problems.length, kind: sess.kind, title: sess.title, mixed: sess.mixed, timed: sess.timed };
+
+  // update global stats
+  const gained = sess.points;
+  state.totalPoints += gained;
+  const coinGain = Math.round(gained * 0.4);
+  state.coins += coinGain;
+
+  // streak
+  const today = ymd(new Date());
+  const last = state.lastDay;
+  if(last !== today){
+    if(last && isYesterday(last, today)){ state.streak++; }
+    else { state.streak = 1; }
+    state.lastDay = today;
+  }
+
+  // daily progress
+  if(sess.kind==='daily'){
+    const d = state.dailyProgress[today] = state.dailyProgress[today] || {done:0, correct:0, points:0};
+    d.done += sess.problems.length;
+    d.correct += sess.correct;
+    d.points += gained;
+  }
+  if(sess.kind==='boss'){
+    if(sess.correct > state.runwayBest) state.runwayBest = sess.correct;
+  }
+
+  // Badges
+  const newBadges = checkBadges();
+
+  save();
+
+  // Render summary
+  $('#sumCorrect').textContent = `${sess.correct}/${sess.problems.length}`;
+  $('#sumPoints').textContent = `+${gained}`;
+  $('#sumStreak').textContent = state.streak;
+  const acc = sess.correct / sess.problems.length;
+  $('#sumEmoji').textContent = acc>=1?'👑' : acc>=0.8?'💋' : acc>=0.6?'💄' : '🌹';
+  $('#sumTitle').textContent = acc>=1?'Flawless.' : acc>=0.8?'Serving.' : acc>=0.6?'Solid.' : 'Showed up. That counts.';
+  $('#sumBlurb').textContent = acc>=1?'Zero misses. Take a bow.' :
+    acc>=0.8?`You earned ${coinGain} coins. Streak is at ${state.streak}. 🔥` :
+    acc>=0.6?`Half-way to fluent. One more round?` :
+    `The wins compound. Come back tomorrow — streak survives.`;
+
+  if(newBadges.length){
+    $('#newBadgesWrap').hidden = false;
+    $('#newBadges').innerHTML = newBadges.map(b=>`<div class="badge earned"><span class="em">${b.em}</span><b>${b.name}</b><span>${b.desc}</span></div>`).join('');
+  } else {
+    $('#newBadgesWrap').hidden = true;
+  }
+
+  sess = null;
+  go('summary');
+  if(gained>0) confetti(30);
+}
+function checkBadges(){
+  const gained = [];
+  const grant = k => { if(!state.badges[k]){ state.badges[k] = {earnedAt: Date.now()}; gained.push(BADGES.find(b=>b.key===k)); } };
+  if(state.answered>=1) grant('first');
+  if(state.streak>=3) grant('streak3');
+  if(state.streak>=7) grant('streak7');
+  const dailies = Object.values(state.dailyProgress).filter(d=>d.done>=5).length;
+  if(dailies>=5) grant('daily5');
+  for(const t of TOPICS){
+    const m = state.mastery[t.key];
+    if(!m || m.total<10) continue;
+    const acc = m.correct/m.total;
+    if(acc>=0.8 && BADGE_MASTERY_MAP[t.key]) grant(BADGE_MASTERY_MAP[t.key]);
+  }
+  if(sess && sess.kind==='boss' && sess.correct>=8) grant('runway');
+  if(sess && sess.correct===sess.problems.length && sess.problems.length>=5) grant('flawless');
+  return gained;
+}
+
+/* ---------- Daily challenge ---------- */
+function todayTopic(){
+  const d = new Date();
+  const seed = d.getFullYear()*1000 + (d.getMonth()+1)*40 + d.getDate();
+  return TOPICS[seed % TOPICS.length];
+}
+function startDaily(){
+  const t = todayTopic();
+  startSession({topic:t.key, level:'medium', size:5, kind:'daily', title:`Today's Look · ${t.name}`});
+}
+
+/* ---------- Runway (boss) ---------- */
+function openBoss(){
+  showModal(`
+    <div class="kicker">👑 THE RUNWAY</div>
+    <h2 class="serif mt-1">10 problems. All topics. 5 minutes.</h2>
+    <p class="muted mt-1">1.5× points. Score 8+ to unlock the Runway badge. Skip nothing.</p>
+    <div class="stat mt-2" style="text-align:left;"><b class="serif">Best: ${state.runwayBest}/10</b><span>Personal record</span></div>
+    <div class="mt-2" style="display:flex; gap:8px;">
+      <button class="btn btn-primary btn-block" onclick="closeModal(); startBoss();">Strut ›</button>
+    </div>
+  `);
+}
+function startBoss(){
+  startSession({size:10, kind:'boss', title:'The Runway · Mixed', mixed:true, timed:true, topic:null, level:null});
+}
+
+/* ---------- Rendering ---------- */
+function renderHero(){
+  const { cur, next } = tierOf(state.totalPoints);
+  $('#tierChip').textContent = cur.name;
+  $('#tierName').textContent = cur.name;
+  $('#ptsBig').textContent = state.totalPoints.toLocaleString();
+  $('#tierNow').textContent = cur.name;
+  if(next){
+    $('#tierNext').textContent = `${next.name} · ${next.min.toLocaleString()} pts`;
+    const pct = ((state.totalPoints - cur.min) / (next.min - cur.min)) * 100;
+    $('#tierBar').style.width = `${Math.min(100,Math.max(0,pct))}%`;
+  } else {
+    $('#tierNext').textContent = 'Max tier ✨';
+    $('#tierBar').style.width = '100%';
+  }
+  $('#stStreak').textContent = state.streak;
+  $('#stCoins').textContent = state.coins;
+  $('#stAcc').textContent = state.answered ? `${Math.round(100*state.correctTotal/state.answered)}%` : '—';
+}
+function renderDaily(){
+  const t = todayTopic();
+  const today = ymd(new Date());
+  const d = state.dailyProgress[today] || {done:0, correct:0, points:0};
+  $('#dailyTitle').textContent = t.name;
+  $('#dailyBlurb').textContent = `5 problems · 2× points · ${t.blurb}`;
+  $('#dailyDateLabel').textContent = new Date().toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'});
+  const pct = Math.min(100, (d.done/5)*100);
+  $('#dailyProg').style.width = `${pct}%`;
+  $('#dailyStatus').textContent = d.done>=5 ? `✓ Done today (${d.correct}/${d.done}, +${d.points} pts)` : `${d.done}/5 · ${d.correct} correct`;
+  $('#dailyBtn').textContent = d.done>=5 ? 'Do another set ›' : 'Begin ›';
+}
+function renderTopics(){
+  const g = $('#topicGrid'); g.innerHTML='';
+  TOPICS.forEach(t=>{
+    const m = state.mastery[t.key] || {correct:0, total:0, xp:0};
+    const mastery = m.total ? Math.round(100*m.correct/m.total) : 0;
+    const tile = document.createElement('button');
+    tile.className='tile';
+    tile.innerHTML = `<span class="em">${t.em}</span>
+      <b>${t.name}</b>
+      <span class="mini">${m.total} solved · ${mastery}% mastery</span>
+      <div class="bar"><span style="width:${mastery}%"></span></div>`;
+    tile.onclick = ()=>openTopic(t.key);
+    g.appendChild(tile);
+  });
+}
+function renderBadgesShort(){
+  const earned = Object.keys(state.badges).length;
+  $('#badgeCount').textContent = `${earned} / ${BADGES.length}`;
+  const list = BADGES.slice(0,6);
+  $('#badgesShort').innerHTML = list.map(b=>{
+    const has = !!state.badges[b.key];
+    return `<div class="badge ${has?'earned':''}"><span class="em">${b.em}</span><b>${b.name}</b><span>${has?b.desc:'Locked'}</span></div>`;
+  }).join('');
+}
+function renderCollection(){
+  $('#masteryList').innerHTML = TOPICS.map(t=>{
+    const m = state.mastery[t.key] || {correct:0,total:0,xp:0};
+    const mastery = m.total ? Math.round(100*m.correct/m.total) : 0;
+    return `<div class="card" style="padding:12px;">
+      <div class="row between">
+        <div><b>${t.em} ${t.name}</b><div class="dim">${m.correct}/${m.total} correct · ${m.xp} XP</div></div>
+        <b class="serif" style="font-size:20px;">${mastery}%</b>
+      </div>
+      <div class="progress-mini mt-2"><span style="width:${mastery}%"></span></div>
+    </div>`;
+  }).join('');
+  const earned = Object.keys(state.badges).length;
+  $('#badgeCount2').textContent = `${earned} / ${BADGES.length}`;
+  $('#badgesAll').innerHTML = BADGES.map(b=>{
+    const has = !!state.badges[b.key];
+    return `<div class="badge ${has?'earned':''}"><span class="em">${b.em}</span><b>${b.name}</b><span>${has?b.desc:'Locked'}</span></div>`;
+  }).join('');
+}
+
+function openTopic(key){
+  const t = topicByKey[key];
+  $('#topicEmoji').textContent = t.em;
+  $('#topicTitle').textContent = t.name;
+  $('#topicBlurb').textContent = t.blurb;
+  const m = state.mastery[key] || {correct:0,total:0,xp:0};
+  const mastery = m.total ? Math.round(100*m.correct/m.total) : 0;
+  $('#topicMastery').textContent = `${mastery}%`;
+  $('#topicBar').style.width = `${mastery}%`;
+  const lg = $('#levelGrid'); lg.innerHTML='';
+  LEVELS.forEach(l=>{
+    const b = document.createElement('button');
+    b.className = 'tile';
+    b.innerHTML = `<span class="em">${l.key==='easy'?'✨':l.key==='medium'?'💄':'👑'}</span>
+      <b>${l.name}</b>
+      <span class="mini">${l.sub} · +${l.pts} each</span>`;
+    b.onclick = ()=>startSession({topic:key, level:l.key, size:5, kind:'topic', title:`${t.name} · ${l.name}`});
+    lg.appendChild(b);
+  });
+  go('topic');
+}
+
+function renderAll(){
+  renderHero(); renderDaily(); renderTopics(); renderBadgesShort(); renderCollection();
+  refreshGlowCode();
+}
+
+/* ---------- Nav ---------- */
+function go(name){
+  $$('.screen').forEach(s=>s.classList.remove('active'));
+  const s = $('#screen-'+name); if(s) s.classList.add('active');
+  $$('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.goto===name));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+$$('.nav-btn').forEach(b=>b.onclick = ()=>go(b.dataset.goto));
+
+/* ---------- Modal ---------- */
+function showModal(html){ $('#modalBody').innerHTML = html; $('#modal').classList.add('on'); }
+function closeModal(){ $('#modal').classList.remove('on'); }
+$('#modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeModal(); });
+
+/* ---------- Avatar menu ---------- */
+$('#avatarBtn').addEventListener('click', ()=>{
+  showModal(`
+    <div class="kicker">SETTINGS</div>
+    <h2 class="serif mt-1">Hey Keaton 💕</h2>
+    <p class="muted mt-1">Made by Dad. Every problem is generated fresh — no repeats.</p>
+    <div class="divider"></div>
+    <button class="btn btn-ghost btn-block mt-1" onclick="loadCodePrompt()">🔗 Load a Glow Code</button>
+    <button class="btn btn-ghost btn-block mt-1" onclick="exportBackup()">💾 Export progress backup</button>
+    <button class="btn btn-ghost btn-block mt-1" onclick="importBackupPrompt()">📥 Import backup</button>
+    <div class="divider"></div>
+    <button class="btn btn-ghost btn-block" onclick="resetAll()" style="color:var(--bad);">Reset all progress</button>
+    <div class="dim mt-2 center">Glow Math · v1</div>
+  `);
+});
+function exportBackup(){
+  const raw = JSON.stringify(state);
+  const enc = btoa(unescape(encodeURIComponent(raw)));
+  prompt('Copy this backup string. Paste it into Import to restore.', enc);
+}
+function importBackupPrompt(){
+  const s = prompt('Paste your backup string:');
+  if(!s) return;
+  try{
+    const raw = decodeURIComponent(escape(atob(s)));
+    const parsed = JSON.parse(raw);
+    state = {...defaultState(), ...parsed};
+    save(); renderAll(); closeModal();
+    alert('Restored ✓');
+  }catch(e){ alert('That code didn’t look right.'); }
+}
+function loadCodePrompt(){
+  const s = prompt('Paste a Glow Code from Keaton:');
+  if(!s) return;
+  location.search = `?d=${encodeURIComponent(s.trim())}`;
+}
+
+/* ---------- Share / Dad ---------- */
+function buildShareText(){
+  const { cur } = tierOf(state.totalPoints);
+  const acc = state.answered ? Math.round(100*state.correctTotal/state.answered) : 0;
+  const badges = Object.keys(state.badges).length;
+  return `hey dad 💕 glow math update:
+· ${cur.name} tier · ${state.totalPoints.toLocaleString()} glow pts
+· ${state.streak}🔥 day streak
+· ${acc}% aim · ${badges} badges
+· runway best: ${state.runwayBest}/10
+proud of me? 😌`;
+}
+function textDad(){
+  const body = buildShareText() + `\n\nsee live: (paste this into your app) ${buildGlowCode()}`;
+  const href = `sms:?&body=${encodeURIComponent(body)}`;
+  location.href = href;
+}
+function refreshGlowCode(){
+  const f = $('#glowCodeField'); if(!f) return;
+  f.value = buildGlowCode();
+}
+function buildGlowCode(){
+  const compact = {
+    p: state.totalPoints, c: state.coins, s: state.streak, l: state.lastDay,
+    m: state.mastery, b: Object.keys(state.badges), r: state.runwayBest,
+    a: state.answered, ct: state.correctTotal,
+    n: 'Keaton', t: Date.now()
+  };
+  return btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
+}
+function copyGlowCode(){
+  const code = buildGlowCode();
+  navigator.clipboard?.writeText(code).then(()=>{
+    toast('Glow Code copied ✨');
+  }, ()=>{
+    prompt('Copy this Glow Code:', code);
+  });
+}
+function showShareCard(){
+  const { cur } = tierOf(state.totalPoints);
+  const acc = state.answered ? Math.round(100*state.correctTotal/state.answered) : 0;
+  const badges = Object.keys(state.badges).length;
+  showModal(`
+    <div class="share-card">
+      <div class="brand">Glow Math · Keaton</div>
+      <div class="big">${cur.name}</div>
+      <div style="opacity:.85; margin-top:4px;">${state.totalPoints.toLocaleString()} glow pts</div>
+      <div class="grid3">
+        <div><b>${state.streak}</b><span>🔥 Streak</span></div>
+        <div><b>${acc}%</b><span>Aim</span></div>
+        <div><b>${badges}</b><span>Badges</span></div>
+      </div>
+      <div class="note">Screenshot & send Dad ✨</div>
+    </div>
+    <div class="mt-3" style="display:flex; gap:8px;">
+      <button class="btn btn-primary" onclick="textDad()">📱 Text Dad</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    </div>
+  `);
+}
+
+/* ---------- Toast ---------- */
+function toast(msg){
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'96px', left:'50%', transform:'translateX(-50%)',
+    background:'rgba(20,10,15,.95)', color:'#fadadd', padding:'10px 16px',
+    borderRadius:'999px', border:'1px solid rgba(255,255,255,.1)',
+    fontSize:'13px', zIndex:50, boxShadow:'0 8px 24px -12px rgba(0,0,0,.6)'
+  });
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),400); }, 1600);
+}
+
+/* ---------- Confetti ---------- */
+function confetti(n=20){
+  const c = $('#confetti');
+  const colors = ['#f8c8dc','#e0879a','#c71585','#d4af37','#ffffff'];
+  for(let i=0;i<n;i++){
+    const p = document.createElement('div');
+    p.className = 'conf-piece';
+    p.style.left = (Math.random()*100)+'vw';
+    p.style.top = (-10 - Math.random()*30)+'px';
+    p.style.background = pick(colors);
+    p.style.animationDuration = (1.2 + Math.random()*1.1)+'s';
+    p.style.transform = `rotate(${Math.random()*360}deg)`;
+    c.appendChild(p);
+    setTimeout(()=>p.remove(), 2200);
+  }
+}
+
+/* ---------- Date helpers ---------- */
+function ymd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function isYesterday(prev, todayStr){
+  const [y,m,d] = prev.split('-').map(Number);
+  const p = new Date(y, m-1, d);
+  const t = new Date(todayStr);
+  const diff = (t - p) / 86400000;
+  return diff === 1;
+}
+
+/* ---------- Dad view ---------- */
+let DAD_VIEW = false;
+function tryLoadDadView(){
+  const q = new URLSearchParams(location.search);
+  const d = q.get('d');
+  if(!d) return false;
+  try{
+    const raw = decodeURIComponent(escape(atob(d)));
+    const c = JSON.parse(raw);
+    // rebuild a read-only state
+    state = {
+      totalPoints: c.p||0, coins: c.c||0, streak: c.s||0, lastDay: c.l||null,
+      mastery: c.m||{}, badges: Object.fromEntries((c.b||[]).map(k=>[k,{earnedAt:0}])),
+      dailyProgress:{}, runwayBest: c.r||0,
+      answered: c.a||0, correctTotal: c.ct||0,
+      createdAt: c.t||Date.now()
+    };
+    DAD_VIEW = true;
+    document.body.classList.add('dad-view');
+    $('#dadBanner').hidden = false;
+    // disable clicks on start buttons
+    setTimeout(()=>{
+      $$('.btn-primary, .btn-gold').forEach(b=>{
+        if(!b.closest('#dadBanner')) {
+          b.disabled = true; b.style.opacity=.5; b.title='Dad view is read-only';
+        }
+      });
+      $$('.tile').forEach(t=>{ t.disabled=true; t.style.pointerEvents='none'; });
+    }, 50);
+    return true;
+  }catch(e){ console.warn('Bad glow code', e); return false; }
+}
+function exitDadView(){
+  history.replaceState(null,'',location.pathname);
+  location.reload();
+}
+
+/* ---------- Boot ---------- */
+tryLoadDadView();
+renderAll();
+
+// Warm greeting on first open
+if(!DAD_VIEW && !localStorage.getItem(KEY+'.greeted')){
+  localStorage.setItem(KEY+'.greeted','1');
+  setTimeout(()=>{
+    showModal(`
+      <div class="kicker">💌 A NOTE FROM DAD</div>
+      <h2 class="serif mt-1">Hey K —</h2>
+      <p class="muted mt-1" style="font-size:15px; line-height:1.55;">
+        Built this for you. It's Algebra 2 but wrapped like your favorite Sephora app.
+        Tap <b>Today's Look</b> to warm up (5 problems, 2× points). Do it every day and your streak grows.
+        Text me your Glow Code anytime — I'll open it and see your live stats.
+      </p>
+      <p class="muted mt-1" style="font-size:15px;">
+        No pressure. Just show up. Love you. 💕
+      </p>
+      <button class="btn btn-primary btn-block mt-3" onclick="closeModal()">Let's go ›</button>
+    `);
+  }, 300);
+}
+
+</script>
+</body>
+</html>
