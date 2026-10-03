@@ -1,0 +1,797 @@
+<title>Nathan's Command Center</title>
+<meta name="color-scheme" content="dark">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --ground: #0c1222;
+  --surface: #131b2e;
+  --surface-raised: #1a2540;
+  --border: #243050;
+  --copper: #c49a6c;
+  --copper-dim: rgba(196,154,108,.12);
+  --steel: #5b8fb9;
+  --steel-dim: rgba(91,143,185,.12);
+  --sage: #7a9e7e;
+  --sage-dim: rgba(122,158,126,.15);
+  --coral: #c47a6c;
+  --coral-dim: rgba(196,122,108,.12);
+  --ink: #e8e4df;
+  --ink-secondary: #a8a4a0;
+  --ink-muted: #6b6965;
+  --display: 'DM Serif Text', Georgia, 'Times New Roman', serif;
+  --body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'IBM Plex Mono', 'Consolas', monospace;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --ground: #f0ece6;
+    --surface: #faf8f5;
+    --surface-raised: #fff;
+    --border: #d8d0c4;
+    --copper: #8a5e30;
+    --copper-dim: rgba(138,94,48,.08);
+    --steel: #2e6a94;
+    --steel-dim: rgba(46,106,148,.08);
+    --sage: #3d6e42;
+    --sage-dim: rgba(61,110,66,.08);
+    --coral: #9e4a3a;
+    --coral-dim: rgba(158,74,58,.08);
+    --ink: #1a1612;
+    --ink-secondary: #5a5650;
+    --ink-muted: #8a8680;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0c1222;
+  --surface: #131b2e;
+  --surface-raised: #1a2540;
+  --border: #243050;
+  --copper: #c49a6c;
+  --copper-dim: rgba(196,154,108,.12);
+  --steel: #5b8fb9;
+  --steel-dim: rgba(91,143,185,.12);
+  --sage: #7a9e7e;
+  --sage-dim: rgba(122,158,126,.15);
+  --coral: #c47a6c;
+  --coral-dim: rgba(196,122,108,.12);
+  --ink: #e8e4df;
+  --ink-secondary: #a8a4a0;
+  --ink-muted: #6b6965;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--body);
+  background: var(--ground);
+  color: var(--ink);
+  padding-inline: 20px;
+  padding-block: 0 60px;
+  line-height: 1.55;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Utility ---- */
+.copper { color: var(--copper); }
+.steel { color: var(--steel); }
+.sage { color: var(--sage); }
+.coral { color: var(--coral); }
+
+/* ---- Page header ---- */
+.page-head {
+  max-width: 880px;
+  margin: 48px auto 40px;
+}
+.page-head h1 {
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.15;
+  text-wrap: balance;
+  letter-spacing: -.02em;
+}
+.page-head .sub {
+  margin-top: 10px;
+  color: var(--ink-secondary);
+  font-size: .92rem;
+  max-width: 620px;
+  line-height: 1.6;
+}
+
+/* ---- Topology (the diagram) ---- */
+.topology {
+  max-width: 880px;
+  margin: 0 auto 48px;
+  position: relative;
+}
+.topo-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ---- Device cards ---- */
+.devices {
+  max-width: 880px;
+  margin: 0 auto 48px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.dev {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px 22px;
+  position: relative;
+}
+.dev::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20px; right: 20px;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+}
+.dev.d-thinkbook::before { background: var(--copper); }
+.dev.d-macmini::before { background: var(--steel); }
+.dev.d-iphone::before { background: var(--sage); }
+
+.dev-role {
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  margin-bottom: 8px;
+}
+.dev h3 {
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin-bottom: 12px;
+}
+.dev-specs {
+  list-style: none;
+  font-size: .8rem;
+  color: var(--ink-secondary);
+  line-height: 1.7;
+}
+.dev-specs strong { color: var(--ink); font-weight: 600; }
+.dev-jobs {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.dev-jobs h4 {
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+.job-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.job {
+  font-size: .7rem;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--ink-secondary);
+}
+
+/* ---- Wiring diagram ---- */
+.wiring {
+  max-width: 880px;
+  margin: 0 auto 48px;
+}
+.wiring h2 {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  margin-bottom: 20px;
+}
+.wire-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.wire {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.wire-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85rem;
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-weight: 700;
+}
+.wire-icon.eth { background: var(--steel-dim); color: var(--steel); }
+.wire-icon.wifi { background: var(--sage-dim); color: var(--sage); }
+.wire-icon.bt { background: var(--copper-dim); color: var(--copper); }
+.wire-icon.usbc { background: var(--coral-dim); color: var(--coral); }
+.wire h4 { font-size: .88rem; font-weight: 600; }
+.wire p { font-size: .78rem; color: var(--ink-secondary); margin-top: 3px; line-height: 1.5; }
+
+/* ---- AI Stack ---- */
+.ai-stack {
+  max-width: 880px;
+  margin: 0 auto 48px;
+}
+.ai-stack h2 {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  margin-bottom: 20px;
+}
+.stack-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+}
+.stack-table th {
+  text-align: left;
+  font-size: .68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink-muted);
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--border);
+}
+.stack-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--ink-secondary);
+}
+.stack-table tr:hover td { background: var(--surface); }
+.stack-table td:first-child { color: var(--ink); font-weight: 500; }
+.dev-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.dev-dot.tb { background: var(--copper); }
+.dev-dot.mm { background: var(--steel); }
+.dev-dot.ip { background: var(--sage); }
+
+/* ---- Data Flow ---- */
+.data-flow {
+  max-width: 880px;
+  margin: 0 auto 48px;
+}
+.data-flow h2 {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  margin-bottom: 20px;
+}
+.flow-tiers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.tier {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 3px solid transparent;
+}
+.tier.t1 { border-left-color: var(--sage); }
+.tier.t2 { border-left-color: var(--steel); }
+.tier.t3 { border-left-color: var(--coral); }
+.tier-label {
+  font-family: var(--mono);
+  font-size: .62rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  margin-bottom: 6px;
+}
+.tier h4 {
+  font-size: .95rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.tier ul {
+  list-style: none;
+  font-size: .78rem;
+  color: var(--ink-secondary);
+  line-height: 1.7;
+}
+.tier li::before {
+  content: '>';
+  margin-right: 6px;
+  font-weight: 700;
+  font-family: var(--mono);
+}
+
+/* ---- Decision Gate ---- */
+.decision {
+  max-width: 880px;
+  margin: 0 auto 48px;
+}
+.decision h2 {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  margin-bottom: 20px;
+}
+.gate-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.gate {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px;
+}
+.gate h4 {
+  font-size: .95rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gate-verdict {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: .62rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+.gate-verdict.keep { background: var(--sage-dim); color: var(--sage); }
+.gate-verdict.return { background: var(--coral-dim); color: var(--coral); }
+.gate ul {
+  list-style: none;
+  font-size: .8rem;
+  color: var(--ink-secondary);
+  line-height: 1.7;
+}
+.gate li { padding-left: 14px; position: relative; }
+.gate li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 9px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+/* ---- Timeline ---- */
+.timeline-section {
+  max-width: 880px;
+  margin: 0 auto 48px;
+}
+.timeline-section h2 {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  margin-bottom: 24px;
+}
+.tl {
+  position: relative;
+  padding-left: 28px;
+}
+.tl::before {
+  content: '';
+  position: absolute;
+  left: 8px; top: 4px; bottom: 4px;
+  width: 1px;
+  background: var(--border);
+}
+.tl-item {
+  position: relative;
+  margin-bottom: 28px;
+}
+.tl-item:last-child { margin-bottom: 0; }
+.tl-dot {
+  position: absolute;
+  left: -24px; top: 5px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--ground);
+}
+.tl-item.now .tl-dot { background: var(--sage); }
+.tl-item.soon .tl-dot { background: var(--copper); }
+.tl-item.later .tl-dot { background: var(--steel); }
+.tl-item.future .tl-dot { background: var(--coral); }
+.tl-when {
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink-muted);
+  margin-bottom: 3px;
+}
+.tl-item h4 { font-size: .92rem; font-weight: 600; margin-bottom: 4px; }
+.tl-item p { font-size: .8rem; color: var(--ink-secondary); line-height: 1.6; max-width: 600px; }
+.tl-cost {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: .7rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-top: 6px;
+}
+
+/* ---- Footer ---- */
+.foot {
+  max-width: 880px;
+  margin: 0 auto;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+  font-size: .72rem;
+  color: var(--ink-muted);
+  text-align: center;
+  line-height: 1.7;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 700px) {
+  .devices, .flow-tiers { grid-template-columns: 1fr; }
+  .wire-grid, .gate-row { grid-template-columns: 1fr; }
+  .topo-svg { display: none; }
+}
+</style>
+
+<!-- Page Header -->
+<div class="page-head">
+  <h1>Nathan's <span class="copper">Command Center</span></h1>
+  <p class="sub">ThinkBook T14s + Mac Mini M4 Pro + iPhone — wired through AT&T, running Claude, GPT, Gemini, and Open Brain. Architecture for Big Nate's Decision Maker launch and long-term AI compute.</p>
+</div>
+
+<!-- Topology Diagram (SVG) -->
+<div class="topology">
+  <svg class="topo-svg" viewBox="0 0 880 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Connection lines -->
+    <path d="M440 160 L160 80" stroke="var(--sage)" stroke-width="1.5" stroke-dasharray="6 4" opacity=".5"/>
+    <path d="M440 160 L720 80" stroke="var(--steel)" stroke-width="1.5" stroke-dasharray="6 4" opacity=".5"/>
+    <path d="M440 160 L440 280" stroke="var(--sage)" stroke-width="1.5" stroke-dasharray="6 4" opacity=".5"/>
+    <path d="M160 80 L720 80" stroke="var(--border)" stroke-width="1" stroke-dasharray="4 6" opacity=".3"/>
+
+    <!-- AT&T Router (center hub) -->
+    <rect x="400" y="136" width="80" height="48" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+    <text x="440" y="157" text-anchor="middle" font-family="var(--mono)" font-size="9" font-weight="600" fill="var(--ink-muted)" letter-spacing=".08em">AT&amp;T</text>
+    <text x="440" y="172" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--ink-muted)">ROUTER</text>
+
+    <!-- ThinkBook (top left) -->
+    <rect x="90" y="40" width="140" height="80" rx="10" fill="var(--surface)" stroke="var(--copper)" stroke-width="1.5"/>
+    <text x="160" y="64" text-anchor="middle" font-family="var(--display)" font-size="14" fill="var(--copper)">ThinkBook</text>
+    <text x="160" y="82" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--ink-muted)">32GB · Arc 140V</text>
+    <text x="160" y="96" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--ink-muted)">COCKPIT · Wi-Fi</text>
+
+    <!-- Mac Mini (top right) -->
+    <rect x="650" y="40" width="140" height="80" rx="10" fill="var(--surface)" stroke="var(--steel)" stroke-width="1.5"/>
+    <text x="720" y="64" text-anchor="middle" font-family="var(--display)" font-size="14" fill="var(--steel)">Mac Mini</text>
+    <text x="720" y="82" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--ink-muted)">24GB · M4 Pro</text>
+    <text x="720" y="96" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--ink-muted)">WORKER · Ethernet</text>
+
+    <!-- iPhone (bottom) -->
+    <rect x="395" y="240" width="90" height="60" rx="10" fill="var(--surface)" stroke="var(--sage)" stroke-width="1.5"/>
+    <text x="440" y="266" text-anchor="middle" font-family="var(--display)" font-size="13" fill="var(--sage)">iPhone</text>
+    <text x="440" y="282" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--ink-muted)">CAPTURE · Wi-Fi</text>
+
+    <!-- Connection labels -->
+    <text x="280" y="108" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--sage)" opacity=".8">Wi-Fi</text>
+    <text x="600" y="108" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--steel)" opacity=".8">Cat6 Ethernet</text>
+    <text x="455" y="220" text-anchor="start" font-family="var(--mono)" font-size="8" fill="var(--sage)" opacity=".8">Wi-Fi / Cell</text>
+
+    <!-- Cloud services (above) -->
+    <rect x="260" y="4" width="60" height="22" rx="4" fill="var(--surface-raised)" stroke="var(--border)" stroke-width=".5"/>
+    <text x="290" y="18" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="500" fill="var(--ink-muted)">Claude</text>
+    <rect x="330" y="4" width="50" height="22" rx="4" fill="var(--surface-raised)" stroke="var(--border)" stroke-width=".5"/>
+    <text x="355" y="18" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="500" fill="var(--ink-muted)">GPT</text>
+    <rect x="390" y="4" width="65" height="22" rx="4" fill="var(--surface-raised)" stroke="var(--border)" stroke-width=".5"/>
+    <text x="422" y="18" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="500" fill="var(--ink-muted)">Gemini</text>
+    <rect x="465" y="4" width="85" height="22" rx="4" fill="var(--surface-raised)" stroke="var(--border)" stroke-width=".5"/>
+    <text x="507" y="18" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="500" fill="var(--ink-muted)">Open Brain</text>
+    <rect x="560" y="4" width="80" height="22" rx="4" fill="var(--surface-raised)" stroke="var(--border)" stroke-width=".5"/>
+    <text x="600" y="18" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="500" fill="var(--ink-muted)">OneDrive</text>
+
+    <path d="M440 26 L440 136" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 5" opacity=".3"/>
+  </svg>
+</div>
+
+<!-- Device Cards -->
+<div class="devices">
+  <div class="dev d-thinkbook">
+    <div class="dev-role copper">Daily Cockpit</div>
+    <h3 class="copper">ThinkBook T14s Gen 6</h3>
+    <ul class="dev-specs">
+      <li><strong>CPU</strong> Core Ultra 7 268V</li>
+      <li><strong>RAM</strong> 32 GB DDR5-8533</li>
+      <li><strong>GPU</strong> Arc 140V · 16 GB VRAM</li>
+      <li><strong>Storage</strong> 954 GB (713 free)</li>
+      <li><strong>Connection</strong> Wi-Fi to router</li>
+    </ul>
+    <div class="dev-jobs">
+      <h4>Runs</h4>
+      <ul class="job-list">
+        <li class="job">GPT Chat</li>
+        <li class="job">Codex Desktop</li>
+        <li class="job">Claude Code</li>
+        <li class="job">Browser / Email</li>
+        <li class="job">Open Brain capture</li>
+        <li class="job">OneDrive sync</li>
+        <li class="job">Light local models</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="dev d-macmini">
+    <div class="dev-role steel">Heavy Worker</div>
+    <h3 class="steel">Mac Mini M4 Pro</h3>
+    <ul class="dev-specs">
+      <li><strong>CPU</strong> 12-core M4 Pro</li>
+      <li><strong>RAM</strong> 24 GB unified</li>
+      <li><strong>GPU</strong> 16-core integrated</li>
+      <li><strong>Storage</strong> 512 GB SSD</li>
+      <li><strong>Connection</strong> Cat6 Ethernet</li>
+    </ul>
+    <div class="dev-jobs">
+      <h4>Runs</h4>
+      <ul class="job-list">
+        <li class="job">Xcode / BNDM</li>
+        <li class="job">TestFlight builds</li>
+        <li class="job">Background agents</li>
+        <li class="job">Overnight jobs</li>
+        <li class="job">Claude Remote</li>
+        <li class="job">Ollama (future)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="dev d-iphone">
+    <div class="dev-role sage">Mobile Remote</div>
+    <h3 class="sage">iPhone</h3>
+    <ul class="dev-specs">
+      <li><strong>Connection</strong> Wi-Fi / Cellular</li>
+      <li><strong>Cloud</strong> iCloud (photos/video)</li>
+      <li><strong>Capture</strong> Voice + text to GPT</li>
+    </ul>
+    <div class="dev-jobs">
+      <h4>Runs</h4>
+      <ul class="job-list">
+        <li class="job">GPT Voice capture</li>
+        <li class="job">Open Brain input</li>
+        <li class="job">Claude Remote</li>
+        <li class="job">Approvals</li>
+        <li class="job">Tailscale SSH</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Wiring -->
+<div class="wiring">
+  <h2>How It's Wired</h2>
+  <div class="wire-grid">
+    <div class="wire">
+      <div class="wire-icon eth">E</div>
+      <div>
+        <h4>Mac Mini → Router</h4>
+        <p>50' Cat6 Ethernet cable, hardwired. Most reliable path for Xcode downloads, agent runs, overnight builds. All other devices stay on the same local network.</p>
+      </div>
+    </div>
+    <div class="wire">
+      <div class="wire-icon wifi">W</div>
+      <div>
+        <h4>ThinkBook → Router</h4>
+        <p>Wi-Fi 6E. Your cockpit doesn't need the wire — it's doing browser, GPT, light edits. Stays lightweight.</p>
+      </div>
+    </div>
+    <div class="wire">
+      <div class="wire-icon usbc">U</div>
+      <div>
+        <h4>Monitor → Both Machines</h4>
+        <p>HDMI to Mac Mini (primary). USB-C or HDMI to ThinkBook when needed. KVM switch optional for one-keyboard control.</p>
+      </div>
+    </div>
+    <div class="wire">
+      <div class="wire-icon bt">T</div>
+      <div>
+        <h4>Tailscale Mesh</h4>
+        <p>Encrypted overlay network across all three devices. SSH into Mac Mini from ThinkBook or iPhone from anywhere. No port forwarding, no VPN hassle.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Service Stack -->
+<div class="ai-stack">
+  <h2>AI Service Stack</h2>
+  <table class="stack-table">
+    <thead>
+      <tr><th>Service</th><th>Role</th><th>Runs On</th><th>Data Sensitivity</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Claude Code / Cowork</td>
+        <td>Agentic coding, multi-agent orchestration</td>
+        <td><span class="dev-dot tb"></span>ThinkBook <span class="dev-dot mm"></span>Mac Mini</td>
+        <td>Tier 2–3 (code, projects)</td>
+      </tr>
+      <tr>
+        <td>GPT / Codex</td>
+        <td>Idea capture, voice input, planning, Codex agent runs</td>
+        <td><span class="dev-dot tb"></span>ThinkBook <span class="dev-dot ip"></span>iPhone</td>
+        <td>Tier 2–3 (general)</td>
+      </tr>
+      <tr>
+        <td>Gemini</td>
+        <td>Research, second opinion, Google ecosystem tasks</td>
+        <td><span class="dev-dot tb"></span>ThinkBook</td>
+        <td>Tier 3 (public research)</td>
+      </tr>
+      <tr>
+        <td>Open Brain MCP</td>
+        <td>Memory, context, knowledge capture and retrieval</td>
+        <td><span class="dev-dot tb"></span>ThinkBook <span class="dev-dot ip"></span>iPhone</td>
+        <td>Tier 1–2 (protect this)</td>
+      </tr>
+      <tr>
+        <td>Ollama (local models)</td>
+        <td>Private inference, offline reasoning, sensitive queries</td>
+        <td><span class="dev-dot tb"></span>ThinkBook <span class="dev-dot mm"></span>Mac Mini</td>
+        <td>Tier 1 (never leaves device)</td>
+      </tr>
+      <tr>
+        <td>Xcode / App Store Connect</td>
+        <td>Big Nate's Decision Maker build, sign, archive, TestFlight</td>
+        <td><span class="dev-dot mm"></span>Mac Mini</td>
+        <td>Tier 2 (proprietary code)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Data Security Tiers -->
+<div class="data-flow">
+  <h2>Data Security Tiers</h2>
+  <div class="flow-tiers">
+    <div class="tier t1">
+      <div class="tier-label sage">Tier 1 · Local Only</div>
+      <h4>Private Brain</h4>
+      <ul>
+        <li>Personal reflections, journal</li>
+        <li>Client confidentials, deal terms</li>
+        <li>Financial information</li>
+        <li>Credentials, API keys</li>
+        <li>Proprietary strategies</li>
+      </ul>
+    </div>
+    <div class="tier t2">
+      <div class="tier-label steel">Tier 2 · Controlled Cloud</div>
+      <h4>Work in Progress</h4>
+      <ul>
+        <li>Big Nate DM source code</li>
+        <li>Open Brain knowledge base</li>
+        <li>Project plans, research</li>
+        <li>OneDrive documents</li>
+        <li>GitHub repositories</li>
+      </ul>
+    </div>
+    <div class="tier t3">
+      <div class="tier-label coral">Tier 3 · Public-Facing</div>
+      <h4>Shared Content</h4>
+      <ul>
+        <li>VibeCoding app data</li>
+        <li>Marketing, social content</li>
+        <li>Published research</li>
+        <li>Open-source projects</li>
+        <li>Public documentation</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Decision Gate: Keep vs Return -->
+<div class="decision">
+  <h2>The $1,000 Decision — 2-Week Gate</h2>
+  <div class="gate-row">
+    <div class="gate">
+      <h4><span class="gate-verdict keep">Keep 24GB</span> If these pass</h4>
+      <ul>
+        <li>Xcode installs cleanly, Big Nate builds to simulator</li>
+        <li>Archive succeeds, TestFlight path is clear</li>
+        <li>One real overnight job runs without bogging down</li>
+        <li>Your primary workload is app builds + light agent work</li>
+        <li>512GB storage doesn't feel cramped after Xcode + simulators</li>
+      </ul>
+    </div>
+    <div class="gate">
+      <h4><span class="gate-verdict return">Upgrade</span> If any of these hit</h4>
+      <ul>
+        <li>Xcode + Big Nate feels cramped immediately</li>
+        <li>You want serious local AI compute (70B+ models)</li>
+        <li>512GB fills up after Xcode, simulators, and repos</li>
+        <li>You're running 5+ concurrent agent sessions regularly</li>
+        <li>Budget allows jump to 48GB without stress</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Timeline -->
+<div class="timeline-section">
+  <h2>What to Do, When</h2>
+  <div class="tl">
+    <div class="tl-item now">
+      <div class="tl-dot"></div>
+      <div class="tl-when">Day 1 — Mac Mini arrives</div>
+      <h4>Prove the Apple path</h4>
+      <p>Install macOS updates, Xcode, clone Big Nate from GitHub. Build to simulator. Do not customize anything else first. This is the return-window truth test.</p>
+      <span class="tl-cost" style="background:var(--sage-dim);color:var(--sage)">$0 — already purchased</span>
+    </div>
+    <div class="tl-item now">
+      <div class="tl-dot"></div>
+      <div class="tl-when">Day 2–3</div>
+      <h4>Wire the network</h4>
+      <p>Run Cat6 Ethernet to router. Set Mac Mini to never sleep. Install Tailscale on all three devices. Enable SSH. Set up Chrome Remote Desktop or Screens so ThinkBook can control Mac Mini.</p>
+      <span class="tl-cost" style="background:var(--sage-dim);color:var(--sage)">$15–30 — Cat6 cable</span>
+    </div>
+    <div class="tl-item soon">
+      <div class="tl-dot"></div>
+      <div class="tl-when">Day 4–7</div>
+      <h4>Complete Apple Developer enrollment</h4>
+      <p>Finish the $99/yr Apple Developer Program. Confirm App Store Connect access. Set up signing certificates. Get Big Nate to archive successfully.</p>
+      <span class="tl-cost" style="background:var(--copper-dim);color:var(--copper)">$99 — Apple Developer Program</span>
+    </div>
+    <div class="tl-item soon">
+      <div class="tl-dot"></div>
+      <div class="tl-when">Day 7–10</div>
+      <h4>Run one real overnight job</h4>
+      <p>Move a heavy task from ThinkBook to Mac Mini. Agent run, long build, QA suite. Prove the Mac Mini takes load off your cockpit. This is gate 2.</p>
+      <span class="tl-cost" style="background:var(--copper-dim);color:var(--copper)">$0</span>
+    </div>
+    <div class="tl-item later">
+      <div class="tl-dot"></div>
+      <div class="tl-when">Day 14 — Return deadline</div>
+      <h4>Keep or return decision</h4>
+      <p>If Big Nate builds, overnight jobs work, and 24GB/512GB isn't cramped — keep it. If any gate fails or you've decided local AI compute is strategic — return and upgrade to 48GB+.</p>
+      <span class="tl-cost" style="background:var(--steel-dim);color:var(--steel)">$0 or +$400–600 upgrade delta</span>
+    </div>
+    <div class="tl-item future">
+      <div class="tl-dot"></div>
+      <div class="tl-when">Month 2–3</div>
+      <h4>Install local AI stack</h4>
+      <p>Only after Big Nate is on TestFlight. Install Ollama, pull Llama 3 8B, set up MCP for Claude Code. The Mac Mini becomes your background AI worker alongside the Xcode machine.</p>
+      <span class="tl-cost" style="background:var(--coral-dim);color:var(--coral)">$0 — open-source</span>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  Architecture for Nathan Hale · ThinkBook T14s Gen 6 + Mac Mini M4 Pro 24GB + iPhone<br>
+  Research compiled from Apple, NVIDIA, Dell, HP, Lenovo specs · Supabase security audit · Claude Code MCP documentation · Market data from Tom's Hardware, CNBC, TrendForce
+</div>
