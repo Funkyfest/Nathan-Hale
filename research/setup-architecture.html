@@ -1,63 +1,62 @@
 <title>Nathan's Command Center</title>
-<meta name="color-scheme" content="dark">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root {
   --ground: #0c1222;
   --surface: #131b2e;
-  --surface-raised: #1a2540;
-  --border: #243050;
-  --copper: #c49a6c;
-  --copper-dim: rgba(196,154,108,.12);
-  --steel: #5b8fb9;
-  --steel-dim: rgba(91,143,185,.12);
-  --sage: #7a9e7e;
-  --sage-dim: rgba(122,158,126,.15);
-  --coral: #c47a6c;
-  --coral-dim: rgba(196,122,108,.12);
-  --ink: #e8e4df;
-  --ink-secondary: #a8a4a0;
-  --ink-muted: #6b6965;
-  --display: 'DM Serif Text', Georgia, 'Times New Roman', serif;
-  --body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --mono: 'IBM Plex Mono', 'Consolas', monospace;
+  --raised: #1a2540;
+  --border: #26324f;
+  --copper: #c9a072;
+  --copper-dim: rgba(201,160,114,.13);
+  --steel: #6b9cc4;
+  --steel-dim: rgba(107,156,196,.13);
+  --sage: #86ab8a;
+  --sage-dim: rgba(134,171,138,.14);
+  --good: #7fbf8a;
+  --good-dim: rgba(127,191,138,.14);
+  --warn: #d9b45a;
+  --warn-dim: rgba(217,180,90,.14);
+  --crit: #e07b6a;
+  --crit-dim: rgba(224,123,106,.14);
+  --ink: #ebe7e1;
+  --ink-2: #aeaaa4;
+  --ink-3: #75736f;
+  --display: 'DM Serif Text', Georgia, serif;
+  --body: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
 }
-
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --ground: #f0ece6;
-    --surface: #faf8f5;
-    --surface-raised: #fff;
-    --border: #d8d0c4;
-    --copper: #8a5e30;
-    --copper-dim: rgba(138,94,48,.08);
-    --steel: #2e6a94;
-    --steel-dim: rgba(46,106,148,.08);
-    --sage: #3d6e42;
-    --sage-dim: rgba(61,110,66,.08);
-    --coral: #9e4a3a;
-    --coral-dim: rgba(158,74,58,.08);
-    --ink: #1a1612;
-    --ink-secondary: #5a5650;
-    --ink-muted: #8a8680;
+    --ground: #eeeae3; --surface: #f9f7f3; --raised: #ffffff; --border: #d6cdc0;
+    --copper: #8a5a28; --copper-dim: rgba(138,90,40,.09);
+    --steel: #2d6590; --steel-dim: rgba(45,101,144,.09);
+    --sage: #3f6b44; --sage-dim: rgba(63,107,68,.09);
+    --good: #2f7a3d; --good-dim: rgba(47,122,61,.10);
+    --warn: #8a6510; --warn-dim: rgba(138,101,16,.11);
+    --crit: #a8402e; --crit-dim: rgba(168,64,46,.10);
+    --ink: #1b1713; --ink-2: #57524b; --ink-3: #85807a;
   }
 }
+:root[data-theme="light"] {
+  --ground: #eeeae3; --surface: #f9f7f3; --raised: #ffffff; --border: #d6cdc0;
+  --copper: #8a5a28; --copper-dim: rgba(138,90,40,.09);
+  --steel: #2d6590; --steel-dim: rgba(45,101,144,.09);
+  --sage: #3f6b44; --sage-dim: rgba(63,107,68,.09);
+  --good: #2f7a3d; --good-dim: rgba(47,122,61,.10);
+  --warn: #8a6510; --warn-dim: rgba(138,101,16,.11);
+  --crit: #a8402e; --crit-dim: rgba(168,64,46,.10);
+  --ink: #1b1713; --ink-2: #57524b; --ink-3: #85807a;
+}
 :root[data-theme="dark"] {
-  --ground: #0c1222;
-  --surface: #131b2e;
-  --surface-raised: #1a2540;
-  --border: #243050;
-  --copper: #c49a6c;
-  --copper-dim: rgba(196,154,108,.12);
-  --steel: #5b8fb9;
-  --steel-dim: rgba(91,143,185,.12);
-  --sage: #7a9e7e;
-  --sage-dim: rgba(122,158,126,.15);
-  --coral: #c47a6c;
-  --coral-dim: rgba(196,122,108,.12);
-  --ink: #e8e4df;
-  --ink-secondary: #a8a4a0;
-  --ink-muted: #6b6965;
+  --ground: #0c1222; --surface: #131b2e; --raised: #1a2540; --border: #26324f;
+  --copper: #c9a072; --copper-dim: rgba(201,160,114,.13);
+  --steel: #6b9cc4; --steel-dim: rgba(107,156,196,.13);
+  --sage: #86ab8a; --sage-dim: rgba(134,171,138,.14);
+  --good: #7fbf8a; --good-dim: rgba(127,191,138,.14);
+  --warn: #d9b45a; --warn-dim: rgba(217,180,90,.14);
+  --crit: #e07b6a; --crit-dim: rgba(224,123,106,.14);
+  --ink: #ebe7e1; --ink-2: #aeaaa4; --ink-3: #75736f;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -66,732 +65,470 @@ body {
   background: var(--ground);
   color: var(--ink);
   padding-inline: 20px;
-  padding-block: 0 60px;
-  line-height: 1.55;
+  padding-block: 0 64px;
   font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
-
-/* ---- Utility ---- */
-.copper { color: var(--copper); }
-.steel { color: var(--steel); }
-.sage { color: var(--sage); }
-.coral { color: var(--coral); }
-
-/* ---- Page header ---- */
-.page-head {
-  max-width: 880px;
-  margin: 48px auto 40px;
-}
-.page-head h1 {
+.wrap { max-width: 900px; margin: 0 auto; }
+section { margin-top: 56px; }
+h2 {
   font-family: var(--display);
-  font-size: clamp(1.8rem, 4.5vw, 2.6rem);
   font-weight: 400;
-  line-height: 1.15;
+  font-size: 1.45rem;
+  line-height: 1.2;
   text-wrap: balance;
-  letter-spacing: -.02em;
+  margin-bottom: 6px;
 }
-.page-head .sub {
+.lede { color: var(--ink-2); font-size: .9rem; max-width: 640px; margin-bottom: 20px; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: .68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ink-3);
+}
+:focus-visible { outline: 2px solid var(--steel); outline-offset: 2px; }
+
+/* Header */
+header { padding-block: 48px 0; }
+header h1 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: -.015em;
   margin-top: 10px;
-  color: var(--ink-secondary);
-  font-size: .92rem;
-  max-width: 620px;
-  line-height: 1.6;
 }
+header h1 em { font-style: italic; color: var(--copper); }
+header p { margin-top: 12px; color: var(--ink-2); max-width: 620px; font-size: .95rem; }
 
-/* ---- Topology (the diagram) ---- */
-.topology {
-  max-width: 880px;
-  margin: 0 auto 48px;
-  position: relative;
-}
-.topo-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* ---- Device cards ---- */
-.devices {
-  max-width: 880px;
-  margin: 0 auto 48px;
+/* Status board */
+.status {
+  margin-top: 28px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow: hidden;
 }
-.dev {
+.stat { padding: 18px 18px 20px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat:first-child { border-left: 0; }
+.pill {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: .64rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 3px 8px 3px 7px;
+  border-radius: 999px;
+}
+.pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.good { color: var(--good); background: var(--good-dim); }
+.pill.warn { color: var(--warn); background: var(--warn-dim); }
+.pill.crit { color: var(--crit); background: var(--crit-dim); }
+.pill.open { color: var(--steel); background: var(--steel-dim); }
+.stat h3 { font-size: .92rem; font-weight: 600; line-height: 1.3; }
+.stat p { font-size: .78rem; color: var(--ink-2); line-height: 1.5; }
+.stat .num { font-family: var(--mono); font-size: 1.5rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1; color: var(--ink); }
+.stat .num small { font-size: .72rem; color: var(--ink-3); font-weight: 400; }
+
+/* Topology */
+.topo { margin-top: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 12px; }
+.topo svg { display: block; width: 100%; height: auto; }
+.topo .tall { display: none; }
+.t-line { fill: none; stroke-width: 1.5; }
+.t-line.copper { stroke: var(--copper); }
+.t-line.steel { stroke: var(--steel); }
+.t-line.sage { stroke: var(--sage); }
+.t-line.faint { stroke: var(--border); stroke-dasharray: 3 5; }
+.t-line.wifi { stroke-dasharray: 5 4; }
+.t-node { fill: var(--raised); stroke-width: 1.5; }
+.t-node.copper { stroke: var(--copper); }
+.t-node.steel { stroke: var(--steel); }
+.t-node.sage { stroke: var(--sage); }
+.t-node.plain { stroke: var(--border); }
+.t-node.ghost { fill: none; stroke: var(--ink-3); stroke-dasharray: 5 4; }
+.t-name { font-family: var(--display); font-size: 16px; }
+.t-name.copper { fill: var(--copper); }
+.t-name.steel { fill: var(--steel); }
+.t-name.sage { fill: var(--sage); }
+.t-name.ghost { fill: var(--ink-3); font-style: italic; }
+.t-meta { font-family: var(--mono); font-size: 10px; fill: var(--ink-3); letter-spacing: .04em; }
+.t-role { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-2); letter-spacing: .1em; }
+.t-link { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-2); }
+.t-cloud { fill: var(--surface); stroke: var(--border); }
+.t-cloudtxt { font-family: var(--mono); font-size: 10px; fill: var(--ink-2); }
+.t-alert { fill: var(--crit); }
+.t-alerttxt { font-family: var(--mono); font-size: 9.5px; fill: var(--crit); letter-spacing: .06em; }
+
+/* Lanes */
+.lanes { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.lanes th { text-align: left; font-family: var(--mono); font-size: .66rem; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-3); padding: 0 14px 10px 0; border-bottom: 1px solid var(--border); }
+.lanes td { padding: 14px 14px 14px 0; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--ink-2); }
+.lanes td:first-child { width: 190px; }
+.dev { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 600; }
+.dev i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+.dev.copper i { background: var(--copper); }
+.dev.steel i { background: var(--steel); }
+.dev.sage i { background: var(--sage); }
+.dev.cloud i { background: var(--ink-3); }
+.spec { display: block; font-family: var(--mono); font-size: .7rem; color: var(--ink-3); margin-top: 3px; font-weight: 400; }
+.lane-scroll { overflow-x: auto; }
+
+/* Next moves */
+.moves { list-style: none; counter-reset: m; display: flex; flex-direction: column; gap: 12px; }
+.move {
+  counter-increment: m;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 4px 16px;
+  padding: 20px 22px 20px 18px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 24px 22px;
-  position: relative;
 }
-.dev::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 20px; right: 20px;
-  height: 2px;
-  border-radius: 0 0 2px 2px;
-}
-.dev.d-thinkbook::before { background: var(--copper); }
-.dev.d-macmini::before { background: var(--steel); }
-.dev.d-iphone::before { background: var(--sage); }
-
-.dev-role {
-  font-family: var(--mono);
-  font-size: .65rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  margin-bottom: 8px;
-}
-.dev h3 {
+.move::before {
+  content: counter(m);
+  grid-row: 1 / span 3;
   font-family: var(--display);
-  font-size: 1.2rem;
-  font-weight: 400;
-  margin-bottom: 12px;
-}
-.dev-specs {
-  list-style: none;
-  font-size: .8rem;
-  color: var(--ink-secondary);
-  line-height: 1.7;
-}
-.dev-specs strong { color: var(--ink); font-weight: 600; }
-.dev-jobs {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-.dev-jobs h4 {
-  font-size: .7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--ink-muted);
-  margin-bottom: 6px;
-}
-.job-list {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-.job {
-  font-size: .7rem;
-  font-weight: 500;
-  padding: 3px 9px;
-  border-radius: 4px;
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-  color: var(--ink-secondary);
-}
-
-/* ---- Wiring diagram ---- */
-.wiring {
-  max-width: 880px;
-  margin: 0 auto 48px;
-}
-.wiring h2 {
-  font-family: var(--display);
-  font-size: 1.35rem;
-  font-weight: 400;
-  margin-bottom: 20px;
-}
-.wire-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.wire {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 18px 20px;
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-}
-.wire-icon {
-  width: 36px; height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: .85rem;
-  flex-shrink: 0;
-  font-family: var(--mono);
-  font-weight: 700;
-}
-.wire-icon.eth { background: var(--steel-dim); color: var(--steel); }
-.wire-icon.wifi { background: var(--sage-dim); color: var(--sage); }
-.wire-icon.bt { background: var(--copper-dim); color: var(--copper); }
-.wire-icon.usbc { background: var(--coral-dim); color: var(--coral); }
-.wire h4 { font-size: .88rem; font-weight: 600; }
-.wire p { font-size: .78rem; color: var(--ink-secondary); margin-top: 3px; line-height: 1.5; }
-
-/* ---- AI Stack ---- */
-.ai-stack {
-  max-width: 880px;
-  margin: 0 auto 48px;
-}
-.ai-stack h2 {
-  font-family: var(--display);
-  font-size: 1.35rem;
-  font-weight: 400;
-  margin-bottom: 20px;
-}
-.stack-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: .82rem;
-}
-.stack-table th {
-  text-align: left;
-  font-size: .68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--ink-muted);
-  padding: 8px 12px;
-  border-bottom: 2px solid var(--border);
-}
-.stack-table td {
-  padding: 11px 12px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-  color: var(--ink-secondary);
-}
-.stack-table tr:hover td { background: var(--surface); }
-.stack-table td:first-child { color: var(--ink); font-weight: 500; }
-.dev-dot {
-  display: inline-block;
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  margin-right: 4px;
-  vertical-align: middle;
-}
-.dev-dot.tb { background: var(--copper); }
-.dev-dot.mm { background: var(--steel); }
-.dev-dot.ip { background: var(--sage); }
-
-/* ---- Data Flow ---- */
-.data-flow {
-  max-width: 880px;
-  margin: 0 auto 48px;
-}
-.data-flow h2 {
-  font-family: var(--display);
-  font-size: 1.35rem;
-  font-weight: 400;
-  margin-bottom: 20px;
-}
-.flow-tiers {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-}
-.tier {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 20px;
-  border-left: 3px solid transparent;
-}
-.tier.t1 { border-left-color: var(--sage); }
-.tier.t2 { border-left-color: var(--steel); }
-.tier.t3 { border-left-color: var(--coral); }
-.tier-label {
-  font-family: var(--mono);
-  font-size: .62rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  margin-bottom: 6px;
-}
-.tier h4 {
-  font-size: .95rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-.tier ul {
-  list-style: none;
-  font-size: .78rem;
-  color: var(--ink-secondary);
-  line-height: 1.7;
-}
-.tier li::before {
-  content: '>';
-  margin-right: 6px;
-  font-weight: 700;
-  font-family: var(--mono);
-}
-
-/* ---- Decision Gate ---- */
-.decision {
-  max-width: 880px;
-  margin: 0 auto 48px;
-}
-.decision h2 {
-  font-family: var(--display);
-  font-size: 1.35rem;
-  font-weight: 400;
-  margin-bottom: 20px;
-}
-.gate-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.gate {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 22px;
-}
-.gate h4 {
-  font-size: .95rem;
-  font-weight: 600;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.gate-verdict {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: .62rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  padding: 2px 8px;
-  border-radius: 3px;
-}
-.gate-verdict.keep { background: var(--sage-dim); color: var(--sage); }
-.gate-verdict.return { background: var(--coral-dim); color: var(--coral); }
-.gate ul {
-  list-style: none;
-  font-size: .8rem;
-  color: var(--ink-secondary);
-  line-height: 1.7;
-}
-.gate li { padding-left: 14px; position: relative; }
-.gate li::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 9px;
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--border);
-}
-
-/* ---- Timeline ---- */
-.timeline-section {
-  max-width: 880px;
-  margin: 0 auto 48px;
-}
-.timeline-section h2 {
-  font-family: var(--display);
-  font-size: 1.35rem;
-  font-weight: 400;
-  margin-bottom: 24px;
-}
-.tl {
-  position: relative;
-  padding-left: 28px;
-}
-.tl::before {
-  content: '';
-  position: absolute;
-  left: 8px; top: 4px; bottom: 4px;
-  width: 1px;
-  background: var(--border);
-}
-.tl-item {
-  position: relative;
-  margin-bottom: 28px;
-}
-.tl-item:last-child { margin-bottom: 0; }
-.tl-dot {
-  position: absolute;
-  left: -24px; top: 5px;
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  border: 2px solid var(--ground);
-}
-.tl-item.now .tl-dot { background: var(--sage); }
-.tl-item.soon .tl-dot { background: var(--copper); }
-.tl-item.later .tl-dot { background: var(--steel); }
-.tl-item.future .tl-dot { background: var(--coral); }
-.tl-when {
-  font-family: var(--mono);
-  font-size: .65rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  color: var(--ink-muted);
-  margin-bottom: 3px;
-}
-.tl-item h4 { font-size: .92rem; font-weight: 600; margin-bottom: 4px; }
-.tl-item p { font-size: .8rem; color: var(--ink-secondary); line-height: 1.6; max-width: 600px; }
-.tl-cost {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: .7rem;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 3px;
-  margin-top: 6px;
-}
-
-/* ---- Footer ---- */
-.foot {
-  max-width: 880px;
-  margin: 0 auto;
-  padding-top: 32px;
-  border-top: 1px solid var(--border);
-  font-size: .72rem;
-  color: var(--ink-muted);
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--ink-3);
   text-align: center;
-  line-height: 1.7;
+  padding-top: 2px;
 }
+.move.lead { border-color: var(--crit); }
+.move.lead::before { color: var(--crit); }
+.move h3 { font-size: 1rem; font-weight: 600; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.move p { font-size: .84rem; color: var(--ink-2); max-width: 680px; }
+.move .how { font-size: .8rem; color: var(--ink-2); margin-top: 4px; display: flex; flex-direction: column; gap: 4px; }
+.how code { font-family: var(--mono); font-size: .76rem; background: var(--raised); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; color: var(--ink); overflow-wrap: anywhere; }
 
-/* ---- Responsive ---- */
-@media (max-width: 700px) {
-  .devices, .flow-tiers { grid-template-columns: 1fr; }
-  .wire-grid, .gate-row { grid-template-columns: 1fr; }
-  .topo-svg { display: none; }
+/* Gates */
+.gates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.gate { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+.gate h4 { font-size: .9rem; font-weight: 600; }
+.gate p { font-size: .8rem; color: var(--ink-2); }
+.verdict {
+  margin-top: 14px;
+  padding: 18px 20px;
+  border-radius: 10px;
+  background: var(--steel-dim);
+  border: 1px solid var(--steel);
+  font-size: .88rem;
+  color: var(--ink);
+}
+.verdict strong { color: var(--steel); }
+
+/* Wiring */
+.wires { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.wire { padding: 16px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.wire h4 { font-size: .9rem; font-weight: 600; display: flex; gap: 10px; align-items: baseline; }
+.wire h4 span { font-family: var(--mono); font-size: .66rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.wire p { font-size: .82rem; color: var(--ink-2); }
+
+/* Ledger timeline */
+.ledger { list-style: none; border-left: 1px solid var(--border); margin-left: 6px; }
+.ledger li { position: relative; padding: 0 0 18px 22px; display: grid; grid-template-columns: 92px 1fr; gap: 14px; }
+.ledger li:last-child { padding-bottom: 0; }
+.ledger li::before { content: ''; position: absolute; left: -5px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--ground); border: 1.5px solid var(--ink-3); }
+.ledger li.win::before { background: var(--good); border-color: var(--good); }
+.ledger li.now::before { background: var(--crit); border-color: var(--crit); }
+.ledger time { font-family: var(--mono); font-size: .74rem; color: var(--ink-3); font-variant-numeric: tabular-nums; padding-top: 1px; }
+.ledger div { font-size: .85rem; color: var(--ink-2); }
+.ledger b { color: var(--ink); font-weight: 600; }
+
+footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); font-size: .74rem; color: var(--ink-3); line-height: 1.7; }
+
+@media (max-width: 760px) {
+  .status { grid-template-columns: 1fr 1fr; }
+  .stat:nth-child(3) { border-left: 0; }
+  .stat:nth-child(n+3) { border-top: 1px solid var(--border); }
+  .gates { grid-template-columns: 1fr; }
+  .wires { grid-template-columns: 1fr; }
+  .topo .wide { display: none; }
+  .topo .tall { display: block; max-width: 380px; margin: 0 auto; }
+}
+@media (max-width: 600px) {
+  .lanes thead { display: none; }
+  .lanes, .lanes tbody, .lanes tr, .lanes td { display: block; width: auto; }
+  .lanes tr { padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .lanes td { border: 0; padding: 4px 0; }
+  .lanes td:first-child { width: auto; margin-bottom: 4px; }
+  .lanes td:nth-child(2)::before { content: 'Owns · '; font-family: var(--mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .lanes td:nth-child(3)::before { content: "Doesn't do · "; font-family: var(--mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+}
+@media (max-width: 440px) {
+  .status { grid-template-columns: 1fr; }
+  .stat { border-left: 0; border-top: 1px solid var(--border); }
+  .stat:first-child { border-top: 0; }
+  .move { grid-template-columns: 1fr; padding: 18px; }
+  .move::before { grid-row: auto; text-align: left; font-size: 1.5rem; }
+  .ledger li { grid-template-columns: 1fr; gap: 2px; }
 }
 </style>
 
-<!-- Page Header -->
-<div class="page-head">
-  <h1>Nathan's <span class="copper">Command Center</span></h1>
-  <p class="sub">ThinkBook T14s + Mac Mini M4 Pro + iPhone — wired through AT&T, running Claude, GPT, Gemini, and Open Brain. Architecture for Big Nate's Decision Maker launch and long-term AI compute.</p>
-</div>
+<div class="wrap">
 
-<!-- Topology Diagram (SVG) -->
-<div class="topology">
-  <svg class="topo-svg" viewBox="0 0 880 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- Connection lines -->
-    <path d="M440 160 L160 80" stroke="var(--sage)" stroke-width="1.5" stroke-dasharray="6 4" opacity=".5"/>
-    <path d="M440 160 L720 80" stroke="var(--steel)" stroke-width="1.5" stroke-dasharray="6 4" opacity=".5"/>
-    <path d="M440 160 L440 280" stroke="var(--sage)" stroke-width="1.5" stroke-dasharray="6 4" opacity=".5"/>
-    <path d="M160 80 L720 80" stroke="var(--border)" stroke-width="1" stroke-dasharray="4 6" opacity=".3"/>
+<header>
+  <div class="eyebrow">Status as of October 7, 2026 · from Open Brain records</div>
+  <h1>Nathan's <em>Command Center</em></h1>
+  <p>Three devices, four cloud AIs, one memory layer. Big Nate's Decision Maker shipped, so the job of this setup has changed: keep the Mac mini running, give it room to work, and decide whether a Mac Studio earns the open seat.</p>
 
-    <!-- AT&T Router (center hub) -->
-    <rect x="400" y="136" width="80" height="48" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
-    <text x="440" y="157" text-anchor="middle" font-family="var(--mono)" font-size="9" font-weight="600" fill="var(--ink-muted)" letter-spacing=".08em">AT&amp;T</text>
-    <text x="440" y="172" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--ink-muted)">ROUTER</text>
-
-    <!-- ThinkBook (top left) -->
-    <rect x="90" y="40" width="140" height="80" rx="10" fill="var(--surface)" stroke="var(--copper)" stroke-width="1.5"/>
-    <text x="160" y="64" text-anchor="middle" font-family="var(--display)" font-size="14" fill="var(--copper)">ThinkBook</text>
-    <text x="160" y="82" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--ink-muted)">32GB · Arc 140V</text>
-    <text x="160" y="96" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--ink-muted)">COCKPIT · Wi-Fi</text>
-
-    <!-- Mac Mini (top right) -->
-    <rect x="650" y="40" width="140" height="80" rx="10" fill="var(--surface)" stroke="var(--steel)" stroke-width="1.5"/>
-    <text x="720" y="64" text-anchor="middle" font-family="var(--display)" font-size="14" fill="var(--steel)">Mac Mini</text>
-    <text x="720" y="82" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--ink-muted)">24GB · M4 Pro</text>
-    <text x="720" y="96" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--ink-muted)">WORKER · Ethernet</text>
-
-    <!-- iPhone (bottom) -->
-    <rect x="395" y="240" width="90" height="60" rx="10" fill="var(--surface)" stroke="var(--sage)" stroke-width="1.5"/>
-    <text x="440" y="266" text-anchor="middle" font-family="var(--display)" font-size="13" fill="var(--sage)">iPhone</text>
-    <text x="440" y="282" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--ink-muted)">CAPTURE · Wi-Fi</text>
-
-    <!-- Connection labels -->
-    <text x="280" y="108" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--sage)" opacity=".8">Wi-Fi</text>
-    <text x="600" y="108" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--steel)" opacity=".8">Cat6 Ethernet</text>
-    <text x="455" y="220" text-anchor="start" font-family="var(--mono)" font-size="8" fill="var(--sage)" opacity=".8">Wi-Fi / Cell</text>
-
-    <!-- Cloud services (above) -->
-    <rect x="260" y="4" width="60" height="22" rx="4" fill="var(--surface-raised)" stroke="var(--border)" stroke-width=".5"/>
-    <text x="290" y="18" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="500" fill="var(--ink-muted)">Claude</text>
-    <rect x="330" y="4" width="50" height="22" rx="4" fill="var(--surface-raised)" stroke="var(--border)" stroke-width=".5"/>
-    <text x="355" y="18" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="500" fill="var(--ink-muted)">GPT</text>
-    <rect x="390" y="4" width="65" height="22" rx="4" fill="var(--surface-raised)" stroke="var(--border)" stroke-width=".5"/>
-    <text x="422" y="18" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="500" fill="var(--ink-muted)">Gemini</text>
-    <rect x="465" y="4" width="85" height="22" rx="4" fill="var(--surface-raised)" stroke="var(--border)" stroke-width=".5"/>
-    <text x="507" y="18" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="500" fill="var(--ink-muted)">Open Brain</text>
-    <rect x="560" y="4" width="80" height="22" rx="4" fill="var(--surface-raised)" stroke="var(--border)" stroke-width=".5"/>
-    <text x="600" y="18" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="500" fill="var(--ink-muted)">OneDrive</text>
-
-    <path d="M440 26 L440 136" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 5" opacity=".3"/>
-  </svg>
-</div>
-
-<!-- Device Cards -->
-<div class="devices">
-  <div class="dev d-thinkbook">
-    <div class="dev-role copper">Daily Cockpit</div>
-    <h3 class="copper">ThinkBook T14s Gen 6</h3>
-    <ul class="dev-specs">
-      <li><strong>CPU</strong> Core Ultra 7 268V</li>
-      <li><strong>RAM</strong> 32 GB DDR5-8533</li>
-      <li><strong>GPU</strong> Arc 140V · 16 GB VRAM</li>
-      <li><strong>Storage</strong> 954 GB (713 free)</li>
-      <li><strong>Connection</strong> Wi-Fi to router</li>
-    </ul>
-    <div class="dev-jobs">
-      <h4>Runs</h4>
-      <ul class="job-list">
-        <li class="job">GPT Chat</li>
-        <li class="job">Codex Desktop</li>
-        <li class="job">Claude Code</li>
-        <li class="job">Browser / Email</li>
-        <li class="job">Open Brain capture</li>
-        <li class="job">OneDrive sync</li>
-        <li class="job">Light local models</li>
-      </ul>
+  <div class="status" role="list">
+    <div class="stat" role="listitem">
+      <span class="pill good">Live</span>
+      <h3>Big Nate's Decision Maker</h3>
+      <p>On the App Store since July 13. The Mac mini's first gate is passed.</p>
+    </div>
+    <div class="stat" role="listitem">
+      <span class="pill crit">Offline</span>
+      <h3>Mac mini</h3>
+      <p>Flagged offline Oct 5–6. After a power loss, it needs the rear power button.</p>
+    </div>
+    <div class="stat" role="listitem">
+      <span class="pill warn">Low disk</span>
+      <div class="num">37 <small>GB free / 512</small></div>
+      <p>Mac mini storage at the Sep 7 check. Under 10% free slows builds and agents.</p>
+    </div>
+    <div class="stat" role="listitem">
+      <span class="pill open">Open seat</span>
+      <h3>Mac Studio</h3>
+      <p>M3 Ultra returned Sep 21 for ~$4,762 credit. M5 config not chosen.</p>
     </div>
   </div>
+</header>
 
-  <div class="dev d-macmini">
-    <div class="dev-role steel">Heavy Worker</div>
-    <h3 class="steel">Mac Mini M4 Pro</h3>
-    <ul class="dev-specs">
-      <li><strong>CPU</strong> 12-core M4 Pro</li>
-      <li><strong>RAM</strong> 24 GB unified</li>
-      <li><strong>GPU</strong> 16-core integrated</li>
-      <li><strong>Storage</strong> 512 GB SSD</li>
-      <li><strong>Connection</strong> Cat6 Ethernet</li>
-    </ul>
-    <div class="dev-jobs">
-      <h4>Runs</h4>
-      <ul class="job-list">
-        <li class="job">Xcode / BNDM</li>
-        <li class="job">TestFlight builds</li>
-        <li class="job">Background agents</li>
-        <li class="job">Overnight jobs</li>
-        <li class="job">Claude Remote</li>
-        <li class="job">Ollama (future)</li>
-      </ul>
-    </div>
+<section aria-labelledby="map-h">
+  <h2 id="map-h">How the pieces connect</h2>
+  <p class="lede">Solid lines are wired, dashed are wireless. The dashed outline is the Studio seat, held open until it passes the gates below.</p>
+  <div class="topo">
+    <svg class="wide" viewBox="0 0 860 400" role="img" aria-label="Network map: Mac mini wired to the AT&amp;T router, ThinkBook and iPhone on Wi-Fi, all three reaching the cloud AIs and Open Brain; an empty Mac Studio seat beside the Mac mini.">
+      <rect class="t-cloud" x="150" y="14" width="560" height="56" rx="10"/>
+      <text class="t-role" x="170" y="36">CLOUD</text>
+      <text class="t-cloudtxt" x="170" y="56">GPT · Codex</text>
+      <text class="t-cloudtxt" x="265" y="56">Claude · Cowork</text>
+      <text class="t-cloudtxt" x="381" y="56">Grok</text>
+      <text class="t-cloudtxt" x="428" y="56">Gemini</text>
+      <text class="t-cloudtxt" x="487" y="56">Open Brain (Supabase)</text>
+      <text class="t-cloudtxt" x="640" y="56">OneDrive</text>
+
+      <path class="t-line faint" d="M430 70 V168"/>
+
+      <path class="t-line copper wifi" d="M240 236 L380 194"/>
+      <path class="t-line steel" d="M480 194 L612 236"/>
+      <path class="t-line sage wifi" d="M430 216 L430 300"/>
+
+      <rect class="t-node plain" x="380" y="168" width="100" height="48" rx="8"/>
+      <text class="t-role" x="430" y="188" text-anchor="middle">AT&amp;T</text>
+      <text class="t-meta" x="430" y="204" text-anchor="middle">router</text>
+
+      <text class="t-link" x="294" y="204" text-anchor="middle">Wi-Fi</text>
+      <text class="t-link" x="560" y="204" text-anchor="middle">Cat6</text>
+      <text class="t-link" x="440" y="264">Wi-Fi / cell</text>
+
+      <rect class="t-node copper" x="40" y="220" width="200" height="82" rx="10"/>
+      <text class="t-name copper" x="60" y="248">ThinkBook</text>
+      <text class="t-role" x="60" y="268">OFFICE + MAIL</text>
+      <text class="t-meta" x="60" y="286">Core Ultra 7 · 32 GB</text>
+
+      <rect class="t-node steel" x="612" y="220" width="200" height="82" rx="10"/>
+      <text class="t-name steel" x="632" y="248">Mac mini</text>
+      <text class="t-role" x="632" y="268">HEAVY WORK + HUB</text>
+      <text class="t-meta" x="632" y="286">M4 Pro · 24 GB · 512 GB</text>
+      <circle class="t-alert" cx="792" cy="240" r="5"/>
+      <text class="t-alerttxt" x="785" y="318" text-anchor="end">OFFLINE · 37 GB FREE</text>
+
+      <rect class="t-node ghost" x="612" y="334" width="200" height="54" rx="10"/>
+      <text class="t-name ghost" x="632" y="358">Mac Studio seat</text>
+      <text class="t-meta" x="632" y="376">M5 · undecided</text>
+      <path class="t-line faint" d="M712 302 V334"/>
+
+      <rect class="t-node sage" x="370" y="300" width="120" height="72" rx="14"/>
+      <text class="t-name sage" x="430" y="328" text-anchor="middle">iPhone</text>
+      <text class="t-role" x="430" y="348" text-anchor="middle">CAPTURE</text>
+      <text class="t-meta" x="430" y="362" text-anchor="middle">voice · approvals</text>
+    </svg>
+
+    <svg class="tall" viewBox="0 0 340 520" role="img" aria-label="Network map, stacked: cloud services, then the AT&amp;T router, then ThinkBook on Wi-Fi, Mac mini on Cat6 with an empty Mac Studio seat, and iPhone on Wi-Fi or cellular.">
+      <rect class="t-cloud" x="10" y="10" width="320" height="74" rx="10"/>
+      <text class="t-role" x="26" y="32">CLOUD</text>
+      <text class="t-cloudtxt" x="26" y="52">GPT · Codex   Claude · Cowork</text>
+      <text class="t-cloudtxt" x="26" y="70">Grok   Gemini   Open Brain   OneDrive</text>
+      <path class="t-line faint" d="M170 84 V116"/>
+      <rect class="t-node plain" x="120" y="116" width="100" height="44" rx="8"/>
+      <text class="t-role" x="170" y="135" text-anchor="middle">AT&amp;T</text>
+      <text class="t-meta" x="170" y="150" text-anchor="middle">router</text>
+
+      <path class="t-line copper wifi" d="M120 138 H40 V196"/>
+      <text class="t-link" x="46" y="132">Wi-Fi</text>
+      <path class="t-line steel" d="M220 138 H300 V196"/>
+      <text class="t-link" x="262" y="132">Cat6</text>
+      <path class="t-line sage wifi" d="M170 160 V408"/>
+
+      <rect class="t-node copper" x="10" y="196" width="148" height="80" rx="10"/>
+      <text class="t-name copper" x="24" y="222">ThinkBook</text>
+      <text class="t-role" x="24" y="242">OFFICE + MAIL</text>
+      <text class="t-meta" x="24" y="260">Core Ultra 7 · 32 GB</text>
+
+      <rect class="t-node steel" x="182" y="196" width="148" height="80" rx="10"/>
+      <text class="t-name steel" x="196" y="222">Mac mini</text>
+      <text class="t-role" x="196" y="242">HEAVY WORK + HUB</text>
+      <text class="t-meta" x="196" y="260">M4 Pro · 24 GB</text>
+      <circle class="t-alert" cx="316" cy="212" r="5"/>
+      <text class="t-alerttxt" x="326" y="294" text-anchor="end">OFFLINE · 37 GB FREE</text>
+
+      <path class="t-line faint" d="M256 300 V320"/>
+      <rect class="t-node ghost" x="182" y="320" width="148" height="54" rx="10"/>
+      <text class="t-name ghost" x="196" y="344">Mac Studio seat</text>
+      <text class="t-meta" x="196" y="362">M5 · undecided</text>
+
+      <text class="t-link" x="178" y="396">Wi-Fi / cell</text>
+      <rect class="t-node sage" x="110" y="408" width="120" height="72" rx="14"/>
+      <text class="t-name sage" x="170" y="436" text-anchor="middle">iPhone</text>
+      <text class="t-role" x="170" y="456" text-anchor="middle">CAPTURE</text>
+      <text class="t-meta" x="170" y="470" text-anchor="middle">voice · approvals</text>
+    </svg>
   </div>
+</section>
 
-  <div class="dev d-iphone">
-    <div class="dev-role sage">Mobile Remote</div>
-    <h3 class="sage">iPhone</h3>
-    <ul class="dev-specs">
-      <li><strong>Connection</strong> Wi-Fi / Cellular</li>
-      <li><strong>Cloud</strong> iCloud (photos/video)</li>
-      <li><strong>Capture</strong> Voice + text to GPT</li>
-    </ul>
-    <div class="dev-jobs">
-      <h4>Runs</h4>
-      <ul class="job-list">
-        <li class="job">GPT Voice capture</li>
-        <li class="job">Open Brain input</li>
-        <li class="job">Claude Remote</li>
-        <li class="job">Approvals</li>
-        <li class="job">Tailscale SSH</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- Wiring -->
-<div class="wiring">
-  <h2>How It's Wired</h2>
-  <div class="wire-grid">
-    <div class="wire">
-      <div class="wire-icon eth">E</div>
-      <div>
-        <h4>Mac Mini → Router</h4>
-        <p>50' Cat6 Ethernet cable, hardwired. Most reliable path for Xcode downloads, agent runs, overnight builds. All other devices stay on the same local network.</p>
-      </div>
-    </div>
-    <div class="wire">
-      <div class="wire-icon wifi">W</div>
-      <div>
-        <h4>ThinkBook → Router</h4>
-        <p>Wi-Fi 6E. Your cockpit doesn't need the wire — it's doing browser, GPT, light edits. Stays lightweight.</p>
-      </div>
-    </div>
-    <div class="wire">
-      <div class="wire-icon usbc">U</div>
-      <div>
-        <h4>Monitor → Both Machines</h4>
-        <p>HDMI to Mac Mini (primary). USB-C or HDMI to ThinkBook when needed. KVM switch optional for one-keyboard control.</p>
-      </div>
-    </div>
-    <div class="wire">
-      <div class="wire-icon bt">T</div>
-      <div>
-        <h4>Tailscale Mesh</h4>
-        <p>Encrypted overlay network across all three devices. SSH into Mac Mini from ThinkBook or iPhone from anywhere. No port forwarding, no VPN hassle.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- AI Service Stack -->
-<div class="ai-stack">
-  <h2>AI Service Stack</h2>
-  <table class="stack-table">
-    <thead>
-      <tr><th>Service</th><th>Role</th><th>Runs On</th><th>Data Sensitivity</th></tr>
-    </thead>
+<section aria-labelledby="lanes-h">
+  <h2 id="lanes-h">Which machine owns what</h2>
+  <p class="lede">The split you set on July 3. Each job has one home machine, so the other devices see results instead of copies.</p>
+  <div class="lane-scroll">
+  <table class="lanes">
+    <thead><tr><th>Machine</th><th>Owns</th><th>Doesn't do</th></tr></thead>
     <tbody>
       <tr>
-        <td>Claude Code / Cowork</td>
-        <td>Agentic coding, multi-agent orchestration</td>
-        <td><span class="dev-dot tb"></span>ThinkBook <span class="dev-dot mm"></span>Mac Mini</td>
-        <td>Tier 2–3 (code, projects)</td>
+        <td><span class="dev copper"><i></i>ThinkBook</span><span class="spec">Core Ultra 7 268V · 32 GB</span></td>
+        <td>Office work, mail, browser research, GPT and Claude chat, quick reviews of what the mini produced.</td>
+        <td>Long builds and overnight agent runs. That's what bogs it down.</td>
       </tr>
       <tr>
-        <td>GPT / Codex</td>
-        <td>Idea capture, voice input, planning, Codex agent runs</td>
-        <td><span class="dev-dot tb"></span>ThinkBook <span class="dev-dot ip"></span>iPhone</td>
-        <td>Tier 2–3 (general)</td>
+        <td><span class="dev steel"><i></i>Mac mini</span><span class="spec">M4 Pro · 24 GB · 512 GB · Ethernet</span></td>
+        <td>Open Brain and OE1 jobs, Codex, Xcode and App Store builds for Big Nate, the 6am Daily Brief, heavy and overnight work.</td>
+        <td>Hold an archive. Video and old project churn belongs on an external SSD or OneDrive.</td>
       </tr>
       <tr>
-        <td>Gemini</td>
-        <td>Research, second opinion, Google ecosystem tasks</td>
-        <td><span class="dev-dot tb"></span>ThinkBook</td>
-        <td>Tier 3 (public research)</td>
+        <td><span class="dev sage"><i></i>iPhone</span><span class="spec">Wi-Fi · cellular</span></td>
+        <td>Voice capture into Open Brain, approvals, Claude Remote, TestFlight checks of Big Nate.</td>
+        <td>Run agents itself. It steers; the mini does the work.</td>
       </tr>
       <tr>
-        <td>Open Brain MCP</td>
-        <td>Memory, context, knowledge capture and retrieval</td>
-        <td><span class="dev-dot tb"></span>ThinkBook <span class="dev-dot ip"></span>iPhone</td>
-        <td>Tier 1–2 (protect this)</td>
-      </tr>
-      <tr>
-        <td>Ollama (local models)</td>
-        <td>Private inference, offline reasoning, sensitive queries</td>
-        <td><span class="dev-dot tb"></span>ThinkBook <span class="dev-dot mm"></span>Mac Mini</td>
-        <td>Tier 1 (never leaves device)</td>
-      </tr>
-      <tr>
-        <td>Xcode / App Store Connect</td>
-        <td>Big Nate's Decision Maker build, sign, archive, TestFlight</td>
-        <td><span class="dev-dot mm"></span>Mac Mini</td>
-        <td>Tier 2 (proprietary code)</td>
+        <td><span class="dev cloud"><i></i>Cloud AIs</span><span class="spec">GPT · Claude · Grok · Gemini · ~$600/mo</span></td>
+        <td>Frontier reasoning, the daily harness reports, anything 24 GB of local memory can't hold.</td>
+        <td>Hold Tier 1 private data. Client deal terms and personal records stay local.</td>
       </tr>
     </tbody>
   </table>
-</div>
-
-<!-- Data Security Tiers -->
-<div class="data-flow">
-  <h2>Data Security Tiers</h2>
-  <div class="flow-tiers">
-    <div class="tier t1">
-      <div class="tier-label sage">Tier 1 · Local Only</div>
-      <h4>Private Brain</h4>
-      <ul>
-        <li>Personal reflections, journal</li>
-        <li>Client confidentials, deal terms</li>
-        <li>Financial information</li>
-        <li>Credentials, API keys</li>
-        <li>Proprietary strategies</li>
-      </ul>
-    </div>
-    <div class="tier t2">
-      <div class="tier-label steel">Tier 2 · Controlled Cloud</div>
-      <h4>Work in Progress</h4>
-      <ul>
-        <li>Big Nate DM source code</li>
-        <li>Open Brain knowledge base</li>
-        <li>Project plans, research</li>
-        <li>OneDrive documents</li>
-        <li>GitHub repositories</li>
-      </ul>
-    </div>
-    <div class="tier t3">
-      <div class="tier-label coral">Tier 3 · Public-Facing</div>
-      <h4>Shared Content</h4>
-      <ul>
-        <li>VibeCoding app data</li>
-        <li>Marketing, social content</li>
-        <li>Published research</li>
-        <li>Open-source projects</li>
-        <li>Public documentation</li>
-      </ul>
-    </div>
   </div>
-</div>
+</section>
 
-<!-- Decision Gate: Keep vs Return -->
-<div class="decision">
-  <h2>The $1,000 Decision — 2-Week Gate</h2>
-  <div class="gate-row">
+<section aria-labelledby="moves-h">
+  <h2 id="moves-h">Next moves, in order</h2>
+  <p class="lede">Each one unblocks the next. The Studio decision means little until the mini is back up and has room to work.</p>
+  <ol class="moves">
+    <li class="move lead">
+      <h3>Bring the Mac mini back online <span class="pill crit">Today</span></h3>
+      <p>Your August 21 note: after it loses power, plugging it back in isn't enough. It needs the power button on the back.</p>
+      <div class="how">
+        <span>Press the rear power button, then confirm the Daily Brief print and Open Brain jobs run.</span>
+        <span>Stop it happening again: System Settings → Energy → turn on <code>Start up automatically after a power failure</code>.</span>
+        <span>Optional: a small UPS ($60–100) keeps it running through blips.</span>
+      </div>
+    </li>
+    <li class="move">
+      <h3>Give it room to work <span class="pill warn">This week</span></h3>
+      <p>In June it generated 240 GB in five days. With 37 GB free, Xcode builds and agent runs start failing in odd ways. Target 100 GB free.</p>
+      <div class="how">
+        <span>Clear Xcode build caches: delete <code>~/Library/Developer/Xcode/DerivedData</code>.</span>
+        <span>Remove old simulators: <code>xcrun simctl delete unavailable</code>.</span>
+        <span>Move Codex video and finished project folders to an external 2 TB SSD or OneDrive. Keep active repos local.</span>
+      </div>
+    </li>
+    <li class="move">
+      <h3>Decide the Mac Studio seat <span class="pill open">Before buying</span></h3>
+      <p>Use the same three gates the mini passed through. Gate 1 is already met, so the decision rests on gates 2 and 3.</p>
+    </li>
+    <li class="move">
+      <h3>Grow Big Nate <span class="pill good">Ongoing</span></h3>
+      <p>Your July 14 priorities, in order: tune the App Store listing from real user evidence, add a paid plan people trust, then launch Android. Modernize code only where it improves reliability, speed or results.</p>
+    </li>
+  </ol>
+</section>
+
+<section aria-labelledby="gates-h">
+  <h2 id="gates-h">The Studio gates</h2>
+  <p class="lede">From your May 26 decision, applied to the open seat.</p>
+  <div class="gates">
     <div class="gate">
-      <h4><span class="gate-verdict keep">Keep 24GB</span> If these pass</h4>
-      <ul>
-        <li>Xcode installs cleanly, Big Nate builds to simulator</li>
-        <li>Archive succeeds, TestFlight path is clear</li>
-        <li>One real overnight job runs without bogging down</li>
-        <li>Your primary workload is app builds + light agent work</li>
-        <li>512GB storage doesn't feel cramped after Xcode + simulators</li>
-      </ul>
+      <span class="pill good">Passed</span>
+      <h4>1 · Ship path</h4>
+      <p>Big Nate went from TestFlight (June 29) to the App Store (July 13). The Apple workflow is proven on the mini.</p>
     </div>
     <div class="gate">
-      <h4><span class="gate-verdict return">Upgrade</span> If any of these hit</h4>
-      <ul>
-        <li>Xcode + Big Nate feels cramped immediately</li>
-        <li>You want serious local AI compute (70B+ models)</li>
-        <li>512GB fills up after Xcode, simulators, and repos</li>
-        <li>You're running 5+ concurrent agent sessions regularly</li>
-        <li>Budget allows jump to 48GB without stress</li>
-      </ul>
+      <span class="pill open">Unanswered</span>
+      <h4>2 · An overnight job the mini can't do</h4>
+      <p>Write it in one sentence: the job, its output, and why 24 GB fails it. A larger local model or video work would qualify.</p>
+    </div>
+    <div class="gate">
+      <span class="pill open">Unanswered</span>
+      <h4>3 · It offsets cloud spend</h4>
+      <p>You spend about $600 a month on cloud AI. Name which subscription or usage the Studio would replace, and by how much.</p>
     </div>
   </div>
-</div>
+  <div class="verdict">
+    <strong>Recommendation:</strong> if you can't write gate 2 in one sentence this week, hold the ~$4,762 credit and buy nothing yet. Clearing storage on the mini (move 2) may be what you needed. If gate 2 is real, size the Studio for that job: a large local model needs 64 GB of memory at minimum, and 2 TB of storage so you never hit June's wall again.
+  </div>
+</section>
 
-<!-- Timeline -->
-<div class="timeline-section">
-  <h2>What to Do, When</h2>
-  <div class="tl">
-    <div class="tl-item now">
-      <div class="tl-dot"></div>
-      <div class="tl-when">Day 1 — Mac Mini arrives</div>
-      <h4>Prove the Apple path</h4>
-      <p>Install macOS updates, Xcode, clone Big Nate from GitHub. Build to simulator. Do not customize anything else first. This is the return-window truth test.</p>
-      <span class="tl-cost" style="background:var(--sage-dim);color:var(--sage)">$0 — already purchased</span>
+<section aria-labelledby="wire-h">
+  <h2 id="wire-h">Wiring and desk</h2>
+  <div class="wires">
+    <div class="wire">
+      <h4>Mac mini → router <span>Cat6</span></h4>
+      <p>Stays hardwired. Its scheduled jobs and big downloads need a connection that doesn't drop.</p>
     </div>
-    <div class="tl-item now">
-      <div class="tl-dot"></div>
-      <div class="tl-when">Day 2–3</div>
-      <h4>Wire the network</h4>
-      <p>Run Cat6 Ethernet to router. Set Mac Mini to never sleep. Install Tailscale on all three devices. Enable SSH. Set up Chrome Remote Desktop or Screens so ThinkBook can control Mac Mini.</p>
-      <span class="tl-cost" style="background:var(--sage-dim);color:var(--sage)">$15–30 — Cat6 cable</span>
+    <div class="wire">
+      <h4>ThinkBook, iPhone <span>Wi-Fi</span></h4>
+      <p>Same home network as the mini, so both can reach it without extra setup.</p>
     </div>
-    <div class="tl-item soon">
-      <div class="tl-dot"></div>
-      <div class="tl-when">Day 4–7</div>
-      <h4>Complete Apple Developer enrollment</h4>
-      <p>Finish the $99/yr Apple Developer Program. Confirm App Store Connect access. Set up signing certificates. Get Big Nate to archive successfully.</p>
-      <span class="tl-cost" style="background:var(--copper-dim);color:var(--copper)">$99 — Apple Developer Program</span>
+    <div class="wire">
+      <h4>Remote access <span>Tailscale</span></h4>
+      <p>Reach the mini from the ThinkBook or iPhone anywhere, without opening router ports.</p>
     </div>
-    <div class="tl-item soon">
-      <div class="tl-dot"></div>
-      <div class="tl-when">Day 7–10</div>
-      <h4>Run one real overnight job</h4>
-      <p>Move a heavy task from ThinkBook to Mac Mini. Agent run, long build, QA suite. Prove the Mac Mini takes load off your cockpit. This is gate 2.</p>
-      <span class="tl-cost" style="background:var(--copper-dim);color:var(--copper)">$0</span>
-    </div>
-    <div class="tl-item later">
-      <div class="tl-dot"></div>
-      <div class="tl-when">Day 14 — Return deadline</div>
-      <h4>Keep or return decision</h4>
-      <p>If Big Nate builds, overnight jobs work, and 24GB/512GB isn't cramped — keep it. If any gate fails or you've decided local AI compute is strategic — return and upgrade to 48GB+.</p>
-      <span class="tl-cost" style="background:var(--steel-dim);color:var(--steel)">$0 or +$400–600 upgrade delta</span>
-    </div>
-    <div class="tl-item future">
-      <div class="tl-dot"></div>
-      <div class="tl-when">Month 2–3</div>
-      <h4>Install local AI stack</h4>
-      <p>Only after Big Nate is on TestFlight. Install Ollama, pull Llama 3 8B, set up MCP for Claude Code. The Mac Mini becomes your background AI worker alongside the Xcode machine.</p>
-      <span class="tl-cost" style="background:var(--coral-dim);color:var(--coral)">$0 — open-source</span>
+    <div class="wire">
+      <h4>Monitor audio <span>ThinkBook</span></h4>
+      <p>If sound dies when the monitor connects, Windows switched audio to the monitor. Pick the laptop speakers and mic in Settings → System → Sound.</p>
     </div>
   </div>
-</div>
+</section>
 
-<div class="foot">
-  Architecture for Nathan Hale · ThinkBook T14s Gen 6 + Mac Mini M4 Pro 24GB + iPhone<br>
-  Research compiled from Apple, NVIDIA, Dell, HP, Lenovo specs · Supabase security audit · Claude Code MCP documentation · Market data from Tom's Hardware, CNBC, TrendForce
+<section aria-labelledby="ledger-h">
+  <h2 id="ledger-h">How you got here</h2>
+  <p class="lede">Dated entries from Open Brain.</p>
+  <ol class="ledger">
+    <li><time>May 26</time><div><b>Mac mini bought</b> on three gates: ship Big Nate, run an overnight job, offset cloud spend.</div></li>
+    <li><time>Jun 11</time><div><b>Storage wall:</b> 240 GB of Codex, video and project files in five days.</div></li>
+    <li><time>Jun 16</time><div><b>Mac Studio M3 Ultra ordered</b>, 96 GB / 2 TB, as the hedge.</div></li>
+    <li><time>Jun 25</time><div><b>Mac mini kept</b> once its return window closed.</div></li>
+    <li class="win"><time>Jun 29</time><div><b>TestFlight:</b> Big Nate 1.0 (9) ready to test.</div></li>
+    <li class="win"><time>Jul 13</time><div><b>Live on the App Store.</b> A goal nearly a decade old.</div></li>
+    <li><time>Aug 21</time><div><b>Mini lost power</b> and missed the 6am Daily Brief. Lesson: press the rear button.</div></li>
+    <li><time>Sep 21</time><div><b>Mac Studio returned</b> for ~$4,762 credit. Next aim: an M5 Studio.</div></li>
+    <li class="now"><time>Oct 5–6</time><div><b>Mini offline</b> again, per the daily harness reports.</div></li>
+  </ol>
+</section>
+
+<footer>
+  Built from Open Brain records dated May 26 through October 6, 2026. Mac mini specs and the 37 GB free figure come from the September 7 live inspection; check current free space before acting on move 2.
+</footer>
+
 </div>
