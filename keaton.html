@@ -34,14 +34,15 @@
     --f-sans:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  [hidden]{display:none !important;}
   html,body{margin:0; padding:0;}
+  html{background:#0a0507;}
   body{
     font-family:var(--f-sans);
     background:
       radial-gradient(1200px 600px at 10% -10%, rgba(199,21,133,.18), transparent 50%),
       radial-gradient(900px 500px at 110% 20%, rgba(212,175,55,.10), transparent 50%),
-      linear-gradient(180deg, #0b0708 0%, #0a0507 100%);
-    background-attachment:fixed;
+      #0a0507;
     color:var(--text);
     min-height:100vh;
     line-height:1.45;
@@ -173,7 +174,12 @@
     background:var(--card); border:1px solid var(--line); border-radius:var(--radius-sm);
     padding:14px; text-align:left; cursor:pointer; position:relative; overflow:hidden;
     transition:transform .15s ease, border-color .2s ease;
+    color:var(--text); font-family:var(--f-sans);
   }
+  .tile.featured{ grid-column:1/-1; border-color:rgba(212,175,55,.35);
+    background:linear-gradient(135deg, rgba(212,175,55,.10), rgba(199,21,133,.10)), var(--card); }
+  .tile .new{ position:absolute; top:12px; right:12px; font-size:10px; letter-spacing:.16em; color:var(--gold);
+    border:1px solid rgba(212,175,55,.4); border-radius:999px; padding:3px 8px; }
   .tile:active{ transform:scale(.98); }
   .tile:hover{ border-color:rgba(224,135,154,.35); }
   .tile .em{ font-size:22px; display:block; margin-bottom:6px; }
@@ -247,6 +253,13 @@
   .qmeta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:11px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; }
   .qmeta .pill{ padding:3px 8px; border-radius:999px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); }
   .qmeta .pill.hot{ color:var(--rose); border-color:rgba(224,135,154,.3); }
+  .qmeta .pill.low{ color:var(--bad); border-color:rgba(255,107,129,.4); }
+  .qmeta .pill.redo{ color:var(--gold); border-color:rgba(212,175,55,.35); }
+  body.in-session .nav{ display:none; }
+  body.in-session .app{ padding-bottom:32px; }
+  body.dad-view .hero-actions, body.dad-view #dailyBtn, body.dad-view #sendDadSection,
+  body.dad-view .nav{ display:none; }
+  body.dad-view .tile{ pointer-events:none; }
   .choices{ display:grid; gap:8px; margin-top:6px; }
   .choice{
     background:var(--card-2); border:1px solid var(--line); border-radius:14px;
@@ -381,8 +394,8 @@
   <div id="dadBanner" class="dad-banner" hidden>
     <span>💌</span>
     <div class="grow">
-      <b>Dad view</b><br>
-      <span class="muted" style="font-size:12px;">You're viewing Keaton's live stats. Read-only.</span>
+      <b>Keaton's Glow Report</b><br>
+      <span class="muted" style="font-size:12px;" id="dadBannerSub">Read-only snapshot.</span>
     </div>
     <button class="btn btn-ghost btn-sm" onclick="exitDadView()">Exit</button>
   </div>
@@ -445,11 +458,11 @@
       <div class="badges" id="badgesShort"></div>
     </div>
 
-    <div class="section">
+    <div class="section" id="sendDadSection">
       <div class="section-head"><h2>Send Dad Your Glow</h2><span class="dim">📱</span></div>
       <div class="card">
         <p class="muted" style="font-size:14px; margin:0 0 12px;">
-          Text Dad your progress — one tap. Or copy your Glow Code so he can open the same app and see your live stats.
+          Text Dad your progress in one tap. The text includes your Glow Code so he can open your dashboard.
         </p>
         <div class="row" style="gap:8px; flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="textDad()">📱 Text Dad</button>
@@ -589,14 +602,13 @@
       <h3 class="serif mb-1">🔗 Glow Code</h3>
       <div class="card">
         <p class="muted" style="font-size:14px; margin:0 0 12px;">
-          Dad opens the same app with this code and sees your live dashboard (read-only).
-          Update it whenever — send the code again.
+          A snapshot of your dashboard Dad can open (read-only). Send a fresh one whenever you level up.
         </p>
         <div class="code-field">
           <input id="glowCodeField" readonly value="—" />
           <button class="btn btn-primary" onclick="copyGlowCode()">Copy</button>
         </div>
-        <div class="dim mt-1">Tell Dad to open the app and add <code>?d=THECODE</code> to the URL — or just tap "Load Code" in the avatar menu.</div>
+        <div class="dim mt-1">Dad: open Glow Math → tap the <b>K</b> in the corner → <b>Load a Glow Code</b> → paste.</div>
       </div>
     </div>
   </section>
@@ -748,7 +760,8 @@ function tierOf(pts){
 
 /* ---------- Topics ---------- */
 const TOPICS = [
-  { key:'linear',   name:'Linear Equations',   em:'💋', blurb:'Solve for x. The classic.', gens:['linearEasy','linearMed','linearHard'] },
+  { key:'life',     name:'Real Life',          em:'🎓', blurb:'Birdies, cheer, Sephora, college.', gens:['lifeEasy','lifeMed','lifeHard'] },
+  { key:'linear',  name:'Linear Equations',   em:'💋', blurb:'Solve for x. The classic.', gens:['linearEasy','linearMed','linearHard'] },
   { key:'systems',  name:'Systems',            em:'💎', blurb:'Two equations, two unknowns.', gens:['sysEasy','sysMed','sysHard'] },
   { key:'quadratic',name:'Quadratics',         em:'💄', blurb:'Factor. Formula. Vertex.',    gens:['qEasy','qMed','qHard'] },
   { key:'functions',name:'Functions',          em:'👛', blurb:'Domain, evaluate, compose.',  gens:['fnEasy','fnMed','fnHard'] },
@@ -779,8 +792,9 @@ const BADGES = [
   {key:'exp',      em:'✨', name:'Log Legend',       desc:'Master Exp/Logs'},
   {key:'runway',   em:'👑', name:'On the Runway',    desc:'Pass a Runway (8/10)'},
   {key:'flawless', em:'💯', name:'Flawless',         desc:'5/5 on a session'},
+  {key:'life',     em:'🎓', name:'Main Character',   desc:'Master Real Life'},
 ];
-const BADGE_MASTERY_MAP = { linear:'linear', quadratic:'quad', functions:'fn', polynomial:'poly', rational:'rat', exp:'exp' };
+const BADGE_MASTERY_MAP = { life:'life', linear:'linear', quadratic:'quad', functions:'fn', polynomial:'poly', rational:'rat', exp:'exp' };
 
 /* ---------- Problem generators ---------- */
 /* Each returns { q:htmlString, choices:[strings], correct:index, steps:[str], type:'mc'|'free', answer:string, hint:string, tag:{topic, level} } */
@@ -1076,11 +1090,12 @@ function ratEasy(){
   const n = g*rand(1,5), d = g*rand(1,5);
   const q = `Simplify:  ${n}x / ${d}`;
   const [nn,dd] = reduceFrac(n,d);
-  const ans = dd===1 ? `${nn}x` : `${nn}x/${dd}`;
+  const fx = (p,q)=> `${p===1?'':p}x${q===1?'':'/'+q}`;
+  const ans = fx(nn,dd);
   const wrongs = new Set([ans]);
-  while(wrongs.size<4){
-    const w = pick([`${n}x/${d}`, `${nn+1}x/${dd}`, `${nn}x/${dd+1}`, `${nn-1}x/${dd}`]);
-    if(w!==ans) wrongs.add(w);
+  for(const [p,q] of shuffle([[n,d],[nn+1,dd],[nn,dd+1],[nn-1,dd],[dd,nn],[nn+2,dd]])){
+    if(wrongs.size>=4) break;
+    if(p>0 && q>0) wrongs.add(fx(p,q));
   }
   const opts=[...wrongs]; shuffle(opts);
   return mc(q, opts, opts.indexOf(ans), [
@@ -1210,7 +1225,109 @@ function radHard(){
   ], 'FOIL, then replace i² with −1.', {tag:{topic:'radical', level:'hard'}});
 }
 
+/* -- Real Life (word problems in Keaton's world) -- */
+function numChoices(ans, deltas, fmt){
+  const set = new Set([ans]);
+  for(const d of shuffle([...deltas])){
+    if(set.size>=4) break;
+    const v = +(ans+d).toFixed(2);
+    if(v>0) set.add(v);
+  }
+  const opts = [...set].map(fmt); shuffle(opts);
+  return { opts, idx: opts.indexOf(fmt(ans)) };
+}
+function lifeEasy(){
+  const kind = pick(['birdies','sat','giftcard']);
+  const meta = {tag:{topic:'life', level:'easy'}};
+  if(kind==='birdies'){
+    const wage = pick([10,11,12,13,14,15]), hrs = rand(3,8), tips = 5*rand(4,18);
+    const total = wage*hrs + tips;
+    const {opts, idx} = numChoices(hrs, [-2,-1,1,2,3], v=>`${v} hours`);
+    return mc(`🍗 Birdies pays you $${wage}/hr. Tonight you took home $${total}, and $${tips} of that was tips. How many hours did you work?`,
+      opts, idx, [
+        `<b>Write it.</b> ${wage}h + ${tips} = ${total}`,
+        `<b>Take out the tips.</b> ${wage}h = ${total-tips}`,
+        `<b>Divide.</b> h = ${total-tips} ÷ ${wage} = <b>${hrs} hours</b>`
+      ], 'Pay = wage × hours + tips. Subtract the tips first.', meta);
+  }
+  if(kind==='sat'){
+    const start = 10*rand(95,112), gain = pick([20,25,30,40]), n = rand(3,8);
+    const goal = start + gain*n;
+    const {opts, idx} = numChoices(n, [-2,-1,1,2,3], v=>`${v} tests`);
+    return mc(`🎓 Your first SAT practice score was ${start}. You go up about ${gain} points per practice test. How many more tests until you hit ${goal}?`,
+      opts, idx, [
+        `<b>Write it.</b> ${start} + ${gain}n = ${goal}`,
+        `<b>Subtract.</b> ${gain}n = ${goal-start}`,
+        `<b>Divide.</b> n = ${goal-start} ÷ ${gain} = <b>${n} tests</b>`
+      ], 'Start + (points per test × tests) = goal.', meta);
+  }
+  let card, price, n, left;
+  do { card = pick([50,75,100]); price = pick([6,8,9,12,14]); n = rand(2,5); left = card - price*n; } while(left<=0);
+  const {opts, idx} = numChoices(n, [-1,1,2,3], v=>`${v} glosses`);
+  return mc(`💄 You have a $${card} Sephora gift card. Lip glosses are $${price} each. After checkout you have $${left} left. How many glosses did you buy?`,
+    opts, idx, [
+      `<b>Write it.</b> ${card} − ${price}g = ${left}`,
+      `<b>Rearrange.</b> ${price}g = ${card} − ${left} = ${card-left}`,
+      `<b>Divide.</b> g = ${card-left} ÷ ${price} = <b>${n} glosses</b>`
+    ], 'Card − (price × glosses) = what’s left.', meta);
+}
+function lifeMed(){
+  const sc = pick([
+    {em:'💄', verb:'You bought', a:{name:'lip glosses', short:'glosses', one:'gloss', p:pick([8,10,12])}, b:{name:'mascaras', short:'mascaras', one:'mascara', p:pick([22,24,26])}, end:'and spent'},
+    {em:'🍗', verb:'Your table at Birdies ordered', a:{name:'tender baskets', short:'tender baskets', one:'tender basket', p:pick([9,11])}, b:{name:'wing baskets', short:'wing baskets', one:'wing basket', p:pick([14,16])}, end:'for a bill of'},
+    {em:'📣', verb:'The cheer squad sold', a:{name:'hair bows', short:'bows', one:'bow', p:pick([5,6])}, b:{name:'spirit T-shirts', short:'shirts', one:'shirt', p:pick([15,18,20])}, end:'and raised'},
+  ]);
+  const x = rand(2,6), y = rand(2,6), N = x+y, A = sc.a.p, B = sc.b.p, T = A*x + B*y;
+  const fmt = (p,q)=>`${p} ${p===1?sc.a.one:sc.a.short}, ${q} ${q===1?sc.b.one:sc.b.short}`;
+  const ans = fmt(x,y);
+  const set = new Set([ans]);
+  for(const [p,q] of shuffle([[y,x],[x+1,y-1],[x-1,y+1],[x+2,y-2],[x-2,y+2]])){
+    if(set.size>=4) break;
+    if(p>0 && q>0) set.add(fmt(p,q));
+  }
+  const opts=[...set]; shuffle(opts);
+  return mc(`${sc.em} ${sc.verb} ${N} things — ${sc.a.name} at $${A} each and ${sc.b.name} at $${B} each — ${sc.end} $${T}. How many of each?`,
+    opts, opts.indexOf(ans), [
+      `<b>Two equations.</b> a + b = ${N}  and  ${A}a + ${B}b = ${T}`,
+      `<b>Substitute</b> a = ${N} − b: ${A}(${N} − b) + ${B}b = ${T} → ${B-A}b = ${T - A*N}`,
+      `<b>Solve.</b> b = ${y}, so a = ${N} − ${y} = ${x}. Answer: <b>${ans}</b>`
+    ], 'One equation counts the items, one counts the dollars. Solve the count one for a, then substitute.', {tag:{topic:'life', level:'medium'}});
+}
+function lifeHard(){
+  const kind = pick(['tossHeight','tossTime','views']);
+  const meta = {tag:{topic:'life', level:'hard'}};
+  if(kind==='views'){
+    const start = pick([250,500,1000]), k = rand(3,6), target = start*Math.pow(2,k);
+    const {opts, idx} = numChoices(k, [-2,-1,1,2], v=>`Day ${v}`);
+    return mc(`📱 Your cheer TikTok had ${start.toLocaleString()} views and the views double every day: V(d) = ${start}·2<sup>d</sup>. On what day does it hit ${target.toLocaleString()}?`,
+      opts, idx, [
+        `<b>Set it up.</b> ${start}·2<sup>d</sup> = ${target}`,
+        `<b>Divide.</b> 2<sup>d</sup> = ${target/start}`,
+        `<b>Log it.</b> d = log<sub>2</sub>(${target/start}) = <b>${k}</b>, since 2${sup(k)} = ${target/start}`
+      ], 'Divide out the starting views, then ask: 2 to what power?', meta);
+  }
+  const v = pick([16,24,32]), h0 = pick([5,6]);
+  const tPeak = v/32, maxH = h0 + v*v/64;
+  const fn = `h(t) = −16t² + ${v}t + ${h0}`;
+  if(kind==='tossTime'){
+    const {opts, idx} = numChoices(tPeak, [-0.5,-0.25,0.25,0.5,0.75], x=>`${x} sec`);
+    return mc(`📣 Basket toss! Your flyer’s height in feet is ${fn}. How many seconds until she reaches the top?`,
+      opts, idx, [
+        `<b>The top is the vertex.</b> t = −b ÷ (2a)`,
+        `t = −${v} ÷ (2 · −16) = ${v}/32 = <b>${tPeak} sec</b>`
+      ], 'The peak of a parabola is at t = −b / (2a).', meta);
+  }
+  const {opts, idx} = numChoices(maxH, [-4,-2,2,4,6], x=>`${x} ft`);
+  return mc(`📣 Basket toss! Your flyer’s height in feet is ${fn}. How high does she get?`,
+    opts, idx, [
+      `<b>Find when she peaks.</b> t = −b ÷ (2a) = −${v} ÷ (−32) = ${tPeak} sec`,
+      `<b>Plug it in.</b> h(${tPeak}) = −16(${tPeak})² + ${v}(${tPeak}) + ${h0}`,
+      `= ${-16*tPeak*tPeak} + ${v*tPeak} + ${h0} = <b>${maxH} ft</b>`
+    ], 'Find the vertex time first, then plug it back into h(t).', meta);
+}
+
 const GEN_MAP = {
+  lifeEasy, lifeMed, lifeHard,
   linearEasy, linearMed, linearHard,
   sysEasy, sysMed, sysHard,
   qEasy, qMed, qHard,
@@ -1232,16 +1349,19 @@ function startSession({topic, level, size=5, kind='topic', title=null, mixed=fal
     : [GEN_MAP[topicByKey[topic].gens[LEVELS.findIndex(l=>l.key===level)]]];
   for(let i=0;i<size;i++){
     const g = mixed ? pick(gens) : gens[0];
-    problems.push(g());
+    const p = g(); p.gen = g;
+    problems.push(p);
   }
   sess = {
     problems, idx:0, correct:0, points:0, kind, title, mixed, timed,
     startedAt: Date.now(),
-    topic, level,
+    topic, level, baseSize:size, redos:0,
     hintUsed:false,
     answered:new Array(size).fill(null),
     timer:null, timeLeft: timed?300:0
   };
+  const timerEl = $('#qTimer');
+  timerEl.hidden = !timed; timerEl.classList.remove('low');
   go('problem');
   renderProblem();
   if(timed) startTimer();
@@ -1261,12 +1381,13 @@ function startTimer(){
 
 function renderProblem(){
   const p = sess.problems[sess.idx];
-  $('#sessLabel').textContent = sess.title || `${topicByKey[sess.topic]?.name || 'Mixed'} · ${sess.idx+1}/${sess.problems.length}`;
+  $('#sessLabel').textContent = `${sess.title || topicByKey[sess.topic]?.name || 'Mixed'} · ${sess.idx+1}/${sess.problems.length}`;
   $('#sessBar').style.width = `${(sess.idx/sess.problems.length)*100}%`;
   $('#qTopic').textContent = topicByKey[p.tag.topic]?.name || p.tag.topic;
-  $('#qDiff').textContent = p.tag.level;
-  const worth = LEVELS.find(l=>l.key===p.tag.level).pts * (sess.kind==='daily'?2:1);
-  $('#qWorth').textContent = `+${worth} pts`;
+  $('#qDiff').textContent = LEVELS.find(l=>l.key===p.tag.level).name;
+  const worth = LEVELS.find(l=>l.key===p.tag.level).pts * (sess.kind==='daily'?2:sess.kind==='boss'?1.5:1);
+  $('#qWorth').textContent = p.redo ? `🔁 Redo · +${worth} pts` : `+${worth} pts`;
+  $('#qWorth').classList.toggle('redo', !!p.redo);
   $('#qPrompt').innerHTML = p.q;
   $('#qFeedback').className = 'feedback';
   $('#qFeedback').textContent = '';
@@ -1321,7 +1442,8 @@ function handleResult(isRight){
   const p = sess.problems[sess.idx];
   const base = LEVELS.find(l=>l.key===p.tag.level).pts;
   const multi = sess.kind==='daily' ? 2 : (sess.kind==='boss' ? 1.5 : 1);
-  const streakBonus = Math.min(2, 1 + state.streak*0.05);
+  const streakNow = liveStreak();
+  const streakBonus = Math.min(2, 1 + streakNow*0.05);
   let pts = 0;
   if(isRight){
     pts = Math.round(base * multi * streakBonus);
@@ -1343,8 +1465,14 @@ function handleResult(isRight){
   const nudges = ['Almost — see the walkthrough.','Not quite. Look at the steps.','Close! Peek at the solve.','Try again next round — here’s how it works.'];
   fb.className = 'feedback ' + (isRight?'ok':'no');
   fb.innerHTML = isRight
-    ? `<span class="head">${pick(compliments)}</span>  +${pts} pts${state.streak>=3?` · ×${streakBonus.toFixed(2)} streak`:''}`
+    ? `<span class="head">${pick(compliments)}</span>  +${pts} pts${streakNow>=3?` · ×${streakBonus.toFixed(2)} streak`:''}`
     : `<span class="head">${pick(nudges)}</span>`;
+  if(!isRight && sess.kind!=='boss' && sess.redos<2 && p.gen){
+    const np = p.gen(); np.gen = p.gen; np.redo = true;
+    sess.problems.push(np); sess.answered.push(null); sess.redos++;
+    fb.innerHTML += `<div style="margin-top:6px; font-size:13px;">🔁 You’ll get one like this again at the end.</div>`;
+  }
+  $('#hintBtn').disabled = true; $('#hintBtn').style.opacity = .5;
   const steps = $('#qSteps');
   steps.hidden = false;
   steps.innerHTML = `<div class="dim mb-1">HOW TO GET IT</div><ol>${p.steps.map(s=>`<li>${s}</li>`).join('')}</ol>`;
@@ -1381,7 +1509,7 @@ function repeatSession(){
 let lastSess = null;
 function finishSession(){
   if(sess.timer) clearInterval(sess.timer);
-  lastSess = { topic: sess.topic, level: sess.level, size: sess.problems.length, kind: sess.kind, title: sess.title, mixed: sess.mixed, timed: sess.timed };
+  lastSess = { topic: sess.topic, level: sess.level, size: sess.baseSize, kind: sess.kind, title: sess.title, mixed: sess.mixed, timed: sess.timed };
 
   // update global stats
   const gained = sess.points;
@@ -1401,7 +1529,7 @@ function finishSession(){
   // daily progress
   if(sess.kind==='daily'){
     const d = state.dailyProgress[today] = state.dailyProgress[today] || {done:0, correct:0, points:0};
-    d.done += sess.problems.length;
+    d.done += sess.baseSize;
     d.correct += sess.correct;
     d.points += gained;
   }
@@ -1498,7 +1626,7 @@ function renderHero(){
     $('#tierNext').textContent = 'Max tier ✨';
     $('#tierBar').style.width = '100%';
   }
-  $('#stStreak').textContent = state.streak;
+  $('#stStreak').textContent = DAD_VIEW ? state.streak : liveStreak();
   $('#stCoins').textContent = state.coins;
   $('#stAcc').textContent = state.answered ? `${Math.round(100*state.correctTotal/state.answered)}%` : '—';
 }
@@ -1520,10 +1648,11 @@ function renderTopics(){
     const m = state.mastery[t.key] || {correct:0, total:0, xp:0};
     const mastery = m.total ? Math.round(100*m.correct/m.total) : 0;
     const tile = document.createElement('button');
-    tile.className='tile';
-    tile.innerHTML = `<span class="em">${t.em}</span>
+    const featured = t.key==='life';
+    tile.className = featured ? 'tile featured' : 'tile';
+    tile.innerHTML = `${featured && !m.total ? '<span class="new">START HERE</span>' : ''}<span class="em">${t.em}</span>
       <b>${t.name}</b>
-      <span class="mini">${m.total} solved · ${mastery}% mastery</span>
+      <span class="mini">${featured ? t.blurb+' · ' : ''}${m.total} solved · ${mastery}% mastery</span>
       <div class="bar"><span style="width:${mastery}%"></span></div>`;
     tile.onclick = ()=>openTopic(t.key);
     g.appendChild(tile);
@@ -1587,6 +1716,8 @@ function renderAll(){
 
 /* ---------- Nav ---------- */
 function go(name){
+  document.body.classList.toggle('in-session', name==='problem');
+  if(name==='home' || name==='collection' || name==='dad') renderAll();
   $$('.screen').forEach(s=>s.classList.remove('active'));
   const s = $('#screen-'+name); if(s) s.classList.add('active');
   $$('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.goto===name));
@@ -1643,13 +1774,13 @@ function buildShareText(){
   const badges = Object.keys(state.badges).length;
   return `hey dad 💕 glow math update:
 · ${cur.name} tier · ${state.totalPoints.toLocaleString()} glow pts
-· ${state.streak}🔥 day streak
+· ${liveStreak()}🔥 day streak
 · ${acc}% aim · ${badges} badges
 · runway best: ${state.runwayBest}/10
 proud of me? 😌`;
 }
 function textDad(){
-  const body = buildShareText() + `\n\nsee live: (paste this into your app) ${buildGlowCode()}`;
+  const body = buildShareText() + `\n\n(dad: open Glow Math → tap K → Load a Glow Code → paste this)\n${buildGlowCode()}`;
   const href = `sms:?&body=${encodeURIComponent(body)}`;
   location.href = href;
 }
@@ -1659,7 +1790,10 @@ function refreshGlowCode(){
 }
 function buildGlowCode(){
   const compact = {
-    p: state.totalPoints, c: state.coins, s: state.streak, l: state.lastDay,
+    p: state.totalPoints, c: state.coins, s: liveStreak(), l: state.lastDay,
+    d: Object.fromEntries(Object.entries(state.dailyProgress).filter(([k])=>{
+      const n = new Date(); return k >= ymd(new Date(n.getFullYear(), n.getMonth(), n.getDate()-6));
+    })),
     m: state.mastery, b: Object.keys(state.badges), r: state.runwayBest,
     a: state.answered, ct: state.correctTotal,
     n: 'Keaton', t: Date.now()
@@ -1684,7 +1818,7 @@ function showShareCard(){
       <div class="big">${cur.name}</div>
       <div style="opacity:.85; margin-top:4px;">${state.totalPoints.toLocaleString()} glow pts</div>
       <div class="grid3">
-        <div><b>${state.streak}</b><span>🔥 Streak</span></div>
+        <div><b>${liveStreak()}</b><span>🔥 Streak</span></div>
         <div><b>${acc}%</b><span>Aim</span></div>
         <div><b>${badges}</b><span>Badges</span></div>
       </div>
@@ -1730,12 +1864,13 @@ function confetti(n=20){
 
 /* ---------- Date helpers ---------- */
 function ymd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function liveStreak(){
+  const today = ymd(new Date());
+  return (state.lastDay===today || (state.lastDay && isYesterday(state.lastDay, today))) ? state.streak : 0;
+}
 function isYesterday(prev, todayStr){
-  const [y,m,d] = prev.split('-').map(Number);
-  const p = new Date(y, m-1, d);
-  const t = new Date(todayStr);
-  const diff = (t - p) / 86400000;
-  return diff === 1;
+  const [y,m,d] = todayStr.split('-').map(Number);
+  return ymd(new Date(y, m-1, d-1)) === prev;
 }
 
 /* ---------- Dad view ---------- */
@@ -1751,22 +1886,16 @@ function tryLoadDadView(){
     state = {
       totalPoints: c.p||0, coins: c.c||0, streak: c.s||0, lastDay: c.l||null,
       mastery: c.m||{}, badges: Object.fromEntries((c.b||[]).map(k=>[k,{earnedAt:0}])),
-      dailyProgress:{}, runwayBest: c.r||0,
+      dailyProgress: c.d||{}, runwayBest: c.r||0,
       answered: c.a||0, correctTotal: c.ct||0,
       createdAt: c.t||Date.now()
     };
     DAD_VIEW = true;
     document.body.classList.add('dad-view');
     $('#dadBanner').hidden = false;
-    // disable clicks on start buttons
-    setTimeout(()=>{
-      $$('.btn-primary, .btn-gold').forEach(b=>{
-        if(!b.closest('#dadBanner')) {
-          b.disabled = true; b.style.opacity=.5; b.title='Dad view is read-only';
-        }
-      });
-      $$('.tile').forEach(t=>{ t.disabled=true; t.style.pointerEvents='none'; });
-    }, 50);
+    const when = new Date(c.t||Date.now()).toLocaleString(undefined, {weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+    const daysThisWeek = Object.values(state.dailyProgress).filter(x=>x.done>0).length;
+    $('#dadBannerSub').textContent = `Snapshot from ${when} · Daily Looks done in the last week: ${daysThisWeek}`;
     return true;
   }catch(e){ console.warn('Bad glow code', e); return false; }
 }
@@ -1787,9 +1916,10 @@ if(!DAD_VIEW && !localStorage.getItem(KEY+'.greeted')){
       <div class="kicker">💌 A NOTE FROM DAD</div>
       <h2 class="serif mt-1">Hey K —</h2>
       <p class="muted mt-1" style="font-size:15px; line-height:1.55;">
-        Built this for you. It's Algebra 2 but wrapped like your favorite Sephora app.
-        Tap <b>Today's Look</b> to warm up (5 problems, 2× points). Do it every day and your streak grows.
-        Text me your Glow Code anytime — I'll open it and see your live stats.
+        Built this for you. It's Algebra 2, wrapped like your favorite Sephora app.
+        Start with <b>Real Life</b>: the math is about Birdies shifts, basket tosses, and your Sephora haul.
+        Do <b>Today's Look</b> every day (5 problems, 2× points) and your streak grows.
+        Miss one? You'll get a similar one at the end of the round.
       </p>
       <p class="muted mt-1" style="font-size:15px;">
         No pressure. Just show up. Love you. 💕
