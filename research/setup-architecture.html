@@ -165,8 +165,8 @@ header p { margin-top: 12px; color: var(--ink-2); max-width: 620px; font-size: .
 .t-link { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-2); }
 .t-cloud { fill: var(--surface); stroke: var(--border); }
 .t-cloudtxt { font-family: var(--mono); font-size: 10px; fill: var(--ink-2); }
-.t-alert { fill: var(--crit); }
-.t-alerttxt { font-family: var(--mono); font-size: 9.5px; fill: var(--crit); letter-spacing: .06em; }
+.t-ok { fill: var(--good); }
+.t-warntxt { font-family: var(--mono); font-size: 9.5px; fill: var(--warn); letter-spacing: .06em; }
 
 /* Lanes */
 .lanes { width: 100%; border-collapse: collapse; font-size: .85rem; }
@@ -182,34 +182,32 @@ header p { margin-top: 12px; color: var(--ink-2); max-width: 620px; font-size: .
 .spec { display: block; font-family: var(--mono); font-size: .7rem; color: var(--ink-3); margin-top: 3px; font-weight: 400; }
 .lane-scroll { overflow-x: auto; }
 
-/* Next moves */
-.moves { list-style: none; counter-reset: m; display: flex; flex-direction: column; gap: 12px; }
-.move {
-  counter-increment: m;
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 4px 16px;
-  padding: 20px 22px 20px 18px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-.move::before {
-  content: counter(m);
-  grid-row: 1 / span 3;
-  font-family: var(--display);
-  font-size: 2rem;
-  line-height: 1;
-  color: var(--ink-3);
-  text-align: center;
-  padding-top: 2px;
-}
-.move.lead { border-color: var(--crit); }
-.move.lead::before { color: var(--crit); }
-.move h3 { font-size: 1rem; font-weight: 600; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
-.move p { font-size: .84rem; color: var(--ink-2); max-width: 680px; }
-.move .how { font-size: .8rem; color: var(--ink-2); margin-top: 4px; display: flex; flex-direction: column; gap: 4px; }
-.how code { font-family: var(--mono); font-size: .76rem; background: var(--raised); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; color: var(--ink); overflow-wrap: anywhere; }
+/* Actions */
+.acts { list-style: none; counter-reset: a; border-top: 1px solid var(--border); }
+.act { counter-increment: a; display: grid; grid-template-columns: 22px 1fr; gap: 14px; padding: 16px 4px; border-bottom: 1px solid var(--border); }
+.act input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--good); cursor: pointer; }
+.act label { cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.act-top { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; justify-content: space-between; }
+.act-top b { font-weight: 600; font-size: .95rem; }
+.act-top b::before { content: 'A' counter(a); font-family: var(--mono); font-size: .7rem; font-weight: 500; color: var(--ink-3); margin-right: 10px; }
+.when { font-family: var(--mono); font-size: .68rem; color: var(--ink-3); letter-spacing: .04em; white-space: nowrap; }
+.act-how { font-size: .82rem; color: var(--ink-2); max-width: 700px; }
+.act-how code, .why code { font-family: var(--mono); font-size: .76rem; background: var(--raised); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; color: var(--ink); overflow-wrap: anywhere; }
+.act input:checked + label b, .act input:checked + label .act-how { color: var(--ink-3); }
+.act input:checked + label b { text-decoration: line-through; text-decoration-color: var(--ink-3); }
+.progress { margin-top: 12px; font-family: var(--mono); font-size: .72rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+/* Decisions */
+.decs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dec { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+.dec-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dec-head h3 { font-size: 1rem; font-weight: 600; flex: 1; min-width: 150px; }
+.dec-id { font-family: var(--mono); font-size: .7rem; font-weight: 500; color: var(--ink-3); }
+.opts { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.opt { font-size: .83rem; color: var(--ink-2); padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border); display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.opt.rec { color: var(--ink); border-color: var(--steel); background: var(--steel-dim); font-weight: 500; }
+.opt span { font-family: var(--mono); font-size: .62rem; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--steel); white-space: nowrap; }
+.why { font-size: .8rem; color: var(--ink-2); }
 
 /* Gates */
 .gates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -251,7 +249,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
   .status { grid-template-columns: 1fr 1fr; }
   .stat:nth-child(3) { border-left: 0; }
   .stat:nth-child(n+3) { border-top: 1px solid var(--border); }
-  .gates { grid-template-columns: 1fr; }
+  .gates, .decs { grid-template-columns: 1fr; }
   .wires { grid-template-columns: 1fr; }
   .topo .wide { display: none; }
   .topo .tall { display: block; max-width: 380px; margin: 0 auto; }
@@ -269,9 +267,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
   .status { grid-template-columns: 1fr; }
   .stat { border-left: 0; border-top: 1px solid var(--border); }
   .stat:first-child { border-top: 0; }
-  .move { grid-template-columns: 1fr; padding: 18px; }
-  .move::before { grid-row: auto; text-align: left; font-size: 1.5rem; }
-  .ledger li { grid-template-columns: 1fr; gap: 2px; }
+    .ledger li { grid-template-columns: 1fr; gap: 2px; }
 }
 </style>
 
@@ -280,7 +276,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
 <header>
   <div class="eyebrow">Status as of October 7, 2026 · from Open Brain records</div>
   <h1>Nathan's <em>Command Center</em></h1>
-  <p>Three devices, four cloud AIs, one memory layer. Big Nate's Decision Maker shipped, so the job of this setup has changed: keep the Mac mini running, give it room to work, and decide whether a Mac Studio earns the open seat.</p>
+  <p>Three devices, four cloud AIs, one memory layer. Big Nate's Decision Maker shipped, so this setup has a new job: keep the Mac mini healthy, give it room to work, and decide whether a Mac Studio earns the open seat.</p>
 
   <div class="status" role="list">
     <div class="stat" role="listitem">
@@ -289,14 +285,14 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
       <p>On the App Store since July 13. The Mac mini's first gate is passed.</p>
     </div>
     <div class="stat" role="listitem">
-      <span class="pill crit">Offline</span>
+      <span class="pill good">Online</span>
       <h3>Mac mini</h3>
-      <p>Flagged offline Oct 5–6. After a power loss, it needs the rear power button.</p>
+      <p>Running, confirmed by you Oct 7. The Oct 5–6 "offline" flag was a carried report, not a live check.</p>
     </div>
     <div class="stat" role="listitem">
-      <span class="pill warn">Low disk</span>
+      <span class="pill warn">Check due</span>
       <div class="num">37 <small>GB free / 512</small></div>
-      <p>Mac mini storage at the Sep 7 check. Under 10% free slows builds and agents.</p>
+      <p>Last reading, Sep 7. Under 10% free slows builds and agents. Re-check today.</p>
     </div>
     <div class="stat" role="listitem">
       <span class="pill open">Open seat</span>
@@ -343,8 +339,8 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
       <text class="t-name steel" x="632" y="248">Mac mini</text>
       <text class="t-role" x="632" y="268">HEAVY WORK + HUB</text>
       <text class="t-meta" x="632" y="286">M4 Pro · 24 GB · 512 GB</text>
-      <circle class="t-alert" cx="792" cy="240" r="5"/>
-      <text class="t-alerttxt" x="785" y="318" text-anchor="end">OFFLINE · 37 GB FREE</text>
+      <circle class="t-ok" cx="792" cy="240" r="5"/>
+      <text class="t-warntxt" x="785" y="318" text-anchor="end">ALWAYS ON · DISK CHECK DUE</text>
 
       <rect class="t-node ghost" x="612" y="334" width="200" height="54" rx="10"/>
       <text class="t-name ghost" x="632" y="358">Mac Studio seat</text>
@@ -382,8 +378,8 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
       <text class="t-name steel" x="196" y="222">Mac mini</text>
       <text class="t-role" x="196" y="242">HEAVY WORK + HUB</text>
       <text class="t-meta" x="196" y="260">M4 Pro · 24 GB</text>
-      <circle class="t-alert" cx="316" cy="212" r="5"/>
-      <text class="t-alerttxt" x="326" y="294" text-anchor="end">OFFLINE · 37 GB FREE</text>
+      <circle class="t-ok" cx="316" cy="212" r="5"/>
+      <text class="t-warntxt" x="326" y="294" text-anchor="end">ALWAYS ON · DISK CHECK DUE</text>
 
       <path class="t-line faint" d="M256 300 V320"/>
       <rect class="t-node ghost" x="182" y="320" width="148" height="54" rx="10"/>
@@ -431,42 +427,115 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
   </div>
 </section>
 
-<section aria-labelledby="moves-h">
-  <h2 id="moves-h">Next moves, in order</h2>
-  <p class="lede">Each one unblocks the next. The Studio decision means little until the mini is back up and has room to work.</p>
-  <ol class="moves">
-    <li class="move lead">
-      <h3>Bring the Mac mini back online <span class="pill crit">Today</span></h3>
-      <p>Your August 21 note: after it loses power, plugging it back in isn't enough. It needs the power button on the back.</p>
-      <div class="how">
-        <span>Press the rear power button, then confirm the Daily Brief print and Open Brain jobs run.</span>
-        <span>Stop it happening again: System Settings → Energy → turn on <code>Start up automatically after a power failure</code>.</span>
-        <span>Optional: a small UPS ($60–100) keeps it running through blips.</span>
-      </div>
+<section aria-labelledby="act-h">
+  <h2 id="act-h">Actions</h2>
+  <p class="lede">Things to do, smallest first. Tick them off as you go; your ticks stay in this browser.</p>
+  <ul class="acts">
+    <li class="act">
+      <input type="checkbox" id="a1">
+      <label for="a1">
+        <span class="act-top"><b>Check the mini's free space</b><span class="when">Today · 1 min</span></span>
+        <span class="act-how">Apple menu → System Settings → General → Storage, or run <code>df -h /</code> in Terminal. Under 100 GB free means doing A4 this week.</span>
+      </label>
     </li>
-    <li class="move">
-      <h3>Give it room to work <span class="pill warn">This week</span></h3>
-      <p>In June it generated 240 GB in five days. With 37 GB free, Xcode builds and agent runs start failing in odd ways. Target 100 GB free.</p>
-      <div class="how">
-        <span>Clear Xcode build caches: delete <code>~/Library/Developer/Xcode/DerivedData</code>.</span>
-        <span>Remove old simulators: <code>xcrun simctl delete unavailable</code>.</span>
-        <span>Move Codex video and finished project folders to an external 2 TB SSD or OneDrive. Keep active repos local.</span>
-      </div>
+    <li class="act">
+      <input type="checkbox" id="a2">
+      <label for="a2">
+        <span class="act-top"><b>Make the mini restart itself after a power cut</b><span class="when">Today · 1 min</span></span>
+        <span class="act-how">System Settings → Energy → turn on <code>Start up automatically after a power failure</code>. This would have saved the Aug 21 Daily Brief.</span>
+      </label>
     </li>
-    <li class="move">
-      <h3>Decide the Mac Studio seat <span class="pill open">Before buying</span></h3>
-      <p>Use the same three gates the mini passed through. Gate 1 is already met, so the decision rests on gates 2 and 3.</p>
+    <li class="act">
+      <input type="checkbox" id="a3">
+      <label for="a3">
+        <span class="act-top"><b>Clear the "Mini offline" flag from the daily reports</b><span class="when">Today · 5 min</span></span>
+        <span class="act-how">Tell the closeout the mini is online as of Oct 7. Run <code>Verify Mac OB1.command</code> once; if it returns green, the flag is closed. If the Grok bot still can't reach the mini, that's a connection issue on the Grok side.</span>
+      </label>
     </li>
-    <li class="move">
-      <h3>Grow Big Nate <span class="pill good">Ongoing</span></h3>
-      <p>Your July 14 priorities, in order: tune the App Store listing from real user evidence, add a paid plan people trust, then launch Android. Modernize code only where it improves reliability, speed or results.</p>
+    <li class="act">
+      <input type="checkbox" id="a4">
+      <label for="a4">
+        <span class="act-top"><b>Free up space if under 100 GB</b><span class="when">This week · 30 min</span></span>
+        <span class="act-how">Delete <code>~/Library/Developer/Xcode/DerivedData</code>, run <code>xcrun simctl delete unavailable</code>, then move video and finished project folders off the internal drive (see D2).</span>
+      </label>
     </li>
-  </ol>
+    <li class="act">
+      <input type="checkbox" id="a5">
+      <label for="a5">
+        <span class="act-top"><b>Write gate 2 in one sentence</b><span class="when">This week · 10 min</span></span>
+        <span class="act-how">"Every night the Studio would ___, producing ___, which the mini can't because ___." D1 waits on this sentence.</span>
+      </label>
+    </li>
+    <li class="act">
+      <input type="checkbox" id="a6">
+      <label for="a6">
+        <span class="act-top"><b>Pick one App Store listing change for Big Nate</b><span class="when">This week · 20 min</span></span>
+        <span class="act-how">Pull downloads and reviews from App Store Connect and change one thing they point to: screenshots, subtitle, or first-screen copy.</span>
+      </label>
+    </li>
+  </ul>
+  <p class="progress" id="prog" aria-live="polite">0 of 6 done</p>
 </section>
 
+<section aria-labelledby="dec-h">
+  <h2 id="dec-h">Decisions</h2>
+  <p class="lede">Choices only you can make. Each shows the options, my recommendation, and what to settle first.</p>
+  <div class="decs">
+    <article class="dec">
+      <div class="dec-head">
+        <span class="dec-id">D1</span>
+        <h3>The Mac Studio seat</h3>
+        <span class="pill open">After A5</span>
+      </div>
+      <ul class="opts">
+        <li class="opt">Buy an M5 Studio now</li>
+        <li class="opt rec">Wait until gate 2 is written <span>Recommended</span></li>
+        <li class="opt">Skip the Studio; spend part of the credit on storage</li>
+      </ul>
+      <p class="why">The mini shipped Big Nate. A Studio is only worth buying for a specific job the mini can't do. Also check whether the ~$4,762 Apple credit expires; that sets your real deadline.</p>
+    </article>
+    <article class="dec">
+      <div class="dec-head">
+        <span class="dec-id">D2</span>
+        <h3>Where overflow files live</h3>
+        <span class="pill warn">After A1</span>
+      </div>
+      <ul class="opts">
+        <li class="opt">OneDrive only</li>
+        <li class="opt rec">External 2 TB SSD for big files, OneDrive for documents <span>Recommended</span></li>
+        <li class="opt">Bigger internal drive (only by replacing the Mac)</li>
+      </ul>
+      <p class="why">Video and model files are too big and change too often for OneDrive sync. A USB-C SSD stays plugged into the always-on mini. Documents stay in OneDrive as they are now.</p>
+    </article>
+    <article class="dec">
+      <div class="dec-head">
+        <span class="dec-id">D3</span>
+        <h3>How the daily reports handle the mini</h3>
+        <span class="pill open">Anytime</span>
+      </div>
+      <ul class="opts">
+        <li class="opt">Keep carrying flags forward as-is</li>
+        <li class="opt rec">Live-check before saying "offline"; otherwise say "unreachable from [host]" <span>Recommended</span></li>
+      </ul>
+      <p class="why">This week a carried flag made a running machine look broken. One rule fixes it: a report states machine status only after a live check, and keeps that separate from "this bot couldn't reach it."</p>
+    </article>
+    <article class="dec">
+      <div class="dec-head">
+        <span class="dec-id">D4</span>
+        <h3>Big Nate's next bet</h3>
+        <span class="pill good">Ongoing</span>
+      </div>
+      <ul class="opts">
+        <li class="opt rec">Listing → paid plan → Android, as set July 14 <span>Recommended</span></li>
+        <li class="opt">Android first to reach more people</li>
+      </ul>
+      <p class="why">A paid plan on the live iOS app tests whether people will pay before you build a second app. Android costs more effort and earns more once the paid plan works.</p>
+    </article>
+  </div>
+</section>
 <section aria-labelledby="gates-h">
   <h2 id="gates-h">The Studio gates</h2>
-  <p class="lede">From your May 26 decision, applied to the open seat.</p>
+  <p class="lede">The test behind D1, from your May 26 decision.</p>
   <div class="gates">
     <div class="gate">
       <span class="pill good">Passed</span>
@@ -485,7 +554,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
     </div>
   </div>
   <div class="verdict">
-    <strong>Recommendation:</strong> if you can't write gate 2 in one sentence this week, hold the ~$4,762 credit and buy nothing yet. Clearing storage on the mini (move 2) may be what you needed. If gate 2 is real, size the Studio for that job: a large local model needs 64 GB of memory at minimum, and 2 TB of storage so you never hit June's wall again.
+    <strong>Recommendation:</strong> if you can't write gate 2 in one sentence this week, hold the ~$4,762 credit and buy nothing yet. Freeing space on the mini (A4) may be all you needed. If gate 2 is real, size the Studio for that job: a large local model needs 64 GB of memory at minimum, and 2 TB of storage so you never hit June's wall again.
   </div>
 </section>
 
@@ -523,12 +592,31 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
     <li class="win"><time>Jul 13</time><div><b>Live on the App Store.</b> A goal nearly a decade old.</div></li>
     <li><time>Aug 21</time><div><b>Mini lost power</b> and missed the 6am Daily Brief. Lesson: press the rear button.</div></li>
     <li><time>Sep 21</time><div><b>Mac Studio returned</b> for ~$4,762 credit. Next aim: an M5 Studio.</div></li>
-    <li class="now"><time>Oct 5–6</time><div><b>Mini offline</b> again, per the daily harness reports.</div></li>
+    <li><time>Oct 5–6</time><div><b>Harness reports flag "Mini offline,"</b> carried forward without a live check.</div></li>
+    <li class="win"><time>Oct 7</time><div><b>Mini confirmed running</b> by you. The flag was a reporting problem, not an outage.</div></li>
   </ol>
 </section>
 
 <footer>
-  Built from Open Brain records dated May 26 through October 6, 2026. Mac mini specs and the 37 GB free figure come from the September 7 live inspection; check current free space before acting on move 2.
+  Built from Open Brain records dated May 26 through October 6, 2026. Mac mini specs and the 37 GB free figure come from the September 7 live inspection; the mini's online status is your Oct 7 confirmation; check current free space (A1) before deleting anything.
 </footer>
 
 </div>
+
+<script>
+(function () {
+  var boxes = document.querySelectorAll('.act input');
+  var prog = document.getElementById('prog');
+  var key = 'nhcc-actions';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  function update() {
+    var done = 0, state = {};
+    boxes.forEach(function (b) { state[b.id] = b.checked; if (b.checked) done++; });
+    prog.textContent = done + ' of ' + boxes.length + ' done';
+    try { localStorage.setItem(key, JSON.stringify(state)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', update); });
+  update();
+})();
+</script>
