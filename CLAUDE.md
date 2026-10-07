@@ -6,7 +6,9 @@
 - Show results as the working thing (a rendered page, screenshots, a link), not code or diffs. Keep explanations plain-English.
 - Double-check work before reporting it done: run it, click through it, and say what was and wasn't verified.
 
-## Glow Math (keaton.html)
-- Algebra 2 practice app for Nathan's daughter Keaton. The source is `keaton.html`, a single self-contained file.
-- Keaton's live link is GitHub Pages from the `glow-math-site` branch, which contains only `index.html` (a copy of `keaton.html`) and `.nojekyll`. After changing `keaton.html`, copy it to `index.html` on `glow-math-site` and push, or her link won't update.
+## Kiki (Algebra 2 + SAT app for Keaton)
+- Gamified practice app for Nathan's daughter Keaton: bright Duolingo-style UI, flower mascot "Kiki", story problems (bows, heels, Birdies, cheer) that fade into plain x.
+- Source lives in `kiki/src/` (vanilla JS, no dependencies). `cd kiki && node build.mjs` bundles it into the single file `kiki.html` at the repo root. Never hand-edit `kiki.html`.
+- Tests: `node --test kiki/test/*.test.mjs` (problem generators, grid-in answers, streaks, Dad-link sanitizing) and `node kiki/test/e2e.mjs` (Playwright click-through at iPhone size; set NODE_PATH to a global Playwright). Run both before shipping.
+- Keaton's live link is GitHub Pages from the `glow-math-site` branch, which contains only `index.html` (a copy of `kiki.html`) and `.nojekyll`. After rebuilding, copy `kiki.html` to `index.html` on `glow-math-site` and push, or her link won't update.
 - Never publish the rest of this repo to Pages; `index.html` on `main` is an unrelated business deck.
