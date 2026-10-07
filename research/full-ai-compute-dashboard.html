@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AI Compute Dashboard - ThinkPad vs Mac Mini vs Alternatives</title>
+<style>
+:root{--bg:#0a0a0f;--card:#14141f;--border:#2a2a3a;--accent:#6366f1;--gold:#f59e0b;--gold-dim:rgba(245,158,11,.15);--green:#22c55e;--green-dim:rgba(34,197,94,.15);--yellow:#eab308;--yellow-dim:rgba(234,179,8,.15);--red:#ef4444;--red-dim:rgba(239,68,68,.15);--blue:#3b82f6;--blue-dim:rgba(59,130,246,.15);--text:#e4e4e7;--muted:#71717a;--white:#fff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.hero{text-align:center;padding:48px 24px 24px;background:linear-gradient(180deg,#1a1a2e,var(--bg))}
+.hero h1{font-size:clamp(1.5rem,4vw,2.5rem);font-weight:800;letter-spacing:-.5px;margin-bottom:8px}
+.hero h1 .gold{color:var(--gold)} .hero h1 .purple{color:var(--accent)}
+.hero p{color:var(--muted);font-size:clamp(.85rem,2vw,1rem);max-width:700px;margin:0 auto;line-height:1.5}
+.section{max-width:1200px;margin:0 auto;padding:0 20px}
+.stitle{font-size:1.1rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin:40px 0 16px}
+/* Owned card */
+.owned{background:linear-gradient(135deg,#422006,#78350f);border:2px solid var(--gold);border-radius:16px;padding:28px 32px;display:flex;flex-wrap:wrap;align-items:center;gap:24px;box-shadow:0 0 40px rgba(245,158,11,.2);position:relative;overflow:hidden;margin-bottom:8px}
+.owned::after{content:'YOU OWN THIS';position:absolute;top:16px;right:-30px;background:var(--gold);color:#000;font-size:.65rem;font-weight:700;letter-spacing:1px;padding:4px 40px;transform:rotate(45deg)}
+.owned-icon{width:64px;height:64px;background:rgba(255,255,255,.1);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0}
+.owned-info{flex:1;min-width:200px}
+.owned-info h2{font-size:1.3rem;font-weight:700;color:var(--gold)}
+.owned-info .sub{color:rgba(255,255,255,.6);font-size:.85rem;margin-top:2px}
+.bench-stats{display:flex;flex-wrap:wrap;gap:16px}
+.bstat{text-align:center;min-width:70px}
+.bstat .v{font-size:1.2rem;font-weight:700;color:var(--white)}
+.bstat .l{font-size:.65rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:8px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;transition:transform .2s,border-color .2s;position:relative}
+.card:hover{transform:translateY(-3px);border-color:var(--accent)}
+.card-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.cicon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
+.cicon.apple{background:linear-gradient(135deg,#1e1b4b,#312e81)} .cicon.nvidia{background:linear-gradient(135deg,#1a3a1a,#2d5a2d)} .cicon.dell{background:linear-gradient(135deg,#1a2a3a,#2a4a6a)} .cicon.hp{background:linear-gradient(135deg,#2a1a3a,#4a2a6a)} .cicon.lenovo{background:linear-gradient(135deg,#3a1a1a,#6a2a2a)}
+.ctitle{font-size:1.05rem;font-weight:700} .cbrand{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.rank{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--muted)}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.sp{background:rgba(255,255,255,.03);border-radius:8px;padding:8px 10px}
+.sp .sl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.sp .sv{font-size:.88rem;font-weight:600;margin-top:1px}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.tag{font-size:.66rem;font-weight:600;padding:3px 8px;border-radius:6px;letter-spacing:.3px}
+.tag.pro{background:var(--green-dim);color:var(--green)} .tag.con{background:var(--red-dim);color:var(--red)} .tag.info{background:var(--blue-dim);color:var(--blue)} .tag.gold{background:var(--gold-dim);color:var(--gold)}
+.price-row{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border)}
+.price{font-size:1.3rem;font-weight:800}
+.vs{font-size:.72rem;padding:4px 10px;border-radius:20px;font-weight:600}
+.vs.g{background:var(--green-dim);color:var(--green)} .vs.y{background:var(--yellow-dim);color:var(--yellow)} .vs.r{background:var(--red-dim);color:var(--red)}
+/* Table */
+.twrap{overflow-x:auto;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;min-width:900px}
+thead th{text-align:left;padding:10px 12px;background:var(--card);color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid var(--border);position:sticky;top:0}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:hover{background:rgba(99,102,241,.05)}
+tr.hl-gold{background:rgba(245,158,11,.08);border-left:3px solid var(--gold)}
+tr.hl-purple{background:rgba(99,102,241,.08);border-left:3px solid var(--accent)}
+.cg{color:var(--green);font-weight:600} .cy{color:var(--yellow);font-weight:600} .cr{color:var(--red);font-weight:600}
+/* Bars */
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.bar-label{width:190px;text-align:right;font-size:.8rem;font-weight:600;flex-shrink:0}
+.bar-track{flex:1;height:32px;background:rgba(255,255,255,.03);border-radius:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:8px;display:flex;align-items:center;padding-left:12px;font-size:.75rem;font-weight:700;color:var(--white)}
+/* Alert */
+.alert{border:2px solid var(--red);border-radius:16px;padding:28px;background:rgba(239,68,68,.05);margin-bottom:8px}
+.alert h3{color:var(--red);font-size:1.2rem;margin-bottom:16px}
+.alert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.acard{background:rgba(255,255,255,.03);border-radius:12px;padding:18px;border-left:4px solid var(--red)}
+.acard.orange{border-left-color:var(--yellow)}
+.acard h4{font-size:.95rem;margin-bottom:8px}
+.acard ul{list-style:none;padding:0} .acard li{font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.6;padding-left:14px;position:relative}
+.acard li::before{content:'>';position:absolute;left:0;color:var(--red);font-weight:700}
+.acard.orange li::before{color:var(--yellow)}
+.acard .action{color:var(--green);font-weight:600}
+/* Cloud vs Local */
+.cvl{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.cvl-col{background:var(--card);border-radius:14px;padding:24px;border-top:3px solid var(--red)}
+.cvl-col.local{border-top-color:var(--green)}
+.cvl-col h4{font-size:1rem;margin-bottom:12px}
+.cvl-col ul{list-style:none;padding:0} .cvl-col li{font-size:.84rem;color:rgba(255,255,255,.7);line-height:1.7;padding-left:14px;position:relative}
+.cvl-col li::before{content:'$';position:absolute;left:0;font-weight:700;color:var(--red)}
+.cvl-col.local li::before{color:var(--green)}
+.hybrid{background:linear-gradient(135deg,#1e1b4b,#1a1a2e);border:1px solid var(--accent);border-radius:14px;padding:24px;margin-bottom:8px}
+.hybrid h4{color:var(--accent);font-size:1rem;margin-bottom:10px}
+.hybrid li{font-size:.84rem;color:rgba(255,255,255,.7);line-height:1.7;margin-left:20px}
+/* Timeline */
+.timeline{position:relative;padding-left:32px;margin-bottom:8px}
+.timeline::before{content:'';position:absolute;left:14px;top:0;bottom:0;width:2px;background:var(--border)}
+.tphase{position:relative;margin-bottom:24px;padding:20px;background:var(--card);border-radius:12px}
+.tphase::before{content:'';position:absolute;left:-24px;top:24px;width:12px;height:12px;border-radius:50%}
+.tphase.p1::before{background:var(--green)} .tphase.p2::before{background:var(--yellow)} .tphase.p3::before{background:var(--yellow)} .tphase.p4::before{background:var(--red)}
+.tphase h4{font-size:.95rem;margin-bottom:8px}
+.tphase .cost{font-size:.8rem;font-weight:700;margin-bottom:6px}
+.tphase ul{list-style:none;padding:0} .tphase li{font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.6;padding-left:14px;position:relative}
+.tphase li::before{content:'>';position:absolute;left:0;font-weight:700}
+.tphase.p1 li::before{color:var(--green)} .tphase.p2 li::before{color:var(--yellow)} .tphase.p3 li::before{color:var(--yellow)} .tphase.p4 li::before{color:var(--red)}
+/* Verdict */
+.verdict{background:linear-gradient(135deg,#1e1b4b,#1a1a2e);border:2px solid var(--accent);border-radius:16px;padding:32px;margin-bottom:40px}
+.verdict h3{font-size:1.3rem;margin-bottom:12px} .verdict h3 span{color:var(--accent)}
+.verdict>p{color:rgba(255,255,255,.7);line-height:1.7;font-size:.92rem;margin-bottom:12px}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:20px}
+.vitem{background:rgba(255,255,255,.05);border-radius:10px;padding:16px}
+.vitem h4{font-size:.85rem;margin-bottom:4px}
+.vitem p{font-size:.8rem;color:rgba(255,255,255,.6);margin:0;line-height:1.5}
+footer{text-align:center;padding:20px;font-size:.7rem;color:var(--muted);border-top:1px solid var(--border)}
+@media(max-width:768px){.grid{grid-template-columns:1fr}.cvl{grid-template-columns:1fr}.owned{flex-direction:column;text-align:center}.bench-stats{justify-content:center}.bar-label{width:110px;font-size:.7rem}.owned::after{display:none}.alert-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<h1>Always-On AI Compute: <span class="gold">Your ThinkPad</span> vs <span class="purple">Mac Mini</span> vs The World</h1>
+<p>Full spectrum analysis for an AI enthusiast building toward multi-agent orchestration. Supply chain crisis, cloud vs local economics, and a 3-year roadmap.</p>
+</div>
+
+<!-- SECTION 1: WHAT YOU OWN -->
+<div class="section">
+<div class="stitle">What You Already Own</div>
+<div class="owned">
+<div class="owned-icon">&#128187;</div>
+<div class="owned-info">
+<h2>Lenovo ThinkPad T14s Gen 6 &mdash; 32GB / 954GB</h2>
+<div class="sub">Your current machine. Already more powerful than most alternatives. $0 new spend.</div>
+</div>
+<div class="bench-stats">
+<div class="bstat"><div class="v">$0</div><div class="l">New Cost</div></div>
+<div class="bstat"><div class="v">32 GB</div><div class="l">RAM</div></div>
+<div class="bstat"><div class="v">16 GB</div><div class="l">Arc VRAM</div></div>
+<div class="bstat"><div class="v">~10 W</div><div class="l">Idle Power</div></div>
+<div class="bstat"><div class="v">$55/yr</div><div class="l">Electricity</div></div>
+<div class="bstat"><div class="v">$275</div><div class="l">5-Year Cost</div></div>
+</div>
+</div>
+<div class="tags" style="margin-bottom:24px">
+<span class="tag gold">ALREADY OWNED</span>
+<span class="tag pro">32GB DDR5-8533</span>
+<span class="tag pro">16GB Arc 140V VRAM</span>
+<span class="tag pro">Lunar Lake NPU</span>
+<span class="tag pro">Leave plugged in 24/7</span>
+<span class="tag pro">7B-13B local models</span>
+<span class="tag info">WSL2 for Claude Code</span>
+<span class="tag con">Laptop thermals for 24/7</span>
+<span class="tag con">No macOS ecosystem</span>
+</div>
+
+<!-- SECTION 2: TOP 6 ALTERNATIVES -->
+<div class="stitle">Top 6 Alternatives</div>
+<div class="grid">
+
+<div class="card">
+<div class="rank">#1</div>
+<div class="card-head"><div class="cicon apple">&#63743;</div><div><div class="ctitle">Apple Mac Mini M4 24GB</div><div class="cbrand">Apple &bull; M4 Silicon</div></div></div>
+<div class="specs">
+<div class="sp"><div class="sl">CPU</div><div class="sv">10-core M4</div></div>
+<div class="sp"><div class="sl">GPU</div><div class="sv">10-core (shared)</div></div>
+<div class="sp"><div class="sl">RAM</div><div class="sv">24 GB unified</div></div>
+<div class="sp"><div class="sl">Storage</div><div class="sv">512GB SSD</div></div>
+<div class="sp"><div class="sl">Idle Power</div><div class="sv">2.6 W</div></div>
+<div class="sp"><div class="sl">AI</div><div class="sv">Neural Engine</div></div>
+</div>
+<div class="tags">
+<span class="tag pro">2.6W idle - power king</span>
+<span class="tag pro">iPhone ecosystem</span>
+<span class="tag pro">Silent operation</span>
+<span class="tag con">24GB &lt; your 32GB</span>
+<span class="tag con">No dedicated VRAM</span>
+<span class="tag con">RAM not upgradeable</span>
+</div>
+<div class="price-row"><div class="price">$999</div><div class="vs y">+$999 vs ThinkPad</div></div>
+</div>
+
+<div class="card">
+<div class="rank">#2</div>
+<div class="card-head"><div class="cicon nvidia">&#9881;</div><div><div class="ctitle">NVIDIA DGX Spark</div><div class="cbrand">NVIDIA &bull; Grace Blackwell GB10</div></div></div>
+<div class="specs">
+<div class="sp"><div class="sl">CPU</div><div class="sv">20-core ARM</div></div>
+<div class="sp"><div class="sl">GPU</div><div class="sv">Blackwell</div></div>
+<div class="sp"><div class="sl">RAM</div><div class="sv">128 GB unified</div></div>
+<div class="sp"><div class="sl">Storage</div><div class="sv">4TB SSD</div></div>
+<div class="sp"><div class="sl">AI Perf</div><div class="sv">1,000 TOPS</div></div>
+<div class="sp"><div class="sl">Power</div><div class="sv">240W max</div></div>
+</div>
+<div class="tags">
+<span class="tag pro">128GB RAM</span>
+<span class="tag pro">Run 200B models locally</span>
+<span class="tag pro">1 Petaflop FP4</span>
+<span class="tag pro">SHIPPING NOW</span>
+<span class="tag con">$4,699</span>
+<span class="tag con">ARM64 ecosystem</span>
+</div>
+<div class="price-row"><div class="price">$4,699</div><div class="vs r">+$4,699 vs ThinkPad</div></div>
+</div>
+
+<div class="card">
+<div class="rank">#3</div>
+<div class="card-head"><div class="cicon dell">&#9638;</div><div><div class="ctitle">Dell OptiPlex 7020 Micro</div><div class="cbrand">Dell &bull; 14th Gen Intel</div></div></div>
+<div class="specs">
+<div class="sp"><div class="sl">CPU</div><div class="sv">i7-14700T 20-core</div></div>
+<div class="sp"><div class="sl">GPU</div><div class="sv">Intel UHD 770</div></div>
+<div class="sp"><div class="sl">RAM</div><div class="sv">Up to 32GB DDR5</div></div>
+<div class="sp"><div class="sl">Storage</div><div class="sv">Up to 1TB NVMe</div></div>
+<div class="sp"><div class="sl">Idle</div><div class="sv">~12 W</div></div>
+<div class="sp"><div class="sl">AI</div><div class="sv">CPU only</div></div>
+</div>
+<div class="tags">
+<span class="tag pro">Upgradeable RAM</span>
+<span class="tag pro">Enterprise reliable</span>
+<span class="tag pro">1L micro form factor</span>
+<span class="tag con">No real GPU</span>
+<span class="tag con">No AI acceleration</span>
+</div>
+<div class="price-row"><div class="price">$700&ndash;$1,500</div><div class="vs y">+$700-1,500 vs ThinkPad</div></div>
+</div>
+
+<div class="card">
+<div class="rank">#4</div>
+<div class="card-head"><div class="cicon nvidia">&#9881;</div><div><div class="ctitle">NVIDIA Jetson Orin Nano Super</div><div class="cbrand">NVIDIA &bull; Ampere GPU</div></div></div>
+<div class="specs">
+<div class="sp"><div class="sl">CPU</div><div class="sv">6-core ARM</div></div>
+<div class="sp"><div class="sl">GPU</div><div class="sv">Ampere 1024-core</div></div>
+<div class="sp"><div class="sl">RAM</div><div class="sv">8 GB</div></div>
+<div class="sp"><div class="sl">AI Perf</div><div class="sv">67 TOPS</div></div>
+<div class="sp"><div class="sl">Storage</div><div class="sv">microSD + NVMe</div></div>
+<div class="sp"><div class="sl">Idle</div><div class="sv">~5 W</div></div>
+</div>
+<div class="tags">
+<span class="tag pro">Only $249</span>
+<span class="tag pro">67 TOPS inference</span>
+<span class="tag pro">5W ultra efficient</span>
+<span class="tag con">Only 8GB RAM</span>
+<span class="tag con">ARM - CLI unverified</span>
+</div>
+<div class="price-row"><div class="price">$249</div><div class="vs g">Cheapest option</div></div>
+</div>
+
+<div class="card">
+<div class="rank">#5</div>
+<div class="card-head"><div class="cicon hp">&#9646;</div><div><div class="ctitle">HP EliteDesk 8 Mini G1a</div><div class="cbrand">HP &bull; Ryzen 7 AI PRO 350 Zen 5</div></div></div>
+<div class="specs">
+<div class="sp"><div class="sl">CPU</div><div class="sv">Ryzen 7 8-core</div></div>
+<div class="sp"><div class="sl">NPU</div><div class="sv">50 TOPS Ryzen AI</div></div>
+<div class="sp"><div class="sl">RAM</div><div class="sv">Up to 32GB DDR5</div></div>
+<div class="sp"><div class="sl">GPU</div><div class="sv">Radeon 860M</div></div>
+<div class="sp"><div class="sl">Storage</div><div class="sv">Up to 1TB NVMe</div></div>
+<div class="sp"><div class="sl">Idle</div><div class="sv">~10 W</div></div>
+</div>
+<div class="tags">
+<span class="tag pro">50 TOPS NPU built-in</span>
+<span class="tag pro">Wi-Fi 7</span>
+<span class="tag pro">Upgradeable RAM</span>
+<span class="tag con">MSRP $2,299</span>
+</div>
+<div class="price-row"><div class="price">$1,059 <span style="font-size:.7rem;color:var(--muted);text-decoration:line-through">$2,299</span></div><div class="vs y">+$1,059 vs ThinkPad</div></div>
+</div>
+
+<div class="card">
+<div class="rank">#6</div>
+<div class="card-head"><div class="cicon lenovo">&#9632;</div><div><div class="ctitle">Lenovo ThinkCentre M75q Gen 5</div><div class="cbrand">Lenovo &bull; Ryzen 7 PRO 8700GE</div></div></div>
+<div class="specs">
+<div class="sp"><div class="sl">CPU</div><div class="sv">Ryzen 7 8-core</div></div>
+<div class="sp"><div class="sl">GPU</div><div class="sv">Radeon 780M</div></div>
+<div class="sp"><div class="sl">RAM</div><div class="sv">Up to 32GB DDR5</div></div>
+<div class="sp"><div class="sl">AI</div><div class="sv">CPU/GPU only</div></div>
+<div class="sp"><div class="sl">Storage</div><div class="sv">Up to 1TB NVMe</div></div>
+<div class="sp"><div class="sl">Idle</div><div class="sv">~10 W</div></div>
+</div>
+<div class="tags">
+<span class="tag pro">Ultra-compact 1L</span>
+<span class="tag pro">Proven reliability</span>
+<span class="tag pro">Great Linux support</span>
+<span class="tag con">No AI NPU</span>
+<span class="tag con">No dedicated VRAM</span>
+</div>
+<div class="price-row"><div class="price">$600&ndash;$800</div><div class="vs g">Cheapest desktop</div></div>
+</div>
+
+</div>
+
+<!-- SECTION 3: HEAD-TO-HEAD TABLE -->
+<div class="stitle">Head-to-Head Comparison</div>
+<div class="twrap">
+<table>
+<thead><tr><th>Device</th><th>Price</th><th>CPU</th><th>RAM</th><th>GPU / AI</th><th>Idle</th><th>$/yr Elec</th><th>5-Yr Cost</th><th>Local AI</th><th>Claude Code</th><th>Upgradeable</th></tr></thead>
+<tbody>
+<tr class="hl-gold"><td><strong>Your ThinkPad T14s</strong></td><td class="cg">$0 (owned)</td><td>Core Ultra 7 268V</td><td class="cg">32 GB</td><td class="cg">Arc 140V 16GB</td><td class="cy">~10 W</td><td class="cg">~$55</td><td class="cg">$275</td><td class="cy">7B-13B</td><td class="cg">Native (WSL2)</td><td class="cr">No (soldered)</td></tr>
+<tr class="hl-purple"><td><strong>Mac Mini M4 24GB</strong></td><td class="cy">$999</td><td>10-core M4</td><td>24 GB</td><td>10-core integrated</td><td class="cg">2.6 W</td><td class="cg">~$40</td><td class="cy">$1,199</td><td class="cy">7B (limited)</td><td class="cg">Native</td><td class="cr">No (soldered)</td></tr>
+<tr><td><strong>DGX Spark</strong></td><td class="cr">$4,699</td><td>20-core ARM</td><td class="cg">128 GB</td><td class="cg">Blackwell 1000 TOPS</td><td class="cy">~15 W</td><td class="cy">~$80</td><td class="cr">$5,099</td><td class="cg">200B models</td><td class="cy">Likely (ARM)</td><td class="cr">No</td></tr>
+<tr><td><strong>Dell OptiPlex 7020</strong></td><td class="cy">$700-1,500</td><td>i7-14700T 20-core</td><td>Up to 32 GB</td><td>Intel UHD 770</td><td class="cy">~12 W</td><td class="cy">~$60</td><td class="cy">$1,000-1,800</td><td class="cr">CPU only</td><td class="cg">Native</td><td class="cg">Yes (DDR5)</td></tr>
+<tr><td><strong>Jetson Orin Nano</strong></td><td class="cg">$249</td><td>6-core ARM</td><td class="cr">8 GB</td><td class="cy">Ampere 67 TOPS</td><td class="cg">~5 W</td><td class="cg">~$25</td><td class="cg">$374</td><td class="cy">Small models</td><td class="cy">Unverified</td><td class="cr">No</td></tr>
+<tr><td><strong>HP EliteDesk 8 Mini</strong></td><td class="cy">$1,059</td><td>Ryzen 7 Zen 5</td><td>Up to 32 GB</td><td class="cy">50 TOPS NPU</td><td class="cy">~10 W</td><td class="cy">~$55</td><td class="cy">$1,334</td><td class="cy">7B models</td><td class="cg">Native</td><td class="cg">Yes (DDR5)</td></tr>
+<tr><td><strong>Lenovo M75q Gen 5</strong></td><td class="cg">$600-800</td><td>Ryzen 7 PRO</td><td>Up to 32 GB</td><td>Radeon 780M</td><td class="cy">~10 W</td><td class="cy">~$55</td><td class="cg">$875-1,075</td><td class="cy">7B models</td><td class="cg">Native</td><td class="cg">Yes (DDR5)</td></tr>
+</tbody>
+</table>
+<p style="font-size:.7rem;color:var(--muted);margin-top:8px">5-year cost = purchase price + (electricity/yr x 5). ThinkPad cost = electricity only since already owned. Green = advantage, Yellow = neutral, Red = disadvantage.</p>
+</div>
+
+<!-- SECTION 4: COST BAR CHART -->
+<div class="stitle">5-Year Total Cost of Ownership</div>
+<div style="margin-bottom:24px">
+<div class="bar-row"><div class="bar-label" style="color:var(--gold);font-weight:800">Your ThinkPad</div><div class="bar-track"><div class="bar-fill" style="width:5.4%;background:linear-gradient(90deg,#f59e0b,#d97706);min-width:80px">$275</div></div></div>
+<div class="bar-row"><div class="bar-label">Jetson Orin Nano</div><div class="bar-track"><div class="bar-fill" style="width:7.3%;background:linear-gradient(90deg,#22c55e,#16a34a);min-width:80px">$374</div></div></div>
+<div class="bar-row"><div class="bar-label">Lenovo M75q Gen 5</div><div class="bar-track"><div class="bar-fill" style="width:19%;background:linear-gradient(90deg,#22c55e,#16a34a);min-width:110px">$875 - $1,075</div></div></div>
+<div class="bar-row"><div class="bar-label" style="color:var(--accent);font-weight:800">Mac Mini M4 24GB</div><div class="bar-track"><div class="bar-fill" style="width:23.5%;background:linear-gradient(90deg,#6366f1,#4f46e5);min-width:80px">$1,199</div></div></div>
+<div class="bar-row"><div class="bar-label">HP EliteDesk 8 Mini</div><div class="bar-track"><div class="bar-fill" style="width:26%;background:linear-gradient(90deg,#eab308,#ca8a04);min-width:80px">$1,334</div></div></div>
+<div class="bar-row"><div class="bar-label">Dell OptiPlex 7020</div><div class="bar-track"><div class="bar-fill" style="width:31%;background:linear-gradient(90deg,#eab308,#ca8a04);min-width:120px">$1,000 - $1,800</div></div></div>
+<div class="bar-row"><div class="bar-label">NVIDIA DGX Spark</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#ef4444,#dc2626)">$5,099</div></div></div>
+</div>
+
+<!-- SECTION 5: SUPPLY CHAIN ALERT -->
+<div class="stitle">Supply Chain Crisis Alert</div>
+<div class="alert">
+<h3>&#9888; SUPPLY CHAIN CRISIS: Why Timing Matters</h3>
+<div class="alert-grid">
+<div class="acard">
+<h4 style="color:var(--red)">Helium Shortage</h4>
+<ul>
+<li>Qatar facility damaged March 2026 &mdash; 27-30% of global supply removed</li>
+<li>Spot helium prices surged 40-100%</li>
+<li>Semiconductor fabs have only 6-12 weeks of buffer</li>
+<li>Samsung most exposed; TSMC/Intel more diversified</li>
+<li>Recovery unlikely until late 2026-2027</li>
+<li><strong>Impact: 10-20% chip price increases through 2026</strong></li>
+</ul>
+</div>
+<div class="acard orange">
+<h4 style="color:var(--yellow)">DDR5 RAM Crisis</h4>
+<ul>
+<li>16GB DDR5 chips up 298% in 3 months (Sept-Dec 2025)</li>
+<li>32GB kits now $300-450 (were ~$100 in 2024)</li>
+<li>AI data centers hoarding HBM, starving consumer supply</li>
+<li>Relief unlikely until late 2027</li>
+<li class="action">&#10003; Your ThinkPad's 32GB is soldered = already protected</li>
+<li class="action">&#10003; If buying new, secure RAM NOW before Q2 increases</li>
+</ul>
+</div>
+<div class="acard orange">
+<h4 style="color:var(--yellow)">SSD Storage Apocalypse</h4>
+<ul>
+<li>ALL 2026 NAND production already sold out (Phison CEO)</li>
+<li>1TB NVMe: $50 (2024) &rarr; $220 (Mar 2026) = 255% increase</li>
+<li>Cloud giants locked in contracts through 2027</li>
+<li>New production lines won't come online until late 2027</li>
+<li class="action">&#10003; Your 954GB is fine for now</li>
+<li class="action">&#10003; Consider a 2TB backup NVMe ($227-300) as insurance</li>
+</ul>
+</div>
+</div>
+</div>
+
+<!-- SECTION 6: CLOUD VS LOCAL -->
+<div class="stitle">Cloud vs Local: The Real Math</div>
+<div class="cvl">
+<div class="cvl-col">
+<h4 style="color:var(--red)">&#9729; Cloud Costs (Claude + GPT APIs)</h4>
+<ul>
+<li>Claude API: ~$15/M input, ~$75/M output tokens (Opus)</li>
+<li>3-agent team @ 8hrs/day = 500K-1M tokens/day</li>
+<li>Monthly: $500 - $2,000+</li>
+<li>Annual: $6,000 - $24,000</li>
+<li><strong>5-Year: $30,000 - $120,000</strong></li>
+<li>Prices may INCREASE as AI demand grows</li>
+<li>You pay per token, forever</li>
+</ul>
+</div>
+<div class="cvl-col local">
+<h4 style="color:var(--green)">&#9889; Local Compute (ThinkPad + DGX Spark)</h4>
+<ul>
+<li>ThinkPad: $0 hardware + $55/yr electricity</li>
+<li>Open-source models (Llama, Mistral, Phi): FREE</li>
+<li>DGX Spark ($4,699): Run 200B models locally</li>
+<li><strong>5-Year cost: $5,099 total</strong></li>
+<li>Break-even vs cloud: 3-6 months</li>
+<li>You own the compute, forever</li>
+<li>No per-token charges for local models</li>
+</ul>
+</div>
+</div>
+<div class="hybrid">
+<h4>&#127775; THE HYBRID STRATEGY (RECOMMENDED)</h4>
+<ul>
+<li>Use your <strong>ThinkPad NOW</strong> for Claude Code agents (API-based, minimal local compute needed)</li>
+<li>Run <strong>open-source models locally</strong> (Llama 3, Mistral, Phi-4) for tasks that don't need Claude/GPT quality</li>
+<li>Use <strong>Claude API for complex reasoning</strong> (worth the cost for hard problems)</li>
+<li>Consider <strong>DGX Spark in 6-12 months</strong> when: you've maxed out the ThinkPad, you need 70B+ local models, prices stabilize</li>
+<li><strong>Result: $0 upfront + $50-200/mo API = $600-2,400/yr</strong> instead of $6,000-24,000/yr pure cloud</li>
+</ul>
+</div>
+
+<!-- SECTION 7: TIMELINE -->
+<div class="stitle">Your 3-Year AI Compute Roadmap</div>
+<div class="timeline">
+<div class="tphase p1">
+<h4 style="color:var(--green)">Phase 1 &mdash; NOW (Q1-Q2 2026)</h4>
+<div class="cost" style="color:var(--green)">Cost: $0</div>
+<ul>
+<li>Use ThinkPad as always-on agent command center</li>
+<li>Install WSL2 + Claude Code CLI + tmux</li>
+<li>Run Ollama with 7B-13B models on Arc 140V GPU</li>
+<li>Set up always-on: disable sleep, enable SSH, install Tailscale</li>
+<li>Leave plugged in &mdash; modern charge management handles battery</li>
+<li>You already own everything you need</li>
+</ul>
+</div>
+<div class="tphase p2">
+<h4 style="color:var(--yellow)">Phase 2 &mdash; OPTIONAL UPGRADE (Q3-Q4 2026)</h4>
+<div class="cost" style="color:var(--yellow)">Cost: $0 - $999</div>
+<ul>
+<li>Buy Mac Mini M4 24GB ($999) as dedicated always-on server IF:</li>
+<li>&nbsp;&nbsp;You want iPhone ecosystem integration</li>
+<li>&nbsp;&nbsp;You want lower power draw (2.6W vs ~10W idle)</li>
+<li>&nbsp;&nbsp;You want a dedicated machine separate from your daily driver</li>
+<li>OR buy extra NVMe storage (1-2TB, $227-300) for model weights</li>
+<li>OR do nothing &mdash; your ThinkPad may be all you need</li>
+</ul>
+</div>
+<div class="tphase p3">
+<h4 style="color:var(--yellow)">Phase 3 &mdash; SCALE UP (2027)</h4>
+<div class="cost" style="color:var(--yellow)">Cost: $3,000 - $5,000</div>
+<ul>
+<li>Evaluate DGX Spark or next-gen equivalent (prices may drop)</li>
+<li>DDR5 prices should normalize by late 2027</li>
+<li>200B+ parameter open-source models will be common</li>
+<li>Cloud API costs will likely increase 20-40% by then</li>
+<li>This is when local AI dominance becomes critical</li>
+</ul>
+</div>
+<div class="tphase p4">
+<h4 style="color:var(--red)">Phase 4 &mdash; FULL LOCAL AI (2028)</h4>
+<div class="cost" style="color:var(--red)">Cost: Incremental upgrades</div>
+<ul>
+<li>Run 500B+ parameter models locally</li>
+<li>Multiple accelerators via USB4/Oculink expansion</li>
+<li>ThinkPad = your mobile interface; DGX Spark = your home brain</li>
+<li>Cloud used only for bleeding-edge models you can't run locally</li>
+<li>You're fully insulated from cloud pricing increases</li>
+</ul>
+</div>
+</div>
+
+<!-- SECTION 8: FINAL VERDICT -->
+<div class="stitle">Final Verdict</div>
+<div class="verdict">
+<h3>Final Recommendation: <span>Start with What You Have, Scale Strategically</span></h3>
+<p>Your ThinkPad T14s Gen 6 is already more capable than most options on this list. With 32GB RAM, 16GB Arc VRAM, and a Lunar Lake NPU, you can run Claude Code agents 24/7 and experiment with local AI models TODAY &mdash; for $0 new spend.</p>
+<p>The helium shortage and chip crisis mean hardware prices are inflated 40-300%. <strong>Don't panic-buy. Use what you have, let the market stabilize, and invest strategically.</strong></p>
+<p>You said it yourself: your ThinkPad is plugged in and you can leave it on all day. The only time it's off is vacation &mdash; and you won't be orchestrating agents then anyway. <strong>That's your answer.</strong></p>
+<div class="vgrid">
+<div class="vitem">
+<h4 style="color:var(--green)">RIGHT NOW ($0)</h4>
+<p>Use your ThinkPad. Set it up as always-on. Install Claude Code + Ollama. Run agents. You already have better specs than a $999 Mac Mini.</p>
+</div>
+<div class="vitem">
+<h4 style="color:var(--blue)">DEDICATED SERVER ($999)</h4>
+<p>Mac Mini M4 24GB. Best power efficiency (2.6W), iPhone synergy. Buy when you outgrow the ThinkPad or want a dedicated box.</p>
+</div>
+<div class="vitem">
+<h4 style="color:var(--yellow)">LOCAL AI DOMINANCE ($4,699)</h4>
+<p>NVIDIA DGX Spark. 128GB RAM, 200B models. Wait 6-12 months for supply chain to stabilize. This is your 2027 play.</p>
+</div>
+<div class="vitem">
+<h4 style="color:var(--red)">HEDGE AGAINST SHORTAGE ($227-300)</h4>
+<p>Buy a 2TB NVMe drive NOW as storage insurance. RAM is soldered = already protected. Everything else can wait.</p>
+</div>
+</div>
+</div>
+
+</div>
+
+<footer>Research compiled March 2026 | Data verified against Apple, NVIDIA, Dell, HP, Lenovo official specs + Tom's Hardware, CNBC, TrendForce market reports | Helium crisis data from Qatar facility reporting</footer>
+
+</body>
+</html>

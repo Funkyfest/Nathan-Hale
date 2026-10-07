@@ -1,0 +1,622 @@
+<title>Nathan's Command Center</title>
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --ground: #0c1222;
+  --surface: #131b2e;
+  --raised: #1a2540;
+  --border: #26324f;
+  --copper: #c9a072;
+  --copper-dim: rgba(201,160,114,.13);
+  --steel: #6b9cc4;
+  --steel-dim: rgba(107,156,196,.13);
+  --sage: #86ab8a;
+  --sage-dim: rgba(134,171,138,.14);
+  --good: #7fbf8a;
+  --good-dim: rgba(127,191,138,.14);
+  --warn: #d9b45a;
+  --warn-dim: rgba(217,180,90,.14);
+  --crit: #e07b6a;
+  --crit-dim: rgba(224,123,106,.14);
+  --ink: #ebe7e1;
+  --ink-2: #aeaaa4;
+  --ink-3: #75736f;
+  --display: 'DM Serif Text', Georgia, serif;
+  --body: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --ground: #eeeae3; --surface: #f9f7f3; --raised: #ffffff; --border: #d6cdc0;
+    --copper: #8a5a28; --copper-dim: rgba(138,90,40,.09);
+    --steel: #2d6590; --steel-dim: rgba(45,101,144,.09);
+    --sage: #3f6b44; --sage-dim: rgba(63,107,68,.09);
+    --good: #2f7a3d; --good-dim: rgba(47,122,61,.10);
+    --warn: #8a6510; --warn-dim: rgba(138,101,16,.11);
+    --crit: #a8402e; --crit-dim: rgba(168,64,46,.10);
+    --ink: #1b1713; --ink-2: #57524b; --ink-3: #85807a;
+  }
+}
+:root[data-theme="light"] {
+  --ground: #eeeae3; --surface: #f9f7f3; --raised: #ffffff; --border: #d6cdc0;
+  --copper: #8a5a28; --copper-dim: rgba(138,90,40,.09);
+  --steel: #2d6590; --steel-dim: rgba(45,101,144,.09);
+  --sage: #3f6b44; --sage-dim: rgba(63,107,68,.09);
+  --good: #2f7a3d; --good-dim: rgba(47,122,61,.10);
+  --warn: #8a6510; --warn-dim: rgba(138,101,16,.11);
+  --crit: #a8402e; --crit-dim: rgba(168,64,46,.10);
+  --ink: #1b1713; --ink-2: #57524b; --ink-3: #85807a;
+}
+:root[data-theme="dark"] {
+  --ground: #0c1222; --surface: #131b2e; --raised: #1a2540; --border: #26324f;
+  --copper: #c9a072; --copper-dim: rgba(201,160,114,.13);
+  --steel: #6b9cc4; --steel-dim: rgba(107,156,196,.13);
+  --sage: #86ab8a; --sage-dim: rgba(134,171,138,.14);
+  --good: #7fbf8a; --good-dim: rgba(127,191,138,.14);
+  --warn: #d9b45a; --warn-dim: rgba(217,180,90,.14);
+  --crit: #e07b6a; --crit-dim: rgba(224,123,106,.14);
+  --ink: #ebe7e1; --ink-2: #aeaaa4; --ink-3: #75736f;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--body);
+  background: var(--ground);
+  color: var(--ink);
+  padding-inline: 20px;
+  padding-block: 0 64px;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 900px; margin: 0 auto; }
+section { margin-top: 56px; }
+h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 1.45rem;
+  line-height: 1.2;
+  text-wrap: balance;
+  margin-bottom: 6px;
+}
+.lede { color: var(--ink-2); font-size: .9rem; max-width: 640px; margin-bottom: 20px; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: .68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ink-3);
+}
+:focus-visible { outline: 2px solid var(--steel); outline-offset: 2px; }
+
+/* Header */
+header { padding-block: 48px 0; }
+header h1 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: -.015em;
+  margin-top: 10px;
+}
+header h1 em { font-style: italic; color: var(--copper); }
+header p { margin-top: 12px; color: var(--ink-2); max-width: 620px; font-size: .95rem; }
+
+/* Status board */
+.status {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.stat { padding: 18px 18px 20px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.stat:first-child { border-left: 0; }
+.pill {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: .64rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 3px 8px 3px 7px;
+  border-radius: 999px;
+}
+.pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.good { color: var(--good); background: var(--good-dim); }
+.pill.warn { color: var(--warn); background: var(--warn-dim); }
+.pill.crit { color: var(--crit); background: var(--crit-dim); }
+.pill.open { color: var(--steel); background: var(--steel-dim); }
+.stat h3 { font-size: .92rem; font-weight: 600; line-height: 1.3; }
+.stat p { font-size: .78rem; color: var(--ink-2); line-height: 1.5; }
+.stat .num { font-family: var(--mono); font-size: 1.5rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1; color: var(--ink); }
+.stat .num small { font-size: .72rem; color: var(--ink-3); font-weight: 400; }
+
+/* Topology */
+.topo { margin-top: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 12px; }
+.topo svg { display: block; width: 100%; height: auto; }
+.topo .tall { display: none; }
+.t-line { fill: none; stroke-width: 1.5; }
+.t-line.copper { stroke: var(--copper); }
+.t-line.steel { stroke: var(--steel); }
+.t-line.sage { stroke: var(--sage); }
+.t-line.faint { stroke: var(--border); stroke-dasharray: 3 5; }
+.t-line.wifi { stroke-dasharray: 5 4; }
+.t-node { fill: var(--raised); stroke-width: 1.5; }
+.t-node.copper { stroke: var(--copper); }
+.t-node.steel { stroke: var(--steel); }
+.t-node.sage { stroke: var(--sage); }
+.t-node.plain { stroke: var(--border); }
+.t-node.ghost { fill: none; stroke: var(--ink-3); stroke-dasharray: 5 4; }
+.t-name { font-family: var(--display); font-size: 16px; }
+.t-name.copper { fill: var(--copper); }
+.t-name.steel { fill: var(--steel); }
+.t-name.sage { fill: var(--sage); }
+.t-name.ghost { fill: var(--ink-3); font-style: italic; }
+.t-meta { font-family: var(--mono); font-size: 10px; fill: var(--ink-3); letter-spacing: .04em; }
+.t-role { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-2); letter-spacing: .1em; }
+.t-link { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-2); }
+.t-cloud { fill: var(--surface); stroke: var(--border); }
+.t-cloudtxt { font-family: var(--mono); font-size: 10px; fill: var(--ink-2); }
+.t-ok { fill: var(--good); }
+.t-warntxt { font-family: var(--mono); font-size: 9.5px; fill: var(--warn); letter-spacing: .06em; }
+
+/* Lanes */
+.lanes { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.lanes th { text-align: left; font-family: var(--mono); font-size: .66rem; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-3); padding: 0 14px 10px 0; border-bottom: 1px solid var(--border); }
+.lanes td { padding: 14px 14px 14px 0; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--ink-2); }
+.lanes td:first-child { width: 190px; }
+.dev { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 600; }
+.dev i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+.dev.copper i { background: var(--copper); }
+.dev.steel i { background: var(--steel); }
+.dev.sage i { background: var(--sage); }
+.dev.cloud i { background: var(--ink-3); }
+.spec { display: block; font-family: var(--mono); font-size: .7rem; color: var(--ink-3); margin-top: 3px; font-weight: 400; }
+.lane-scroll { overflow-x: auto; }
+
+/* Actions */
+.acts { list-style: none; counter-reset: a; border-top: 1px solid var(--border); }
+.act { counter-increment: a; display: grid; grid-template-columns: 22px 1fr; gap: 14px; padding: 16px 4px; border-bottom: 1px solid var(--border); }
+.act input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--good); cursor: pointer; }
+.act label { cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.act-top { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; justify-content: space-between; }
+.act-top b { font-weight: 600; font-size: .95rem; }
+.act-top b::before { content: 'A' counter(a); font-family: var(--mono); font-size: .7rem; font-weight: 500; color: var(--ink-3); margin-right: 10px; }
+.when { font-family: var(--mono); font-size: .68rem; color: var(--ink-3); letter-spacing: .04em; white-space: nowrap; }
+.act-how { font-size: .82rem; color: var(--ink-2); max-width: 700px; }
+.act-how code, .why code { font-family: var(--mono); font-size: .76rem; background: var(--raised); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; color: var(--ink); overflow-wrap: anywhere; }
+.act input:checked + label b, .act input:checked + label .act-how { color: var(--ink-3); }
+.act input:checked + label b { text-decoration: line-through; text-decoration-color: var(--ink-3); }
+.progress { margin-top: 12px; font-family: var(--mono); font-size: .72rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+/* Decisions */
+.decs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dec { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+.dec-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dec-head h3 { font-size: 1rem; font-weight: 600; flex: 1; min-width: 150px; }
+.dec-id { font-family: var(--mono); font-size: .7rem; font-weight: 500; color: var(--ink-3); }
+.opts { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.opt { font-size: .83rem; color: var(--ink-2); padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border); display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.opt.rec { color: var(--ink); border-color: var(--steel); background: var(--steel-dim); font-weight: 500; }
+.opt span { font-family: var(--mono); font-size: .62rem; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--steel); white-space: nowrap; }
+.why { font-size: .8rem; color: var(--ink-2); }
+
+/* Gates */
+.gates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.gate { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+.gate h4 { font-size: .9rem; font-weight: 600; }
+.gate p { font-size: .8rem; color: var(--ink-2); }
+.verdict {
+  margin-top: 14px;
+  padding: 18px 20px;
+  border-radius: 10px;
+  background: var(--steel-dim);
+  border: 1px solid var(--steel);
+  font-size: .88rem;
+  color: var(--ink);
+}
+.verdict strong { color: var(--steel); }
+
+/* Wiring */
+.wires { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.wire { padding: 16px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.wire h4 { font-size: .9rem; font-weight: 600; display: flex; gap: 10px; align-items: baseline; }
+.wire h4 span { font-family: var(--mono); font-size: .66rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.wire p { font-size: .82rem; color: var(--ink-2); }
+
+/* Ledger timeline */
+.ledger { list-style: none; border-left: 1px solid var(--border); margin-left: 6px; }
+.ledger li { position: relative; padding: 0 0 18px 22px; display: grid; grid-template-columns: 92px 1fr; gap: 14px; }
+.ledger li:last-child { padding-bottom: 0; }
+.ledger li::before { content: ''; position: absolute; left: -5px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--ground); border: 1.5px solid var(--ink-3); }
+.ledger li.win::before { background: var(--good); border-color: var(--good); }
+.ledger li.now::before { background: var(--crit); border-color: var(--crit); }
+.ledger time { font-family: var(--mono); font-size: .74rem; color: var(--ink-3); font-variant-numeric: tabular-nums; padding-top: 1px; }
+.ledger div { font-size: .85rem; color: var(--ink-2); }
+.ledger b { color: var(--ink); font-weight: 600; }
+
+footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); font-size: .74rem; color: var(--ink-3); line-height: 1.7; }
+
+@media (max-width: 760px) {
+  .status { grid-template-columns: 1fr 1fr; }
+  .stat:nth-child(3) { border-left: 0; }
+  .stat:nth-child(n+3) { border-top: 1px solid var(--border); }
+  .gates, .decs { grid-template-columns: 1fr; }
+  .wires { grid-template-columns: 1fr; }
+  .topo .wide { display: none; }
+  .topo .tall { display: block; max-width: 380px; margin: 0 auto; }
+}
+@media (max-width: 600px) {
+  .lanes thead { display: none; }
+  .lanes, .lanes tbody, .lanes tr, .lanes td { display: block; width: auto; }
+  .lanes tr { padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .lanes td { border: 0; padding: 4px 0; }
+  .lanes td:first-child { width: auto; margin-bottom: 4px; }
+  .lanes td:nth-child(2)::before { content: 'Owns · '; font-family: var(--mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .lanes td:nth-child(3)::before { content: "Doesn't do · "; font-family: var(--mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+}
+@media (max-width: 440px) {
+  .status { grid-template-columns: 1fr; }
+  .stat { border-left: 0; border-top: 1px solid var(--border); }
+  .stat:first-child { border-top: 0; }
+    .ledger li { grid-template-columns: 1fr; gap: 2px; }
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Status as of October 7, 2026 · from Open Brain records</div>
+  <h1>Nathan's <em>Command Center</em></h1>
+  <p>Three devices, four cloud AIs, one memory layer. Big Nate's Decision Maker shipped, so this setup has a new job: keep the Mac mini healthy, give it room to work, and decide whether a Mac Studio earns the open seat.</p>
+
+  <div class="status" role="list">
+    <div class="stat" role="listitem">
+      <span class="pill good">Live</span>
+      <h3>Big Nate's Decision Maker</h3>
+      <p>On the App Store since July 13. The Mac mini's first gate is passed.</p>
+    </div>
+    <div class="stat" role="listitem">
+      <span class="pill good">Online</span>
+      <h3>Mac mini</h3>
+      <p>Running, confirmed by you Oct 7. The Oct 5–6 "offline" flag was a carried report, not a live check.</p>
+    </div>
+    <div class="stat" role="listitem">
+      <span class="pill warn">Check due</span>
+      <div class="num">37 <small>GB free / 512</small></div>
+      <p>Last reading, Sep 7. Under 10% free slows builds and agents. Re-check today.</p>
+    </div>
+    <div class="stat" role="listitem">
+      <span class="pill open">Open seat</span>
+      <h3>Mac Studio</h3>
+      <p>M3 Ultra returned Sep 21 for ~$4,762 credit. M5 config not chosen.</p>
+    </div>
+  </div>
+</header>
+
+<section aria-labelledby="map-h">
+  <h2 id="map-h">How the pieces connect</h2>
+  <p class="lede">Solid lines are wired, dashed are wireless. The dashed outline is the Studio seat, held open until it passes the gates below.</p>
+  <div class="topo">
+    <svg class="wide" viewBox="0 0 860 400" role="img" aria-label="Network map: Mac mini wired to the AT&amp;T router, ThinkBook and iPhone on Wi-Fi, all three reaching the cloud AIs and Open Brain; an empty Mac Studio seat beside the Mac mini.">
+      <rect class="t-cloud" x="150" y="14" width="560" height="56" rx="10"/>
+      <text class="t-role" x="170" y="36">CLOUD</text>
+      <text class="t-cloudtxt" x="170" y="56">GPT · Codex</text>
+      <text class="t-cloudtxt" x="265" y="56">Claude · Cowork</text>
+      <text class="t-cloudtxt" x="381" y="56">Grok</text>
+      <text class="t-cloudtxt" x="428" y="56">Gemini</text>
+      <text class="t-cloudtxt" x="487" y="56">Open Brain (Supabase)</text>
+      <text class="t-cloudtxt" x="640" y="56">OneDrive</text>
+
+      <path class="t-line faint" d="M430 70 V168"/>
+
+      <path class="t-line copper wifi" d="M240 236 L380 194"/>
+      <path class="t-line steel" d="M480 194 L612 236"/>
+      <path class="t-line sage wifi" d="M430 216 L430 300"/>
+
+      <rect class="t-node plain" x="380" y="168" width="100" height="48" rx="8"/>
+      <text class="t-role" x="430" y="188" text-anchor="middle">AT&amp;T</text>
+      <text class="t-meta" x="430" y="204" text-anchor="middle">router</text>
+
+      <text class="t-link" x="294" y="204" text-anchor="middle">Wi-Fi</text>
+      <text class="t-link" x="560" y="204" text-anchor="middle">Cat6</text>
+      <text class="t-link" x="440" y="264">Wi-Fi / cell</text>
+
+      <rect class="t-node copper" x="40" y="220" width="200" height="82" rx="10"/>
+      <text class="t-name copper" x="60" y="248">ThinkBook</text>
+      <text class="t-role" x="60" y="268">OFFICE + MAIL</text>
+      <text class="t-meta" x="60" y="286">Core Ultra 7 · 32 GB</text>
+
+      <rect class="t-node steel" x="612" y="220" width="200" height="82" rx="10"/>
+      <text class="t-name steel" x="632" y="248">Mac mini</text>
+      <text class="t-role" x="632" y="268">HEAVY WORK + HUB</text>
+      <text class="t-meta" x="632" y="286">M4 Pro · 24 GB · 512 GB</text>
+      <circle class="t-ok" cx="792" cy="240" r="5"/>
+      <text class="t-warntxt" x="785" y="318" text-anchor="end">ALWAYS ON · DISK CHECK DUE</text>
+
+      <rect class="t-node ghost" x="612" y="334" width="200" height="54" rx="10"/>
+      <text class="t-name ghost" x="632" y="358">Mac Studio seat</text>
+      <text class="t-meta" x="632" y="376">M5 · undecided</text>
+      <path class="t-line faint" d="M712 302 V334"/>
+
+      <rect class="t-node sage" x="370" y="300" width="120" height="72" rx="14"/>
+      <text class="t-name sage" x="430" y="328" text-anchor="middle">iPhone</text>
+      <text class="t-role" x="430" y="348" text-anchor="middle">CAPTURE</text>
+      <text class="t-meta" x="430" y="362" text-anchor="middle">voice · approvals</text>
+    </svg>
+
+    <svg class="tall" viewBox="0 0 340 520" role="img" aria-label="Network map, stacked: cloud services, then the AT&amp;T router, then ThinkBook on Wi-Fi, Mac mini on Cat6 with an empty Mac Studio seat, and iPhone on Wi-Fi or cellular.">
+      <rect class="t-cloud" x="10" y="10" width="320" height="74" rx="10"/>
+      <text class="t-role" x="26" y="32">CLOUD</text>
+      <text class="t-cloudtxt" x="26" y="52">GPT · Codex   Claude · Cowork</text>
+      <text class="t-cloudtxt" x="26" y="70">Grok   Gemini   Open Brain   OneDrive</text>
+      <path class="t-line faint" d="M170 84 V116"/>
+      <rect class="t-node plain" x="120" y="116" width="100" height="44" rx="8"/>
+      <text class="t-role" x="170" y="135" text-anchor="middle">AT&amp;T</text>
+      <text class="t-meta" x="170" y="150" text-anchor="middle">router</text>
+
+      <path class="t-line copper wifi" d="M120 138 H40 V196"/>
+      <text class="t-link" x="46" y="132">Wi-Fi</text>
+      <path class="t-line steel" d="M220 138 H300 V196"/>
+      <text class="t-link" x="262" y="132">Cat6</text>
+      <path class="t-line sage wifi" d="M170 160 V408"/>
+
+      <rect class="t-node copper" x="10" y="196" width="148" height="80" rx="10"/>
+      <text class="t-name copper" x="24" y="222">ThinkBook</text>
+      <text class="t-role" x="24" y="242">OFFICE + MAIL</text>
+      <text class="t-meta" x="24" y="260">Core Ultra 7 · 32 GB</text>
+
+      <rect class="t-node steel" x="182" y="196" width="148" height="80" rx="10"/>
+      <text class="t-name steel" x="196" y="222">Mac mini</text>
+      <text class="t-role" x="196" y="242">HEAVY WORK + HUB</text>
+      <text class="t-meta" x="196" y="260">M4 Pro · 24 GB</text>
+      <circle class="t-ok" cx="316" cy="212" r="5"/>
+      <text class="t-warntxt" x="326" y="294" text-anchor="end">ALWAYS ON · DISK CHECK DUE</text>
+
+      <path class="t-line faint" d="M256 300 V320"/>
+      <rect class="t-node ghost" x="182" y="320" width="148" height="54" rx="10"/>
+      <text class="t-name ghost" x="196" y="344">Mac Studio seat</text>
+      <text class="t-meta" x="196" y="362">M5 · undecided</text>
+
+      <text class="t-link" x="178" y="396">Wi-Fi / cell</text>
+      <rect class="t-node sage" x="110" y="408" width="120" height="72" rx="14"/>
+      <text class="t-name sage" x="170" y="436" text-anchor="middle">iPhone</text>
+      <text class="t-role" x="170" y="456" text-anchor="middle">CAPTURE</text>
+      <text class="t-meta" x="170" y="470" text-anchor="middle">voice · approvals</text>
+    </svg>
+  </div>
+</section>
+
+<section aria-labelledby="lanes-h">
+  <h2 id="lanes-h">Which machine owns what</h2>
+  <p class="lede">The split you set on July 3. Each job has one home machine, so the other devices see results instead of copies.</p>
+  <div class="lane-scroll">
+  <table class="lanes">
+    <thead><tr><th>Machine</th><th>Owns</th><th>Doesn't do</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="dev copper"><i></i>ThinkBook</span><span class="spec">Core Ultra 7 268V · 32 GB</span></td>
+        <td>Office work, mail, browser research, GPT and Claude chat, quick reviews of what the mini produced.</td>
+        <td>Long builds and overnight agent runs. That's what bogs it down.</td>
+      </tr>
+      <tr>
+        <td><span class="dev steel"><i></i>Mac mini</span><span class="spec">M4 Pro · 24 GB · 512 GB · Ethernet</span></td>
+        <td>Open Brain and OE1 jobs, Codex, Xcode and App Store builds for Big Nate, the 6am Daily Brief, heavy and overnight work.</td>
+        <td>Hold an archive. Video and old project churn belongs on an external SSD or OneDrive.</td>
+      </tr>
+      <tr>
+        <td><span class="dev sage"><i></i>iPhone</span><span class="spec">Wi-Fi · cellular</span></td>
+        <td>Voice capture into Open Brain, approvals, Claude Remote, TestFlight checks of Big Nate.</td>
+        <td>Run agents itself. It steers; the mini does the work.</td>
+      </tr>
+      <tr>
+        <td><span class="dev cloud"><i></i>Cloud AIs</span><span class="spec">GPT · Claude · Grok · Gemini · ~$600/mo</span></td>
+        <td>Frontier reasoning, the daily harness reports, anything 24 GB of local memory can't hold.</td>
+        <td>Hold Tier 1 private data. Client deal terms and personal records stay local.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section aria-labelledby="act-h">
+  <h2 id="act-h">Actions</h2>
+  <p class="lede">Things to do, smallest first. Tick them off as you go; your ticks stay in this browser.</p>
+  <ul class="acts">
+    <li class="act">
+      <input type="checkbox" id="a1">
+      <label for="a1">
+        <span class="act-top"><b>Check the mini's free space</b><span class="when">Today · 1 min</span></span>
+        <span class="act-how">Apple menu → System Settings → General → Storage, or run <code>df -h /</code> in Terminal. Under 100 GB free means doing A4 this week.</span>
+      </label>
+    </li>
+    <li class="act">
+      <input type="checkbox" id="a2">
+      <label for="a2">
+        <span class="act-top"><b>Make the mini restart itself after a power cut</b><span class="when">Today · 1 min</span></span>
+        <span class="act-how">System Settings → Energy → turn on <code>Start up automatically after a power failure</code>. This would have saved the Aug 21 Daily Brief.</span>
+      </label>
+    </li>
+    <li class="act">
+      <input type="checkbox" id="a3">
+      <label for="a3">
+        <span class="act-top"><b>Clear the "Mini offline" flag from the daily reports</b><span class="when">Today · 5 min</span></span>
+        <span class="act-how">Tell the closeout the mini is online as of Oct 7. Run <code>Verify Mac OB1.command</code> once; if it returns green, the flag is closed. If the Grok bot still can't reach the mini, that's a connection issue on the Grok side.</span>
+      </label>
+    </li>
+    <li class="act">
+      <input type="checkbox" id="a4">
+      <label for="a4">
+        <span class="act-top"><b>Free up space if under 100 GB</b><span class="when">This week · 30 min</span></span>
+        <span class="act-how">Delete <code>~/Library/Developer/Xcode/DerivedData</code>, run <code>xcrun simctl delete unavailable</code>, then move video and finished project folders off the internal drive (see D2).</span>
+      </label>
+    </li>
+    <li class="act">
+      <input type="checkbox" id="a5">
+      <label for="a5">
+        <span class="act-top"><b>Write gate 2 in one sentence</b><span class="when">This week · 10 min</span></span>
+        <span class="act-how">"Every night the Studio would ___, producing ___, which the mini can't because ___." D1 waits on this sentence.</span>
+      </label>
+    </li>
+    <li class="act">
+      <input type="checkbox" id="a6">
+      <label for="a6">
+        <span class="act-top"><b>Pick one App Store listing change for Big Nate</b><span class="when">This week · 20 min</span></span>
+        <span class="act-how">Pull downloads and reviews from App Store Connect and change one thing they point to: screenshots, subtitle, or first-screen copy.</span>
+      </label>
+    </li>
+  </ul>
+  <p class="progress" id="prog" aria-live="polite">0 of 6 done</p>
+</section>
+
+<section aria-labelledby="dec-h">
+  <h2 id="dec-h">Decisions</h2>
+  <p class="lede">Choices only you can make. Each shows the options, my recommendation, and what to settle first.</p>
+  <div class="decs">
+    <article class="dec">
+      <div class="dec-head">
+        <span class="dec-id">D1</span>
+        <h3>The Mac Studio seat</h3>
+        <span class="pill open">After A5</span>
+      </div>
+      <ul class="opts">
+        <li class="opt">Buy an M5 Studio now</li>
+        <li class="opt rec">Wait until gate 2 is written <span>Recommended</span></li>
+        <li class="opt">Skip the Studio; spend part of the credit on storage</li>
+      </ul>
+      <p class="why">The mini shipped Big Nate. A Studio is only worth buying for a specific job the mini can't do. Also check whether the ~$4,762 Apple credit expires; that sets your real deadline.</p>
+    </article>
+    <article class="dec">
+      <div class="dec-head">
+        <span class="dec-id">D2</span>
+        <h3>Where overflow files live</h3>
+        <span class="pill warn">After A1</span>
+      </div>
+      <ul class="opts">
+        <li class="opt">OneDrive only</li>
+        <li class="opt rec">External 2 TB SSD for big files, OneDrive for documents <span>Recommended</span></li>
+        <li class="opt">Bigger internal drive (only by replacing the Mac)</li>
+      </ul>
+      <p class="why">Video and model files are too big and change too often for OneDrive sync. A USB-C SSD stays plugged into the always-on mini. Documents stay in OneDrive as they are now.</p>
+    </article>
+    <article class="dec">
+      <div class="dec-head">
+        <span class="dec-id">D3</span>
+        <h3>How the daily reports handle the mini</h3>
+        <span class="pill open">Anytime</span>
+      </div>
+      <ul class="opts">
+        <li class="opt">Keep carrying flags forward as-is</li>
+        <li class="opt rec">Live-check before saying "offline"; otherwise say "unreachable from [host]" <span>Recommended</span></li>
+      </ul>
+      <p class="why">This week a carried flag made a running machine look broken. One rule fixes it: a report states machine status only after a live check, and keeps that separate from "this bot couldn't reach it."</p>
+    </article>
+    <article class="dec">
+      <div class="dec-head">
+        <span class="dec-id">D4</span>
+        <h3>Big Nate's next bet</h3>
+        <span class="pill good">Ongoing</span>
+      </div>
+      <ul class="opts">
+        <li class="opt rec">Listing → paid plan → Android, as set July 14 <span>Recommended</span></li>
+        <li class="opt">Android first to reach more people</li>
+      </ul>
+      <p class="why">A paid plan on the live iOS app tests whether people will pay before you build a second app. Android costs more effort and earns more once the paid plan works.</p>
+    </article>
+  </div>
+</section>
+<section aria-labelledby="gates-h">
+  <h2 id="gates-h">The Studio gates</h2>
+  <p class="lede">The test behind D1, from your May 26 decision.</p>
+  <div class="gates">
+    <div class="gate">
+      <span class="pill good">Passed</span>
+      <h4>1 · Ship path</h4>
+      <p>Big Nate went from TestFlight (June 29) to the App Store (July 13). The Apple workflow is proven on the mini.</p>
+    </div>
+    <div class="gate">
+      <span class="pill open">Unanswered</span>
+      <h4>2 · An overnight job the mini can't do</h4>
+      <p>Write it in one sentence: the job, its output, and why 24 GB fails it. A larger local model or video work would qualify.</p>
+    </div>
+    <div class="gate">
+      <span class="pill open">Unanswered</span>
+      <h4>3 · It offsets cloud spend</h4>
+      <p>You spend about $600 a month on cloud AI. Name which subscription or usage the Studio would replace, and by how much.</p>
+    </div>
+  </div>
+  <div class="verdict">
+    <strong>Recommendation:</strong> if you can't write gate 2 in one sentence this week, hold the ~$4,762 credit and buy nothing yet. Freeing space on the mini (A4) may be all you needed. If gate 2 is real, size the Studio for that job: a large local model needs 64 GB of memory at minimum, and 2 TB of storage so you never hit June's wall again.
+  </div>
+</section>
+
+<section aria-labelledby="wire-h">
+  <h2 id="wire-h">Wiring and desk</h2>
+  <div class="wires">
+    <div class="wire">
+      <h4>Mac mini → router <span>Cat6</span></h4>
+      <p>Stays hardwired. Its scheduled jobs and big downloads need a connection that doesn't drop.</p>
+    </div>
+    <div class="wire">
+      <h4>ThinkBook, iPhone <span>Wi-Fi</span></h4>
+      <p>Same home network as the mini, so both can reach it without extra setup.</p>
+    </div>
+    <div class="wire">
+      <h4>Remote access <span>Tailscale</span></h4>
+      <p>Reach the mini from the ThinkBook or iPhone anywhere, without opening router ports.</p>
+    </div>
+    <div class="wire">
+      <h4>Monitor audio <span>ThinkBook</span></h4>
+      <p>If sound dies when the monitor connects, Windows switched audio to the monitor. Pick the laptop speakers and mic in Settings → System → Sound.</p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="ledger-h">
+  <h2 id="ledger-h">How you got here</h2>
+  <p class="lede">Dated entries from Open Brain.</p>
+  <ol class="ledger">
+    <li><time>May 26</time><div><b>Mac mini bought</b> on three gates: ship Big Nate, run an overnight job, offset cloud spend.</div></li>
+    <li><time>Jun 11</time><div><b>Storage wall:</b> 240 GB of Codex, video and project files in five days.</div></li>
+    <li><time>Jun 16</time><div><b>Mac Studio M3 Ultra ordered</b>, 96 GB / 2 TB, as the hedge.</div></li>
+    <li><time>Jun 25</time><div><b>Mac mini kept</b> once its return window closed.</div></li>
+    <li class="win"><time>Jun 29</time><div><b>TestFlight:</b> Big Nate 1.0 (9) ready to test.</div></li>
+    <li class="win"><time>Jul 13</time><div><b>Live on the App Store.</b> A goal nearly a decade old.</div></li>
+    <li><time>Aug 21</time><div><b>Mini lost power</b> and missed the 6am Daily Brief. Lesson: press the rear button.</div></li>
+    <li><time>Sep 21</time><div><b>Mac Studio returned</b> for ~$4,762 credit. Next aim: an M5 Studio.</div></li>
+    <li><time>Oct 5–6</time><div><b>Harness reports flag "Mini offline,"</b> carried forward without a live check.</div></li>
+    <li class="win"><time>Oct 7</time><div><b>Mini confirmed running</b> by you. The flag was a reporting problem, not an outage.</div></li>
+  </ol>
+</section>
+
+<footer>
+  Built from Open Brain records dated May 26 through October 6, 2026. Mac mini specs and the 37 GB free figure come from the September 7 live inspection; the mini's online status is your Oct 7 confirmation; check current free space (A1) before deleting anything.
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var boxes = document.querySelectorAll('.act input');
+  var prog = document.getElementById('prog');
+  var key = 'nhcc-actions';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  function update() {
+    var done = 0, state = {};
+    boxes.forEach(function (b) { state[b.id] = b.checked; if (b.checked) done++; });
+    prog.textContent = done + ' of ' + boxes.length + ' done';
+    try { localStorage.setItem(key, JSON.stringify(state)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', update); });
+  update();
+})();
+</script>
