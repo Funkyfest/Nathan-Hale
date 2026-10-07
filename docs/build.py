@@ -1,690 +1,405 @@
 #!/usr/bin/env python3
-"""Generate all 10 diagrams and build HTML/DOCX/PDF for the data-center design doc."""
-import os, re, pathlib, subprocess, textwrap
-
-ROOT = pathlib.Path(__file__).parent
-DIAGRAMS = ROOT / "diagrams"
-DIAGRAMS_PNG = ROOT / "diagrams-png"
-DIAGRAMS.mkdir(exist_ok=True)
-DIAGRAMS_PNG.mkdir(exist_ok=True)
-
-# ---- SVG builders -----------------------------------------------------------
-BG_GRAD = ('<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">'
-           '<stop offset="0%" stop-color="#0b1322"/><stop offset="100%" stop-color="#141f32"/>'
-           '</linearGradient></defs>')
-
-def head(w, h, title, subtitle):
-    return (f'<?xml version="1.0" encoding="UTF-8"?>\n'
-            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" '
-            f'font-family="Inter, Arial, sans-serif">'
-            f'{BG_GRAD}<rect width="{w}" height="{h}" fill="url(#bg)"/>'
-            f'<text x="20" y="28" fill="#f3f6fa" font-size="18" font-weight="700">{title}</text>'
-            f'<text x="20" y="46" fill="#94a3b8" font-size="11">{subtitle}</text>')
-
-# ---------- Figure 1 · Isometric campus ----------
-def fig1():
-    w, h = 1000, 620
-    s = [head(w, h, "Figure 1 · Hyperscale AI Campus (Isometric)",
-              "144 MW IT critical load · redundant 230 kV feeds · on-site generation, water, and solar")]
-    s.append('<ellipse cx="500" cy="600" rx="600" ry="90" fill="#1c2634"/>')
-    s.append('<polygon points="120,540 880,540 940,560 80,560" fill="#2a3442" stroke="#1a2330"/>')
-    s.append('<line x1="120" y1="550" x2="880" y2="550" stroke="#c9b23a" stroke-width="1.6" stroke-dasharray="10,10"/>')
-
-    def iso_building(x, y, wx, wy, ht, roof="#8ea1b5", wallL="#5c6b7e", wallR="#4a586a", label=None, cool=False):
-        top = f'M{x},{y+wy} L{x+wx},{y} L{x+wx+wx*0.5},{y+wy*0.5} L{x+wx*0.5},{y+wy*1.5} Z'
-        left = f'M{x},{y+wy} L{x+wx*0.5},{y+wy*1.5} L{x+wx*0.5},{y+wy*1.5+ht} L{x},{y+wy+ht} Z'
-        right = f'M{x+wx*0.5},{y+wy*1.5} L{x+wx+wx*0.5},{y+wy*0.5} L{x+wx+wx*0.5},{y+wy*0.5+ht} L{x+wx*0.5},{y+wy*1.5+ht} Z'
-        out = []
-        out.append(f'<path d="{top}" fill="{roof}" stroke="#111820"/>')
-        out.append(f'<path d="{left}" fill="{wallL}" stroke="#0d141d"/>')
-        out.append(f'<path d="{right}" fill="{wallR}" stroke="#0d141d"/>')
-        if cool:
-            for i in range(4):
-                cx = x + 30 + i*50
-                cy = y + wy - 6 - i*8
-                out.append(f'<rect x="{cx}" y="{cy}" width="30" height="14" fill="#9aa8bd" stroke="#0d141d" transform="skewY(-18)"/>')
-        out.append(f'<rect x="{x+wx*0.5+10}" y="{y+wy*1.5+ht-40}" width="{wx-20}" height="4" fill="#30a1ff" opacity="0.7"/>')
-        if label:
-            out.append(f'<text x="{x+wx*0.5+10}" y="{y+wy*1.5+ht-16}" fill="#e5e7eb" font-size="12" font-weight="600">{label}</text>')
-        return "".join(out)
-
-    s.append(iso_building(380, 250, 200, 40, 100, label="Data Hall A · 48 MW", cool=True))
-    s.append(iso_building(430, 180, 200, 40, 100, label="Data Hall B · 48 MW", cool=True))
-    s.append(iso_building(480, 110, 200, 40, 100, label="Data Hall C · 48 MW", cool=True))
-
-    s.append('<polygon points="80,420 220,380 280,410 140,450" fill="#33404f" stroke="#111820"/>')
-    for tx, ty in [(122,410),(172,403),(222,395)]:
-        s.append(f'<polygon points="{tx-12},{ty} {tx},{ty-10} {tx+12},{ty} {tx},{ty+10}" fill="#4d5a6c" stroke="#d6dde5"/>')
-        s.append(f'<line x1="{tx}" y1="{ty-10}" x2="{tx}" y2="{ty-50}" stroke="#d6dde5" stroke-width="1.4"/>')
-        s.append(f'<line x1="{tx-7}" y1="{ty-40}" x2="{tx+7}" y2="{ty-40}" stroke="#d6dde5" stroke-width="1.4"/>')
-    s.append('<rect x="238" y="410" width="18" height="14" fill="#5a6878" stroke="#0d141d"/>')
-    s.append('<rect x="260" y="406" width="18" height="14" fill="#5a6878" stroke="#0d141d"/>')
-    s.append('<text x="130" y="470" fill="#cbd5e1" font-size="12">230 kV Substation</text>')
-
-    s.append('<polygon points="300,420 430,388 500,410 370,442" fill="#2e3a48" stroke="#0c131c"/>')
-    for j in range(2):
-        for i in range(3):
-            gx = 315 + i*36
-            gy = 405 + j*12 - i*3
-            s.append(f'<rect x="{gx}" y="{gy}" width="30" height="10" fill="#b7b350" stroke="#1a1a10" transform="skewY(-18)"/>')
-    s.append('<text x="310" y="460" fill="#cbd5e1" font-size="12">Diesel Genset Yard (N+1)</text>')
-
-    s.append(iso_building(770, 340, 120, 30, 60, roof="#8ea1b5", label="Central Utility Plant"))
-    for i in range(3):
-        s.append(f'<ellipse cx="{800+i*40}" cy="{365-i*10}" rx="10" ry="4" fill="#415368" stroke="#0d141d"/>')
-
-    s.append(iso_building(120, 460, 90, 20, 40, label="Admin and SOC"))
-    s.append(iso_building(40, 310, 60, 14, 30, label="Fiber MMR"))
-
-    s.append('<polygon points="700,480 900,440 950,460 750,500" fill="#1b3550" stroke="#081628"/>')
-    for i in range(15):
-        for j in range(3):
-            s.append(f'<rect x="{705+i*15+j*4}" y="{480+j*7-i*2}" width="12" height="6" fill="#2a4c72" stroke="#0d1e30" stroke-width="0.4"/>')
-    s.append('<text x="770" y="516" fill="#cbd5e1" font-size="11">PV Array + BESS</text>')
-
-    s.append('<g transform="translate(930,60)"><circle r="18" fill="#0f1a2b" stroke="#64748b"/>'
-             '<polygon points="0,-12 5,6 0,2 -5,6" fill="#e5e7eb"/><text x="-4" y="30" fill="#94a3b8" font-size="10">N</text></g>')
-    s.append('</svg>')
-    return "".join(s)
-
-# ---------- Figure 2 · Building cutaway ----------
-def fig2():
-    w, h = 1000, 620
-    s = [head(w, h, "Figure 2 · Building Cutaway — Roof Mech, Penthouse, Data Halls, Spine",
-              "Vertical stack of mechanical, electrical, and IT spaces in a single hyperscale block")]
-
-    def iso_slab(y, color_top, color_left, color_right, label=None, sub=None, contents=None):
-        s2 = []
-        s2.append(f'<polygon points="150,{y} 670,{y-40} 810,{y-20} 290,{y+20}" fill="{color_top}" stroke="#0d141d"/>')
-        s2.append(f'<polygon points="150,{y} 290,{y+20} 290,{y+80} 150,{y+60}" fill="{color_left}" stroke="#0d141d"/>')
-        s2.append(f'<polygon points="290,{y+20} 810,{y-20} 810,{y+40} 290,{y+80}" fill="{color_right}" stroke="#0d141d"/>')
-        if contents:
-            s2.append(contents)
-        if label:
-            s2.append(f'<text x="310" y="{y+52}" fill="#e5e7eb" font-size="12" font-weight="600">{label}</text>')
-        if sub:
-            s2.append(f'<text x="310" y="{y+68}" fill="#94a3b8" font-size="10">{sub}</text>')
-        return "".join(s2)
-
-    roof_contents = ""
-    for i in range(6):
-        roof_contents += f'<rect x="{190+i*80}" y="{80+i*(-6)}" width="60" height="16" fill="#6c8395" stroke="#0a1019" transform="skewY(-12)"/>'
-    s.append(iso_slab(150, "#2c3a4d", "#1e2a3f", "#28374f",
-                     "Roof mechanical — dry coolers / adiabatic (N+1)",
-                     "outdoor air heat rejection", roof_contents))
-
-    s.append(iso_slab(240, "#3a4a5f", "#2a3648", "#32405a",
-                     "Mechanical Penthouse — CDUs, pumps, heat exchangers",
-                     "coolant distribution &amp; primary/secondary loop coupling"))
-
-    ai_contents = ""
-    for r in range(2):
-        for i in range(14):
-            ai_contents += f'<rect x="{320+i*22-r*8}" y="{318-r*(-14)+r*8}" width="16" height="34" fill="#0ea5e9" stroke="#061322" transform="skewY(-12)"/>'
-    s.append(iso_slab(340, "#1e2a3f", "#12192a", "#182338",
-                     "Data Hall 2 — liquid-cooled AI racks · 120 kW/rack",
-                     "DTC + rear-door · warm-water loop"))
-
-    s.append(iso_slab(440, "#1e2a3f", "#12192a", "#182338",
-                     "Data Hall 1 — air-cooled with rear-door HX · 30 kW/rack",
-                     "hot/cold aisle containment"))
-
-    elec_contents = ""
-    colors = ["#eab308","#eab308","#ef4444","#64748b","#64748b","#64748b"]
-    labs = ["UPS","UPS","BESS","Swgr","Swgr","Swgr"]
-    for i, (c,l) in enumerate(zip(colors, labs)):
-        elec_contents += f'<rect x="{320+i*70}" y="{540-i*6}" width="46" height="20" fill="{c}" stroke="#1a1a10" transform="skewY(-12)"/>'
-        elec_contents += f'<text x="{330+i*70-i*3}" y="{558-i*6}" fill="#0b1322" font-size="9" font-weight="700">{l}</text>'
-    s.append(iso_slab(540, "#2a3547", "#1f2939", "#283345",
-                     "Ground Floor — MV switchgear, UPS, BESS, PDUs",
-                     None, elec_contents))
-
-    s.append('<g stroke="#475569" stroke-width="1" fill="none"><path d="M840,140 L880,140 L880,600 L840,600"/></g>')
-    labs2 = [("Roof mech",150), ("Penthouse",250), ("AI hall",340), ("Std hall",440), ("Electrical",540)]
-    for text, y in labs2:
-        s.append(f'<text x="892" y="{y+30}" fill="#cbd5e1" font-size="11">{text}</text>')
-    s.append('</svg>')
-    return "".join(s)
-
-# ---------- Figure 3 · Hot/cold aisle containment ----------
-def fig3():
-    w, h = 1000, 560
-    s = [head(w, h, "Figure 3 · Hot-Aisle / Cold-Aisle Containment (Isometric)",
-              "Cold supply from below, hot exhaust captured overhead to return plenum")]
-    s.append('<polygon points="80,480 920,380 960,420 120,520" fill="#2b3543" stroke="#0d141d"/>')
-
-    def row(dx, dy, front_color):
-        out = []
-        for i in range(8):
-            x = dx + i*60
-            y = dy - i*14
-            out.append(f'<polygon points="{x},{y+40} {x+60},{y+26} {x+60},{y+126} {x},{y+140}" fill="{front_color}" stroke="#0d141d"/>')
-            out.append(f'<polygon points="{x+60},{y+26} {x+80},{y+34} {x+80},{y+134} {x+60},{y+126}" fill="#1b2330" stroke="#0d141d"/>')
-            out.append(f'<polygon points="{x},{y+40} {x+60},{y+26} {x+80},{y+34} {x+20},{y+48}" fill="#485867" stroke="#0d141d"/>')
-            out.append(f'<line x1="{x+15}" y1="{y+55}" x2="{x+55}" y2="{y+45}" stroke="#22c55e" stroke-width="1"/>')
-        return "".join(out)
-
-    s.append(row(180, 260, "#2b3648"))
-    s.append(row(220, 360, "#2b3648"))
-
-    s.append('<polygon points="230,270 660,170 700,178 260,278" fill="#60a5fa" fill-opacity="0.18" '
-             'stroke="#60a5fa" stroke-opacity="0.6"/>')
-    s.append('<polygon points="260,278 700,178 700,198 260,298" fill="#60a5fa" fill-opacity="0.08" '
-             'stroke="#60a5fa" stroke-opacity="0.4"/>')
-
-    for x, y in [(310,455),(410,441),(510,427),(610,413),(710,399)]:
-        s.append(f'<polygon points="{x-6},{y} {x-2},{y} {x-2},{y-16} {x+2},{y-16} {x+2},{y} {x+6},{y} {x},{y+10}" fill="#60a5fa"/>')
-
-    s.append('<text x="300" y="180" fill="#93c5fd" font-size="12" font-weight="600">Cold aisle (contained)</text>')
-    s.append('<text x="300" y="196" fill="#93c5fd" font-size="10">18–24 °C supply from raised floor</text>')
-    s.append('<text x="40" y="260" fill="#fca5a5" font-size="12" font-weight="600">Hot aisle (rear)</text>')
-    s.append('<text x="40" y="276" fill="#fca5a5" font-size="10">35–45 °C return to ceiling plenum</text>')
-    s.append('<text x="720" y="280" fill="#fca5a5" font-size="12" font-weight="600">Hot aisle (rear)</text>')
-    s.append('<text x="40" y="500" fill="#94a3b8" font-size="10">Raised floor plenum (600 mm) · cabling below</text>')
-    s.append('</svg>')
-    return "".join(s)
-
-# ---------- Figure 4 · Liquid-cooled AI rack ----------
-def fig4():
-    w, h = 1000, 620
-    s = [head(w, h, "Figure 4 · Liquid-Cooled AI Rack (NVL72-class) — 120 kW",
-              "18 compute trays · 9 NVSwitch trays · rear manifold · warm-water direct-to-chip")]
-    s.append('<polygon points="200,560 820,560 860,590 160,590" fill="#24303f" stroke="#0d141d"/>')
-    s.append('<polygon points="320,130 540,90 540,530 320,570" fill="#334155" stroke="#0a1019"/>')
-    s.append('<polygon points="540,90 640,120 640,560 540,530" fill="#1a2330" stroke="#0a1019"/>')
-    s.append('<polygon points="320,130 540,90 640,120 420,160" fill="#4a5769" stroke="#0a1019"/>')
-
-    def tray(y_off, color, has_leds=True):
-        y = 140 + y_off
-        return (f'<polygon points="334,{y} 530,{y-33} 530,{y-18} 334,{y+15}" fill="{color}" stroke="#0a1019"/>'
-                + ("".join(f'<circle cx="{384+i*40}" cy="{y-4-i*7}" r="3" fill="#22c55e"/>' for i in range(3)) if has_leds else ""))
-    y = 0
-    for i in range(9):
-        s.append(tray(y, "#1f2a3d")); y += 18
-    for i in range(9):
-        s.append(tray(y, "#1e40af", has_leds=False)); y += 16
-    for i in range(9):
-        s.append(tray(y, "#1f2a3d")); y += 18
-
-    s.append('<polygon points="630,120 680,100 680,540 630,560" fill="#b91c1c" stroke="#450a0a"/>')
-    s.append('<polygon points="680,100 690,105 690,545 680,540" fill="#7f1d1d" stroke="#450a0a"/>')
-    s.append('<polygon points="600,130 650,110 650,540 600,560" fill="#1e40af" stroke="#0a1326"/>')
-    s.append('<polygon points="650,110 660,115 660,545 650,540" fill="#1e3a8a" stroke="#0a1326"/>')
-    s.append('<text x="672" y="95" fill="#fca5a5" font-size="10">supply 35°C</text>')
-    s.append('<text x="562" y="125" fill="#93c5fd" font-size="10">return 45°C</text>')
-
-    for i in range(6):
-        s.append(f'<path d="M534,{160+i*25} C 560,{164+i*25} 590,{180+i*25} 630,{200+i*22}" '
-                 'stroke="#dc2626" stroke-width="1.5" fill="none" opacity="0.85"/>')
-
-    s.append('<polygon points="720,470 830,440 890,458 780,490" fill="#334155" stroke="#0a1019"/>')
-    s.append('<polygon points="720,470 780,490 780,550 720,530" fill="#1e293b" stroke="#0a1019"/>')
-    s.append('<polygon points="780,490 890,458 890,518 780,550" fill="#263244" stroke="#0a1019"/>')
-    s.append('<text x="732" y="568" fill="#cbd5e1" font-size="11">Coolant Distribution Unit</text>')
-
-    s.append('<line x1="260" y1="170" x2="330" y2="170" stroke="#64748b"/>')
-    s.append('<text x="170" y="174" fill="#cbd5e1" font-size="11" text-anchor="end">Compute trays × 9 (top)</text>')
-    s.append('<line x1="260" y1="350" x2="330" y2="350" stroke="#64748b"/>')
-    s.append('<text x="170" y="354" fill="#cbd5e1" font-size="11" text-anchor="end">NVSwitch trays × 9</text>')
-    s.append('<line x1="260" y1="480" x2="330" y2="480" stroke="#64748b"/>')
-    s.append('<text x="170" y="484" fill="#cbd5e1" font-size="11" text-anchor="end">Compute trays × 9 (bot)</text>')
-
-    s.append('<rect x="150" y="510" width="180" height="52" rx="6" fill="#0f172a" stroke="#334155"/>')
-    s.append('<text x="160" y="530" fill="#f8fafc" font-size="11" font-weight="700">Rack envelope</text>')
-    s.append('<text x="160" y="546" fill="#cbd5e1" font-size="10">120 kW · 72 GPUs</text>')
-    s.append('<text x="160" y="560" fill="#cbd5e1" font-size="10">~1400 A @ 48 VDC bus</text>')
-    s.append('</svg>')
-    return "".join(s)
-
-# ---------- Figure 5 · Power single-line ----------
-def fig5():
-    w, h = 1100, 560
-    s = [head(w, h, "Figure 5 · Power Single-Line — Utility to Chip (2N to the UPS, N+1 PDU)",
-              "Two independent paths: A (red) and B (blue). Each can carry 100% of the load.")]
-    s.append('<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">'
-             '<path d="M0,0 L10,5 L0,10 z" fill="#eab308"/></marker></defs>')
-
-    def block(x, y, w2, h2, lbl, sub, color):
-        return (f'<rect x="{x}" y="{y}" width="{w2}" height="{h2}" fill="#1e2a3d" stroke="{color}" stroke-width="1.5" rx="4"/>'
-                f'<text x="{x+w2/2}" y="{y+h2/2-3}" text-anchor="middle" fill="#e5e7eb" font-size="11">{lbl}</text>'
-                f'<text x="{x+w2/2}" y="{y+h2/2+13}" text-anchor="middle" fill="#94a3b8" font-size="10">{sub}</text>')
-
-    pa = "#ef4444"; pb = "#3b82f6"
-    yA = 100; yB = 380
-    s.append(f'<circle cx="70" cy="{yA+20}" r="26" fill="#1e2a3d" stroke="{pa}" stroke-width="1.5"/>'
-             f'<text x="70" y="{yA+24}" text-anchor="middle" fill="#e5e7eb" font-size="11">Util A</text>'
-             f'<text x="70" y="{yA+60}" text-anchor="middle" fill="#94a3b8" font-size="10">230 kV</text>')
-    s.append(f'<circle cx="70" cy="{yB+20}" r="26" fill="#1e2a3d" stroke="{pb}" stroke-width="1.5"/>'
-             f'<text x="70" y="{yB+24}" text-anchor="middle" fill="#e5e7eb" font-size="11">Util B</text>'
-             f'<text x="70" y="{yB+60}" text-anchor="middle" fill="#94a3b8" font-size="10">230 kV</text>')
-
-    stages = [("XFMR", "230/34.5", 150, 56, 44),
-              ("MV Swgr A", "34.5 kV", 250, 90, 44),
-              ("XFMR", "34.5/0.48", 390, 56, 44),
-              ("LV MSB A", "480 V", 490, 90, 44),
-              ("UPS A", "2 MW Li-ion", 630, 80, 44)]
-    for lbl, sub, x, w2, h2 in stages:
-        s.append(block(x, yA, w2, h2, lbl, sub, pa))
-    for x1, x2 in [(96,150),(206,250),(340,390),(446,490),(580,630),(710,760)]:
-        s.append(f'<line x1="{x1}" y1="{yA+22}" x2="{x2}" y2="{yA+22}" stroke="{pa}" stroke-width="2.2"/>')
-
-    for lbl, sub, x, w2, h2 in stages:
-        lbl2 = lbl.replace(" A", " B")
-        s.append(block(x, yB, w2, h2, lbl2, sub, pb))
-    for x1, x2 in [(96,150),(206,250),(340,390),(446,490),(580,630),(710,760)]:
-        s.append(f'<line x1="{x1}" y1="{yB+22}" x2="{x2}" y2="{yB+22}" stroke="{pb}" stroke-width="2.2"/>')
-
-    s.append(block(250, 180, 90, 48, "Gensets N+1", "diesel 3 MW × 8", "#64748b"))
-    s.append(block(250, 300, 90, 48, "Gensets N+1", "diesel 3 MW × 8", "#64748b"))
-    s.append(f'<line x1="295" y1="180" x2="295" y2="146" stroke="#94a3b8" stroke-dasharray="4,3"/>')
-    s.append(f'<line x1="295" y1="300" x2="295" y2="{yB-2}" stroke="#94a3b8" stroke-dasharray="4,3"/>')
-
-    s.append(block(770, 210, 90, 54, "PDU (N+1)", "415/240 V", "#64748b"))
-    s.append(f'<line x1="760" y1="{yA+22}" x2="760" y2="224" stroke="{pa}" stroke-width="2.2"/>')
-    s.append(f'<line x1="760" y1="{yB+22}" x2="760" y2="250" stroke="{pb}" stroke-width="2.2"/>')
-    s.append(f'<line x1="760" y1="224" x2="770" y2="224" stroke="{pa}" stroke-width="2.2"/>')
-    s.append(f'<line x1="760" y1="250" x2="770" y2="250" stroke="{pb}" stroke-width="2.2"/>')
-
-    s.append(block(910, 210, 150, 40, "Busway → Rack PDU", "dual-corded A+B", "#64748b"))
-    s.append(block(910, 300, 150, 40, "Server PSUs", "AC→48V or DC bus", "#64748b"))
-    s.append(block(910, 390, 150, 40, "VRM → chip", "48→0.7 V @ 1000 A", "#64748b"))
-    s.append(f'<line x1="860" y1="230" x2="905" y2="230" stroke="#eab308" stroke-width="1.4" marker-end="url(#arr)"/>')
-    s.append(f'<line x1="980" y1="250" x2="980" y2="298" stroke="#eab308" stroke-width="1.4" marker-end="url(#arr)"/>')
-    s.append(f'<line x1="980" y1="340" x2="980" y2="388" stroke="#eab308" stroke-width="1.4" marker-end="url(#arr)"/>')
-
-    s.append('<rect x="30" y="480" width="1040" height="60" fill="#0f172a" stroke="#334155" rx="6"/>')
-    s.append('<line x1="44" y1="502" x2="74" y2="502" stroke="#ef4444" stroke-width="2.5"/>'
-             '<text x="84" y="506" fill="#e5e7eb" font-size="11">Path A · 2N redundant · MV→LV→UPS→STS</text>')
-    s.append('<line x1="44" y1="524" x2="74" y2="524" stroke="#3b82f6" stroke-width="2.5"/>'
-             '<text x="84" y="528" fill="#e5e7eb" font-size="11">Path B · independent parallel path</text>')
-    s.append('<text x="500" y="504" fill="#e5e7eb" font-size="11">Loss-of-utility sequence:</text>')
-    s.append('<text x="500" y="524" fill="#94a3b8" font-size="10">t=0: UPS covers load · t≈10s: gensets at rated V · t≈15s: ATS transfers · UPS recharges.</text>')
-    s.append('</svg>')
-    return "".join(s)
-
-# ---------- Figure 6 · Cooling loops ----------
-def fig6():
-    w, h = 1100, 560
-    s = [head(w, h, "Figure 6 · Cooling Loops — Facility Loop Coupled to Technology Loop via CDU",
-              "Red = hot fluid · Blue = cold fluid · Orange = warm intermediate")]
-    s.append('<defs><marker id="flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">'
-             '<path d="M0,0 L10,5 L0,10 z" fill="#cbd5e1"/></marker></defs>')
-
-    def box(x,y,w2,h2,title,lines,accent="#64748b"):
-        out=[f'<rect x="{x}" y="{y}" width="{w2}" height="{h2}" fill="#1e2a3d" stroke="{accent}" stroke-width="1.5" rx="6"/>']
-        out.append(f'<text x="{x+w2/2}" y="{y+22}" text-anchor="middle" fill="#e5e7eb" font-size="12" font-weight="700">{title}</text>')
-        for i,ln in enumerate(lines):
-            out.append(f'<text x="{x+w2/2}" y="{y+42+i*15}" text-anchor="middle" fill="#94a3b8" font-size="10">{ln}</text>')
-        return "".join(out)
-
-    s.append(box(40, 90, 180, 90, "Heat Rejection", ["Dry cooler / adiabatic / tower","outside air 5–40 °C","fans modulate to setpoint"]))
-    s.append(box(40, 220, 180, 74, "Chiller (when needed)", ["mechanical refrigeration","bypassed in free-cool"]))
-    s.append(box(40, 330, 180, 54, "Condenser-water pumps", ["VFD, redundant N+1"]))
-    s.append(box(450, 180, 220, 180, "CDU — Coolant Distribution Unit",
-                 ["liquid-to-liquid heat exchanger","isolates facility ↔ IT water","","secondary pumps · filtration",
-                  "supplies racks at 35 °C","glycol-water or treated DI","telemetry: flow, ΔT, pH"]))
-    s.append('<rect x="870" y="170" width="200" height="200" fill="#1e2a3d" stroke="#64748b" stroke-width="1.5" rx="6"/>')
-    s.append('<text x="970" y="192" text-anchor="middle" fill="#e5e7eb" font-size="12" font-weight="700">Rack — cold plates on chips</text>')
-    s.append('<text x="970" y="210" text-anchor="middle" fill="#94a3b8" font-size="10">direct-to-chip (DTC)</text>')
-    for row in range(2):
-        for col in range(4):
-            s.append(f'<rect x="{908+col*36}" y="{226+row*26}" width="30" height="20" fill="#6366f1" stroke="#0b1020"/>')
-    s.append('<text x="970" y="300" text-anchor="middle" fill="#94a3b8" font-size="10">70–90% heat via liquid</text>')
-    s.append('<text x="970" y="316" text-anchor="middle" fill="#94a3b8" font-size="10">10–30% via rear-door HX</text>')
-    s.append('<text x="970" y="340" text-anchor="middle" fill="#94a3b8" font-size="10">120 kW/rack typical for AI</text>')
-
-    s.append(box(870, 400, 200, 80, "CRAH / Fan Wall", ["handles residual sensible heat","memory, NICs, optics, PSUs"]))
-
-    s.append('<path d="M130,220 L130,180" stroke="#3b82f6" stroke-width="3" fill="none" marker-end="url(#flow)"/>')
-    s.append('<path d="M170,180 L170,220" stroke="#ef4444" stroke-width="3" fill="none" marker-end="url(#flow)"/>')
-    s.append('<path d="M130,330 L130,294" stroke="#3b82f6" stroke-width="3" fill="none" marker-end="url(#flow)"/>')
-    s.append('<path d="M170,294 L170,330" stroke="#ef4444" stroke-width="3" fill="none" marker-end="url(#flow)"/>')
-    s.append('<path d="M220,354 L330,354 L330,260 L450,260" stroke="#3b82f6" stroke-width="3" fill="none" marker-end="url(#flow)"/>')
-    s.append('<path d="M450,280 L330,280 L330,384 L220,384" stroke="#ef4444" stroke-width="3" fill="none" marker-end="url(#flow)"/>')
-
-    s.append('<path d="M670,230 L770,230 L770,206 L870,206" stroke="#f59e0b" stroke-width="3" fill="none" marker-end="url(#flow)"/>')
-    s.append('<path d="M870,250 L770,250 L770,310 L670,310" stroke="#ef4444" stroke-width="3" fill="none" marker-end="url(#flow)"/>')
-
-    s.append('<path d="M870,420 L790,420 L790,360 L870,360" stroke="#3b82f6" stroke-width="3" fill="none" marker-end="url(#flow)"/>')
-    s.append('<path d="M870,440 L760,440 L760,470 L870,470" stroke="#ef4444" stroke-width="3" fill="none" marker-end="url(#flow)"/>')
-
-    s.append('<rect x="260" y="90" width="160" height="60" fill="#0f1e36" stroke="#22c55e" rx="6"/>'
-             '<text x="340" y="112" text-anchor="middle" fill="#22c55e" font-size="12" font-weight="700">Free-Cooling</text>'
-             '<text x="340" y="130" text-anchor="middle" fill="#94a3b8" font-size="10">bypass chiller when OAT low</text>'
-             '<text x="340" y="144" text-anchor="middle" fill="#94a3b8" font-size="10">save 30–60% cooling energy</text>')
-    s.append('<rect x="260" y="220" width="160" height="54" fill="#0f1e36" stroke="#eab308" rx="6"/>'
-             '<text x="340" y="242" text-anchor="middle" fill="#eab308" font-size="12" font-weight="700">ΔT engineering</text>'
-             '<text x="340" y="260" text-anchor="middle" fill="#94a3b8" font-size="10">higher ΔT = smaller pipes &amp; pumps</text>')
-
-    s.append('<rect x="30" y="490" width="1040" height="48" fill="#0f172a" stroke="#334155" rx="6"/>'
-             '<text x="44" y="510" fill="#e5e7eb" font-size="11" font-weight="700">Design KPIs:</text>'
-             '<text x="44" y="526" fill="#94a3b8" font-size="10">PUE target 1.10–1.20 · WUE &lt; 0.5 L/kWh · approach 4–6 K · N+1 on chillers/pumps/CDUs · liquid share &gt; 70% for &gt;50 kW racks.</text>')
-    s.append('</svg>')
-    return "".join(s)
-
-# ---------- Figure 7 · Leaf-spine with rail-optimized layer ----------
-def fig7():
-    w, h = 1100, 540
-    s = [head(w, h, "Figure 7 · Leaf-Spine Fabric with Rail-Optimized GPU Layer",
-              "Every leaf connects to every spine (Clos). GPUs on the same rail share a direct ToR path.")]
-    spine_x = [175, 325, 475, 625, 775, 925]
-    for i, x in enumerate(spine_x):
-        s.append(f'<rect x="{x-55}" y="110" width="110" height="36" fill="#1e293b" stroke="#38bdf8" stroke-width="1.6" rx="6"/>'
-                 f'<text x="{x}" y="132" text-anchor="middle" fill="#e5e7eb" font-size="10">SPINE-{i+1}</text>')
-    s.append('<text x="20" y="130" fill="#f3f6fa" font-size="11" font-weight="700">Spine</text>')
-
-    leaf_x = [145, 255, 365, 475, 585, 695, 805, 915]
-    for i, x in enumerate(leaf_x):
-        s.append(f'<rect x="{x-45}" y="260" width="90" height="30" fill="#1e293b" stroke="#a78bfa" stroke-width="1.4" rx="5"/>'
-                 f'<text x="{x}" y="280" text-anchor="middle" fill="#e5e7eb" font-size="10">ToR-{i+1}</text>')
-    s.append('<text x="20" y="278" fill="#f3f6fa" font-size="11" font-weight="700">Leaf (ToR)</text>')
-
-    for sx in spine_x:
-        for lx in leaf_x:
-            s.append(f'<line x1="{sx}" y1="146" x2="{lx}" y2="260" stroke="#94a3b8" stroke-width="0.8" opacity="0.5"/>')
-
-    for row in range(3):
-        for i, x in enumerate(leaf_x[:4]):
-            gnum = row*4 + i + 1
-            s.append(f'<rect x="{x-45}" y="{340+row*32}" width="90" height="26" fill="#1e293b" stroke="#22c55e" stroke-width="1.2" rx="4"/>'
-                     f'<text x="{x}" y="{358+row*32}" text-anchor="middle" fill="#e5e7eb" font-size="10">GPU-{gnum:02d}</text>')
-
-    for x in leaf_x[:4]:
-        s.append(f'<line x1="{x}" y1="340" x2="{x}" y2="290" stroke="#f97316" stroke-width="1.3" opacity="0.9"/>')
-    s.append('<text x="120" y="450" fill="#f97316" font-size="10" font-weight="600">rail 0 →</text>')
-
-    for x in leaf_x[:4]:
-        s.append(f'<line x1="{x}" y1="404" x2="{x}" y2="366" stroke="#22d3ee" stroke-width="1.3" opacity="0.9" stroke-dasharray="4,3"/>')
-    s.append('<text x="120" y="470" fill="#22d3ee" font-size="10" font-weight="600">rail 7 →</text>')
-
-    s.append('<rect x="560" y="340" width="500" height="140" fill="#0f172a" stroke="#334155" rx="8"/>')
-    s.append('<text x="572" y="362" fill="#f3f6fa" font-size="12" font-weight="700">Why rail-optimized?</text>')
-    lines = [
-        "In distributed training, NIC-i on every host must talk to NIC-i on every",
-        "other host (ring/tree all-reduce). Grouping rail-0 NICs into a dedicated ToR",
-        "collapses that traffic to one switch hop instead of spine traversal.",
-        "",
-        "Result: 2–3× reduction in tail latency · 20–40% higher training throughput",
-        "Typical AI cluster: 8 rails × 400/800 Gbps Ethernet or NDR/XDR InfiniBand.",
-    ]
-    colors = ["#e5e7eb"]*3+["#94a3b8"]+["#fca5a5","#94a3b8"]
-    for i, ln in enumerate(lines):
-        s.append(f'<text x="572" y="{382+i*17}" fill="{colors[i]}" font-size="10.5">{ln}</text>')
-    s.append('</svg>')
-    return "".join(s)
-
-# ---------- Figure 8 · AI training pod ----------
-def fig8():
-    w, h = 1100, 560
-    s = [head(w, h, "Figure 8 · AI Training Pod — 1,024-GPU scale-up domain",
-              "Copper NVLink inside pod (ns latency) · fiber scale-out between pods (100s of ns)")]
-    s.append('<polygon points="100,500 1040,500 1080,540 60,540" fill="#222e3f" stroke="#0d141d"/>')
-
-    def rack(x, y):
-        return (f'<polygon points="{x},{y} {x+40},{y-15} {x+40},{y+95} {x},{y+110}" fill="#334155" stroke="#0a1019"/>'
-                f'<polygon points="{x+40},{y-15} {x+56},{y-10} {x+56},{y+100} {x+40},{y+95}" fill="#1a2330" stroke="#0a1019"/>')
-
-    for i in range(8):
-        s.append(rack(220 + i*42, 180 - i*4))
-    for i in range(8):
-        s.append(rack(220 + i*42, 320 - i*4))
-    s.append('<rect x="160" y="258" width="540" height="14" fill="#facc15" stroke="#78350f" rx="2" transform="skewY(-8)"/>')
-    s.append('<text x="175" y="255" fill="#fde68a" font-size="10">NVLink copper scale-up · 130 Tb/s · &lt;10 ns latency</text>')
-    s.append('<polygon points="100,120 900,30 940,44 140,140" fill="#1e293b" stroke="#0a1019"/>')
-    s.append('<text x="200" y="90" fill="#93c5fd" font-size="11">Overhead fiber tray — 800G/1.6T scale-out to spine</text>')
-
-    s.append('<rect x="780" y="180" width="280" height="270" fill="#0f172a" stroke="#334155" rx="8"/>')
-    s.append('<text x="794" y="202" fill="#f3f6fa" font-size="12" font-weight="700">Pod specification</text>')
-    lines = [
-        "• 16 racks × 64 GPUs = 1,024 GPUs",
-        "• ~2 MW IT · 100% liquid cooled",
-        "• Copper scale-up domain (intra-pod)",
-        "• Fiber scale-out to 64 sibling pods",
-        "• 8 rails × 800 GbE or NDR IB",
-        "• 1 SU-scheduler domain (coherent)",
-        "• ~200 kW/rack envelope",
-        "• Dual-fed A+B busway (N+1)",
-        "• Fire: pre-action water + VESDA",
-        "• Training job placement granularity",
-        "  = 1 pod minimum",
-    ]
-    for i, ln in enumerate(lines):
-        s.append(f'<text x="794" y="{224+i*20}" fill="#cbd5e1" font-size="10.5">{ln}</text>')
-    s.append('</svg>')
-    return "".join(s)
-
-# ---------- Figure 9 · Rack power density evolution ----------
-def fig9():
-    w, h = 1100, 460
-    s = [head(w, h, "Figure 9 · Rack Power Density Evolution (kW per rack)",
-              "Enterprise + hyperscale (blue) vs AI training racks (red). Log scale.")]
-    s.append('<line x1="80" y1="80" x2="80" y2="400" stroke="#475569"/>')
-    s.append('<line x1="80" y1="400" x2="1060" y2="400" stroke="#475569"/>')
-    yticks = [(380,"3 kW"),(320,"10 kW"),(260,"30 kW"),(200,"100 kW"),(140,"300 kW"),(90,"1 MW")]
-    for y, lbl in yticks:
-        s.append(f'<line x1="80" y1="{y}" x2="1060" y2="{y}" stroke="#334155" stroke-dasharray="3,3"/>')
-        s.append(f'<text x="56" y="{y+4}" text-anchor="end" fill="#94a3b8" font-size="10">{lbl}</text>')
-    xlbl = [(140,"2005"),(260,"2010"),(380,"2015"),(500,"2020"),(620,"2022"),(740,"2024"),(860,"2026"),(980,"2028 (proj.)")]
-    for x, lbl in xlbl:
-        s.append(f'<text x="{x}" y="418" text-anchor="middle" fill="#cbd5e1" font-size="10">{lbl}</text>')
-    enterprise = [(120,388,12,"4"),(240,372,28,"6"),(360,344,56,"10"),(480,312,88,"15"),
-                  (600,296,104,"20"),(720,280,120,"25"),(840,272,128,"30"),(960,264,136,"35")]
-    for x, y, ht, lbl in enterprise:
-        s.append(f'<rect x="{x}" y="{y}" width="30" height="{ht}" fill="#3b82f6"/>')
-        s.append(f'<text x="{x+15}" y="{y-4}" text-anchor="middle" fill="#93c5fd" font-size="10">{lbl}</text>')
-    ai = [(155,348,52,"8"),(275,320,80,"15"),(395,268,132,"30"),(515,212,188,"80"),
-          (635,176,224,"120"),(755,144,256,"200"),(875,108,292,"400"),(995,86,314,"≥1000")]
-    for x, y, ht, lbl in ai:
-        s.append(f'<rect x="{x}" y="{y}" width="30" height="{ht}" fill="#ef4444"/>')
-        s.append(f'<text x="{x+15}" y="{y-4}" text-anchor="middle" fill="#fca5a5" font-size="10">{lbl}</text>')
-    s.append('<rect x="780" y="60" width="300" height="48" fill="#0f172a" stroke="#334155" rx="6"/>')
-    s.append('<rect x="794" y="70" width="18" height="10" fill="#3b82f6"/>')
-    s.append('<text x="820" y="80" fill="#cbd5e1" font-size="11">Enterprise / hyperscale rack</text>')
-    s.append('<rect x="794" y="88" width="18" height="10" fill="#ef4444"/>')
-    s.append('<text x="820" y="98" fill="#cbd5e1" font-size="11">AI training rack (GPU / TPU)</text>')
-    s.append('</svg>')
-    return "".join(s)
-
-# ---------- Figure 10 · Uptime tier comparison ----------
-def fig10():
-    w, h = 1100, 500
-    s = [head(w, h, "Figure 10 · Uptime Institute Tier Classification",
-              "Tiers describe concurrent maintainability and fault tolerance — NOT efficiency or scale.")]
-    s.append('<rect x="40" y="70" width="1020" height="40" fill="#1e293b" stroke="#334155"/>')
-    headers = [("Characteristic",20),("Tier I — Basic",260),("Tier II — Redundant",470),
-               ("Tier III — Concurrent",680),("Tier IV — Fault-Tolerant",890)]
-    for txt, x in headers:
-        s.append(f'<text x="{40+x}" y="96" fill="#f3f6fa" font-size="13" font-weight="700">{txt}</text>')
-
-    rows = [
-        ("Power paths", "1 (non-redundant)", "1 + redundant capacity", "2 paths, 1 active", "2 paths, both active (2N)"),
-        ("Cooling paths", "1", "1 + redundant units", "Multiple, 1 active", "Multiple, active/active"),
-        ("Concurrent maintainability", "no", "no", "yes", "yes"),
-        ("Fault tolerance", "no", "no", "partial", "yes"),
-        ("Availability", "99.671 %", "99.741 %", "99.982 %", "99.995 %"),
-        ("Annual downtime", "~28.8 h", "~22.7 h", "~1.6 h", "~26 min"),
-        ("Typical use case", "lab, dev, SMB", "SMB production", "enterprise, colo", "finance, gov, critical AI"),
-        ("Relative capex", "1.0×", "1.3×", "1.8–2.2×", "2.4–3.0×"),
-    ]
-    for i, (col1, col2, col3, col4, col5) in enumerate(rows):
-        y = 110 + i*40
-        fill = "#14213a" if i%2 else "#101a2d"
-        s.append(f'<rect x="40" y="{y}" width="1020" height="40" fill="{fill}" stroke="#1f2a3f"/>')
-        for txt, x in [(col1,20),(col2,260),(col3,470),(col4,680),(col5,890)]:
-            s.append(f'<text x="{40+x}" y="{y+24}" fill="#e5e7eb" font-size="11">{txt}</text>')
-    s.append('</svg>')
-    return "".join(s)
-
-# ---- Emit SVGs --------------------------------------------------------------
-figs = {
-    "01-campus-iso.svg": fig1(),
-    "02-building-cutaway.svg": fig2(),
-    "03-aisle-containment.svg": fig3(),
-    "04-liquid-rack.svg": fig4(),
-    "05-power-single-line.svg": fig5(),
-    "06-cooling-loop.svg": fig6(),
-    "07-leaf-spine.svg": fig7(),
-    "08-ai-pod.svg": fig8(),
-    "09-power-density-evolution.svg": fig9(),
-    "10-tier-comparison.svg": fig10(),
+"""Build every edition of the data-center design guide from data-center-design.md.
+
+Outputs (all in docs/):
+  data-center-design.html   standalone web edition: inline figures, interactive 3-D viewer
+  artifact.html             the same page as a fragment, for publishing as a claude.ai artifact
+  data-center-design.pdf    typeset print edition (WeasyPrint)
+  data-center-design.docx   Word edition (pandoc + styled reference document)
+
+Requirements: pandoc, Python packages cairosvg, weasyprint, python-docx, pillow.
+The 3-D figures are rendered separately:  cd 3d && npm install && node render.mjs
+"""
+import base64, io, pathlib, re, shutil, subprocess, sys
+
+from PIL import Image
+
+import figures2d
+
+ROOT = pathlib.Path(__file__).resolve().parent
+FIG = ROOT / "figures"
+SRC = ROOT / "data-center-design.md"
+THREE_CDN = "https://cdn.jsdelivr.net/npm/three@0.169.0"
+SCENE_OF = {"fig01-campus": "campus", "fig02-cutaway": "cutaway", "fig04-hall": "hall", "fig05-rack": "rack", "fig09-pod": "pod"}
+
+
+def run(*args, **kw):
+    return subprocess.run(args, cwd=ROOT, check=True, capture_output=True, text=True, **kw).stdout
+
+
+# ------------------------------------------------------------------ figures
+def build_2d():
+    import cairosvg
+    for name, fn in figures2d.FIGURES.items():
+        svg = fn()
+        (FIG / f"{name}.svg").write_text(svg)
+        cairosvg.svg2png(bytestring=svg.encode(), write_to=str(FIG / f"{name}.png"), output_width=2400)
+
+
+def jpeg_from_render(stem):
+    """3-D renders are stored as PNG by render.mjs; keep a JPEG copy for the documents."""
+    png, jpg = FIG / f"{stem}.png", FIG / f"{stem}.jpg"
+    if png.exists() and (not jpg.exists() or png.stat().st_mtime > jpg.stat().st_mtime):
+        Image.open(png).convert("RGB").save(jpg, quality=88, optimize=True, progressive=True)
+        png.unlink()
+
+
+def data_uri_jpeg(path, width=2000, q=80):
+    im = Image.open(path).convert("RGB")
+    if im.width > width:
+        im = im.resize((width, round(im.height * width / im.width)), Image.LANCZOS)
+    buf = io.BytesIO(); im.save(buf, "JPEG", quality=q, optimize=True, progressive=True)
+    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+
+
+# ------------------------------------------------------------------ pandoc → HTML pieces
+def pandoc_html():
+    body = run("pandoc", str(SRC), "-f", "markdown", "-t", "html5", "--wrap=none")
+    tpl = ROOT / ".toc.tpl"; tpl.write_text("$toc$")
+    toc = run("pandoc", str(SRC), "-f", "markdown", "-t", "html5", "--toc", "--toc-depth=2", "-s", f"--template={tpl}")
+    tpl.unlink()
+    meta = {}
+    for k in ("title", "subtitle", "author", "date"):
+        m = re.search(rf"^{k}:\s*\"?(.*?)\"?\s*$", SRC.read_text(), re.M)
+        meta[k] = m.group(1) if m else ""
+    return body, toc, meta
+
+
+def wrap_tables(html):
+    return re.sub(r"(<table.*?</table>)", r'<div class="table-wrap">\1</div>', html, flags=re.S)
+
+
+def web_figures(html):
+    def repl(m):
+        src, alt = m.group(1), m.group(2)
+        stem = pathlib.Path(src).stem
+        if src.endswith(".png") and (FIG / f"{stem}.svg").exists():
+            svg = (FIG / f"{stem}.svg").read_text()
+            svg = svg.replace("<svg ", f'<svg role="img" aria-label="{alt}" ', 1)
+            return f'<div class="schematic">{svg}</div>'
+        uri = data_uri_jpeg(FIG / pathlib.Path(src).name)
+        scene = SCENE_OF.get(stem)
+        btn = (f'<div class="plate-bar"><button type="button" class="orbit" data-scene="{scene}" aria-pressed="false">'
+               f'<span class="on">Rotate in 3-D</span><span class="off">Back to the labelled image</span></button>'
+               f'<span class="hint">drag to orbit · scroll or pinch to zoom</span></div>') if scene else ""
+        return f'<div class="plate"><div class="stage"><img src="{uri}" alt="{alt}" loading="lazy"></div>{btn}</div>'
+    return re.sub(r'<img src="([^"]+)" alt="([^"]*)"\s*/?>', repl, html)
+
+
+def print_figures(html):
+    def repl(m):
+        src = m.group(1); stem = pathlib.Path(src).stem
+        path = FIG / f"{stem}.svg" if (FIG / f"{stem}.svg").exists() else FIG / pathlib.Path(src).name
+        return f'<img src="{path.as_uri()}" alt="{m.group(2)}">'
+    return re.sub(r'<img src="([^"]+)" alt="([^"]*)"\s*/?>', repl, html)
+
+
+# ------------------------------------------------------------------ web edition
+WEB_CSS = r"""
+/* Layout: sticky contents rail + one reading column; figures break out wider. Drawing-sheet neutrals, coolant blue/red accents. */
+:root{
+  --paper:#f4f5f3; --panel:#ffffff; --ink:#17212b; --muted:#5a6573; --rule:#d6dbe0;
+  --supply:#2563c9; --return:#c2413b; --tint:#e7eef8; --code:#eef1f4;
+  --f-display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --f-body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --measure:68ch;
 }
-for name, content in figs.items():
-    (DIAGRAMS / name).write_text(content)
-    print(f"  svg {name} {(DIAGRAMS/name).stat().st_size} bytes")
-
-# ---- Convert to PNG for DOCX ------------------------------------------------
-import cairosvg
-for name, _ in figs.items():
-    src = DIAGRAMS / name
-    dst = DIAGRAMS_PNG / (src.stem + ".png")
-    cairosvg.svg2png(url=str(src), write_to=str(dst), output_width=1800)
-    print(f"  png {dst.name} {dst.stat().st_size} bytes")
-
-# ---- Build HTML with inlined SVGs -------------------------------------------
-def md_to_html(md_text, svgs):
-    md = re.sub(r"^---\n.*?\n---\n", "", md_text, count=1, flags=re.DOTALL)
-    lines = md.split("\n")
-    parts = []; i = 0; in_list = False; list_tag = None
-    def esc(t): return t.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
-    def inl(t):
-        t = esc(t)
-        t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
-        t = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"<em>\1</em>", t)
-        t = re.sub(r"`(.+?)`", r"<code>\1</code>", t)
-        return t
-    def close_list():
-        nonlocal in_list, list_tag
-        if in_list:
-            parts.append(f"</{list_tag}>"); in_list = False; list_tag = None
-    while i < len(lines):
-        line = lines[i]
-        m = re.match(r"^!\[(.*?)\]\((.+?)\)\s*$", line)
-        if m:
-            close_list()
-            alt, path = m.group(1), m.group(2)
-            fname = os.path.basename(path)
-            svg = svgs.get(fname, "")
-            svg = re.sub(r"<\?xml.*?\?>\s*", "", svg)
-            parts.append(f'<figure class="diagram">{svg}<figcaption>{esc(alt)}</figcaption></figure>')
-            i += 1; continue
-        if line.strip() == "---":
-            close_list(); parts.append("<hr/>"); i += 1; continue
-        m = re.match(r"^(#{1,6})\s+(.*)$", line)
-        if m:
-            close_list()
-            level = len(m.group(1)); text = m.group(2).strip()
-            anchor = re.sub(r"[^a-z0-9]+","-", text.lower()).strip("-")
-            parts.append(f'<h{level} id="{anchor}">{inl(text)}</h{level}>')
-            i += 1; continue
-        m = re.match(r"^-\s+(.*)$", line)
-        if m:
-            if not in_list or list_tag != "ul":
-                close_list(); parts.append("<ul>"); in_list = True; list_tag = "ul"
-            parts.append(f"<li>{inl(m.group(1))}</li>"); i += 1; continue
-        m = re.match(r"^(\d+)\.\s+(.*)$", line)
-        if m:
-            if not in_list or list_tag != "ol":
-                close_list(); parts.append("<ol>"); in_list = True; list_tag = "ol"
-            parts.append(f"<li>{inl(m.group(2))}</li>"); i += 1; continue
-        if line.strip() == "":
-            close_list(); i += 1; continue
-        para = [line]; j = i + 1
-        while j < len(lines) and lines[j].strip() and not re.match(r"^(#{1,6}\s|-\s|\d+\.\s|!\[|---$)", lines[j]):
-            para.append(lines[j]); j += 1
-        close_list()
-        parts.append(f"<p>{inl(' '.join(para))}</p>")
-        i = j
-    close_list()
-    return "\n".join(parts)
-
-md_source = (ROOT / "data-center-design.md").read_text()
-svgs_str = {name: (DIAGRAMS / name).read_text() for name in figs}
-body = md_to_html(md_source, svgs_str)
-body = re.sub(r'<h1 id="data-center-design">.*?</h1>', "", body, count=1)
-
-toc_items = []
-for line in md_source.split("\n"):
-    m = re.match(r"^#\s+(.*)$", line)
-    if m:
-        txt = m.group(1).strip()
-        anchor = re.sub(r"[^a-z0-9]+","-", txt.lower()).strip("-")
-        toc_items.append((txt, anchor))
-toc_html = ('<div class="toc"><h2>Contents</h2><ul>'
-            + "".join(f'<li><a href="#{a}">{t}</a></li>' for t,a in toc_items)
-            + "</ul></div>")
-
-css = """
-:root{--bg:#0b1322;--panel:#101a2d;--ink:#e6edf5;--sub:#a6b3c4;--line:#2b3a52;--accent:#60a5fa;--code:#111a2b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f1418; --panel:#161d23; --ink:#e4e9ee; --muted:#9aa6b2; --rule:#2a343d;
+  --supply:#73a7ff; --return:#f08078; --tint:#17263a; --code:#1b232b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1418; --panel:#161d23; --ink:#e4e9ee; --muted:#9aa6b2; --rule:#2a343d;
+  --supply:#73a7ff; --return:#f08078; --tint:#17263a; --code:#1b232b; color-scheme:dark}
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:15px/1.62 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif}
-main{max-width:960px;margin:0 auto;padding:40px 28px 120px}
-h1,h2,h3,h4{color:#f4f7fb;line-height:1.24;letter-spacing:-.01em}
-h1{font-size:2.4em;margin:1em 0 .2em;border-bottom:2px solid var(--accent);padding-bottom:.2em}
-h2{font-size:1.7em;margin:1.8em 0 .4em;color:#c9dcff;border-left:4px solid var(--accent);padding-left:12px}
-h3{font-size:1.25em;margin:1.6em 0 .3em;color:#ffd6a8}
-h4{font-size:1.05em;margin:1.2em 0 .2em;color:#eab308}
-p{margin:.55em 0;color:#dbe4ee}
-strong{color:#fff}
-em{color:#f0d78e;font-style:italic}
-code{background:var(--code);padding:1px 6px;border-radius:4px;font-family:SF Mono,Menlo,monospace;font-size:.92em;color:#93c5fd}
-ul,ol{padding-left:1.4em}
-li{margin:.2em 0;color:#dbe4ee}
-hr{border:none;border-top:1px dashed var(--line);margin:2.4em 0}
-figure.diagram{margin:1.8em 0;background:#0f172a;border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;overflow:hidden}
-figure.diagram svg{max-width:100%;height:auto;display:block;margin:0 auto}
-figure.diagram figcaption{font-size:.86em;color:var(--sub);padding:8px 4px 4px;text-align:center}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
-.cover{background:linear-gradient(135deg,#0f1e36,#0b1322 60%);border:1px solid var(--line);border-radius:12px;padding:44px 36px;margin-bottom:28px}
-.cover h1{border:none;margin:0 0 8px;font-size:2.6em}
-.cover .sub{color:#94a3b8;font-size:1.05em}
-.cover .meta{color:#64748b;margin-top:18px;font-size:.9em}
-.toc{background:var(--panel);border-radius:10px;padding:22px 26px;margin:12px 0 32px;border:1px solid var(--line)}
-.toc h2{border:none;padding:0;margin:0 0 8px;font-size:1.15em;color:#c9dcff}
-.toc ul{list-style:none;padding-left:0;column-count:2;column-gap:24px}
-.toc li{break-inside:avoid;margin:3px 0;font-size:.94em}
-.toc a{color:#c9dcff}
-@media (max-width:700px){main{padding:20px 14px 60px}.toc ul{column-count:1}h1{font-size:2em}}
-@media print{body{background:#fff;color:#111}main{max-width:100%;padding:0}h1,h2,h3,h4{color:#111}p,li{color:#222}
-.cover{background:#fff;border:1px solid #ccc}.toc{background:#fafafa;border:1px solid #ccc}
-figure.diagram{background:#fff;border:1px solid #ccc;page-break-inside:avoid}h2{page-break-after:avoid}h3,h4{page-break-after:avoid}}
+body{background:var(--paper);color:var(--ink);font:17px/1.62 var(--f-body);margin:0}
+.shell{display:grid;grid-template-columns:minmax(0,1fr);gap:0 48px;max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:0 96px}
+@media (min-width:1080px){.shell{grid-template-columns:250px minmax(0,1fr)}}
+nav.rail{display:none}
+@media (min-width:1080px){nav.rail{display:block;position:sticky;top:env(safe-area-inset-top,0px);align-self:start;max-height:100vh;overflow:auto;padding-block:32px;font:13px/1.45 var(--f-display)}}
+nav.rail ul{list-style:none;margin:0;padding:0}
+nav.rail>ul>li{margin-block:10px 2px}
+nav.rail>ul>li>a{font-weight:700;color:var(--ink)}
+nav.rail ul ul a{color:var(--muted);display:block;padding:2px 0 2px 10px;border-left:1px solid var(--rule)}
+nav.rail a{text-decoration:none}
+nav.rail a:hover,nav.rail a:focus-visible{color:var(--supply)}
+details.toc-mobile{margin-block:8px 24px;border:1px solid var(--rule);border-radius:8px;background:var(--panel);padding:10px 14px;font:14px/1.5 var(--f-display)}
+details.toc-mobile summary{cursor:pointer;font-weight:700}
+details.toc-mobile ul{padding-left:16px}
+details.toc-mobile a{color:var(--ink)}
+@media (min-width:1080px){details.toc-mobile{display:none}}
+main{min-width:0}
+.doc{counter-reset:ch}
+.doc>*{max-width:var(--measure)}
+.doc>.plate,.doc>.schematic,.doc>figure,.doc>.table-wrap{max-width:none}
+header.cover{padding-block:56px 28px;border-bottom:1px solid var(--rule);margin-bottom:12px}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--supply)}
+header.cover h1{font:800 clamp(40px,7vw,76px)/.98 var(--f-display);letter-spacing:-.02em;margin:14px 0 14px;text-wrap:balance;font-stretch:90%}
+header.cover p.sub{font-size:21px;line-height:1.45;color:var(--muted);max-width:52ch;margin:0}
+header.cover .meta{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:22px;font:13px/1.4 var(--f-mono);color:var(--muted)}
+header.cover .meta b{color:var(--ink);font-weight:500}
+.cover-plate{margin-top:28px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;color:var(--ink)}
+.doc h1{font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-.01em;margin:88px 0 18px;padding-top:22px;border-top:3px solid var(--ink)}
+.doc h1.unnumbered{border-top-width:1px;font-size:28px;margin-top:64px}
+.doc h2{font-size:24px;line-height:1.2;font-weight:700;margin:52px 0 10px;display:flex;gap:14px;align-items:baseline}
+.doc h2::before{counter-increment:ch;content:counter(ch,decimal-leading-zero);font:500 13px/1 var(--f-mono);color:var(--supply);letter-spacing:.06em;flex:none;transform:translateY(-3px)}
+.doc h3{font-size:18px;margin:32px 0 6px}
+.doc p,.doc li{hyphens:auto}
+.doc ul,.doc ol{padding-left:1.3em}
+.doc li{margin-block:4px}
+.doc li::marker{color:var(--muted)}
+.doc strong{font-weight:600}
+.doc a{color:var(--supply);text-underline-offset:3px}
+.doc code{font:14px var(--f-mono);background:var(--code);padding:1px 5px;border-radius:4px}
+.table-wrap{overflow-x:auto;margin-block:22px;border:1px solid var(--rule);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font:14px/1.4 var(--f-display);font-variant-numeric:tabular-nums}
+caption{caption-side:bottom;text-align:left;padding:10px 14px;font:13px/1.45 var(--f-body);color:var(--muted)}
+th,td{padding:9px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+thead th{font-weight:700;background:var(--tint);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600}
+figure{margin:30px 0}
+figcaption{font:14px/1.5 var(--f-body);color:var(--muted);margin-top:10px;max-width:var(--measure)}
+.plate{border-radius:10px;overflow:hidden;border:1px solid var(--rule);background:var(--panel)}
+.stage{position:relative;aspect-ratio:16/10;max-width:100%;background:#e9edf1;overflow:hidden}
+.stage img{display:block;width:100%;height:100%;object-fit:cover}
+.stage canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.stage canvas:active{cursor:grabbing}
+.stage .ov{position:absolute;inset:0;pointer-events:none}
+.plate-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 14px;border-top:1px solid var(--rule)}
+button.orbit{font:600 13px/1 var(--f-display);color:var(--panel);background:var(--ink);border:0;border-radius:999px;padding:9px 16px;cursor:pointer}
+button.orbit:hover{background:var(--supply)}
+button.orbit:focus-visible{outline:3px solid var(--supply);outline-offset:2px}
+button.orbit .off{display:none}
+button.orbit[aria-pressed="true"] .on{display:none}
+button.orbit[aria-pressed="true"] .off{display:inline}
+.plate-bar .hint{font:12px var(--f-mono);color:var(--muted)}
+.plate-bar .msg{font:12px var(--f-mono);color:var(--return)}
+.schematic{border:1px solid var(--rule);border-radius:10px;overflow-x:auto;background:#fff}
+.schematic svg{display:block;width:100%;height:auto;min-width:640px}
+dl{margin:18px 0}
+dt{font:700 15px/1.3 var(--f-display);margin-top:14px}
+dd{margin:2px 0 0 0;color:var(--ink)}
+footer.colophon{margin-top:64px;padding-top:18px;border-top:1px solid var(--rule);font:13px/1.5 var(--f-mono);color:var(--muted)}
+@media (max-width:640px){.stage .ov span{display:none!important}.stage .ov .lbl{font-size:11px!important;padding:2px 6px!important}.stage{aspect-ratio:4/3}body{font-size:16px}.doc h1{font-size:28px;margin-top:64px}.doc h2{font-size:21px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 """
 
-cover = ('<div class="cover"><h1>Data Center Design</h1>'
-         '<div class="sub">A Comprehensive Guide to Digital and AI Infrastructure</div>'
-         '<div class="sub" style="margin-top:6px;">From site selection to the silicon — how modern data centers and AI factories are conceived, built, powered, cooled, and operated.</div>'
-         '<div class="meta">Prepared for Nathan Hale · September 10, 2026 · 10 original isometric figures</div></div>')
+WEB_JS = r"""
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+__SCENES__
+const active = new Map();
+function open3d(btn) {
+  const plate = btn.closest(".plate"), stage = plate.querySelector(".stage"), img = stage.querySelector("img");
+  const W = stage.clientWidth, H = stage.clientHeight;
+  const canvas = document.createElement("canvas"), ov = document.createElement("div"); ov.className = "ov";
+  stage.append(canvas, ov);
+  const r = buildScene(THREE, btn.dataset.scene);
+  r.scene.background = skyTexture(THREE, r.sky);
+  r.scene.traverse(o => { if (o.isDirectionalLight && o.castShadow) o.shadow.mapSize.set(2048, 2048); });
+  const ren = makeRenderer(THREE, canvas, W, H, Math.min(devicePixelRatio, 2));
+  r.camera.aspect = W / H; r.camera.updateProjectionMatrix();
+  const ctl = new OrbitControls(r.camera, canvas);
+  ctl.target.set(...r.target); ctl.maxPolarAngle = Math.PI * 0.49;
+  ctl.minDistance = r.extent * 0.05; ctl.maxDistance = r.extent * 4;
+  const draw = () => { ren.render(r.scene, r.camera); layoutLabels(THREE, ov, r.camera, r.labels, stage.clientWidth, stage.clientHeight); };
+  ctl.addEventListener("change", draw); ctl.update(); draw();
+  const onResize = () => { const w = stage.clientWidth, h = stage.clientHeight; ren.setSize(w, h, false); r.camera.aspect = w / h; r.camera.updateProjectionMatrix(); draw(); };
+  addEventListener("resize", onResize);
+  img.hidden = true; btn.setAttribute("aria-pressed", "true");
+  active.set(btn, () => { ctl.dispose(); ren.dispose(); canvas.remove(); ov.remove(); removeEventListener("resize", onResize); img.hidden = false; btn.setAttribute("aria-pressed", "false"); });
+}
+for (const btn of document.querySelectorAll("button.orbit")) {
+  btn.addEventListener("click", () => {
+    if (active.has(btn)) { active.get(btn)(); active.delete(btn); return; }
+    try { open3d(btn); } catch (e) {
+      const bar = btn.parentElement; let m = bar.querySelector(".msg");
+      if (!m) { m = document.createElement("span"); m.className = "msg"; bar.append(m); }
+      m.textContent = "3-D view needs WebGL, which this browser has turned off. The labelled image above shows the same model.";
+    }
+  });
+}
+"""
 
-html = (f'<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/>'
-        f'<meta name="viewport" content="width=device-width,initial-scale=1"/>'
-        f'<title>Data Center Design — Comprehensive Guide</title><style>{css}</style></head>'
-        f'<body><main>{cover}{toc_html}{body}</main></body></html>')
 
-(ROOT / "data-center-design.html").write_text(html)
-print(f"  html data-center-design.html {len(html)} bytes")
+def web_page(body, toc, meta, three_base=THREE_CDN, fragment=True):
+    scenes = (ROOT / "3d" / "scenes.js").read_text().replace("export function", "function").replace("export const", "const")
+    scenes = scenes.replace("let THREE;", "").replace("THREE = three;", "")  # the page imports THREE itself
+    js = WEB_JS.replace("__SCENES__", scenes)
+    toc_inner = re.sub(r"^<nav[^>]*>|</nav>\s*$", "", toc.strip())
+    cover_img = data_uri_jpeg(FIG / "fig02-cutaway.jpg", 2000, 80)
+    body = re.sub(r'<h1 class="unnumbered" id="executive-summary">', '<h1 class="unnumbered" id="executive-summary">', body)
+    html = f"""<title>Data Center Design Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>{WEB_CSS}</style>
+<div class="shell">
+<nav class="rail" aria-label="Contents">{toc_inner}</nav>
+<main>
+<header class="cover">
+  <div class="eyebrow">Technical guide · {meta['date']}</div>
+  <h1>{meta['title']}</h1>
+  <p class="sub">{meta['subtitle']}. From the substation to the cold plate, with 3-D models you can rotate.</p>
+  <div class="meta"><span><b>9</b> parts</span><span><b>33</b> chapters + worked example</span><span><b>5</b> rotatable 3-D models</span><span><b>4</b> schematics</span><span>{meta['author']}</span></div>
+  <div class="plate cover-plate"><div class="stage"><img src="{cover_img}" alt="Exploded cutaway of an AI data hall"></div>
+  <div class="plate-bar"><button type="button" class="orbit" data-scene="cutaway" aria-pressed="false"><span class="on">Rotate in 3-D</span><span class="off">Back to the labelled image</span></button><span class="hint">every 3-D figure in this guide can be rotated</span></div></div>
+</header>
+<details class="toc-mobile"><summary>Contents</summary>{toc_inner}</details>
+<article class="doc">
+{body}
+</article>
+<footer class="colophon">Figures are original 3-D renderings and schematics of generic, publicly documented designs. They do not depict any specific operator's facility. Also available as PDF and Word editions in the repository.</footer>
+</main>
+</div>
+<script type="importmap">{{"imports":{{"three":"{three_base}/build/three.module.min.js","three/addons/":"{three_base}/examples/jsm/"}}}}</script>
+<script type="module">{js}</script>
+"""
+    if fragment:
+        return html
+    return ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+            + html.replace("<div class=\"shell\">", "</head>\n<body>\n<div class=\"shell\">", 1) + "</body>\n</html>\n")
 
-# ---- Build DOCX via pandoc (points at PNGs) ---------------------------------
-png_md = re.sub(r"\(diagrams/([^)]+)\.svg\)", r"(diagrams-png/\1.png)", md_source)
-(ROOT / "data-center-design.png.md").write_text(png_md)
-r = subprocess.run(
-    ["pandoc", "data-center-design.png.md", "-o", "data-center-design.docx",
-     "--resource-path=.", "--toc", "--toc-depth=2", "--standalone"],
-    cwd=str(ROOT), capture_output=True, text=True)
-print("  pandoc stdout:", r.stdout.strip() or "(ok)")
-if r.stderr.strip():
-    print("  pandoc stderr:", r.stderr.strip()[:400])
-if (ROOT/"data-center-design.docx").exists():
-    print(f"  docx data-center-design.docx {(ROOT/'data-center-design.docx').stat().st_size} bytes")
 
-# ---- Build PDF via weasyprint (from the HTML we just built) -----------------
-from weasyprint import HTML
-try:
-    HTML(string=html, base_url=str(ROOT)).write_pdf(str(ROOT / "data-center-design.pdf"))
-    print(f"  pdf data-center-design.pdf {(ROOT/'data-center-design.pdf').stat().st_size} bytes")
-except Exception as e:
-    print("  pdf FAIL:", e)
+# ------------------------------------------------------------------ print (PDF) edition
+def font_faces():
+    out = []
+    for f in sorted((ROOT / "fonts").glob("*.ttf")):
+        fam, spec = f.stem.split("-")
+        name = {"Archivo": "Archivo", "SourceSerif4": "Source Serif 4", "IBMPlexMono": "IBM Plex Mono", "IBMPlexSans": "IBM Plex Sans"}[fam]
+        out.append(f'@font-face{{font-family:"{name}";src:url("{f.as_uri()}");font-weight:{spec.rstrip("i")};font-style:{"italic" if spec.endswith("i") else "normal"}}}')
+    return "\n".join(out)
 
-print("\nAll artifacts:")
-for f in sorted(ROOT.iterdir()):
-    if f.is_file():
-        print(f"  {f.name} · {f.stat().st_size} bytes")
+
+PRINT_CSS = r"""
+@page{size:Letter;margin:22mm 20mm 22mm 22mm;
+  @bottom-left{content:string(part);font:8.5pt "IBM Plex Mono",monospace;color:#6b7684}
+  @bottom-right{content:counter(page);font:8.5pt "IBM Plex Mono",monospace;color:#6b7684}}
+@page cover{margin:0;@bottom-left{content:none}@bottom-right{content:none}}
+@page toc{@bottom-left{content:"Contents"}}
+body{font:10.4pt/1.5 "Source Serif 4",Georgia,serif;color:#17212b;margin:0}
+.cover{page:cover;height:279.4mm;position:relative;background:#eef1f4;break-after:page}
+.cover img{width:100%;height:150mm;object-fit:cover;display:block}
+.cover .t{padding:16mm 22mm 0}
+.cover .eyebrow{font:600 9pt "IBM Plex Mono";letter-spacing:.14em;text-transform:uppercase;color:#2563c9}
+.cover h1{font:800 44pt/1 "Archivo";letter-spacing:-.02em;margin:6mm 0 5mm}
+.cover p{font-size:15pt;line-height:1.35;color:#4a5562;margin:0;max-width:150mm}
+.cover .by{position:absolute;bottom:16mm;left:22mm;font:9pt "IBM Plex Mono";color:#4a5562}
+nav.toc{page:toc;break-after:page}
+nav.toc h2{font:800 22pt "Archivo";margin:0 0 6mm}
+nav.toc ul{list-style:none;padding:0;margin:0}
+nav.toc>ul>li{margin-top:3.2mm;font:700 10pt "Archivo"}
+nav.toc ul ul li{font:400 9.5pt "Source Serif 4";margin:.6mm 0 0 5mm}
+nav.toc a{color:#17212b;text-decoration:none}
+nav.toc a::after{content:leader(".") target-counter(attr(href),page);color:#6b7684;font-family:"IBM Plex Mono";font-size:8.5pt}
+.doc{counter-reset:ch}
+h1,h2,h3{font-family:"Archivo",Arial,sans-serif;color:#17212b;break-after:avoid}
+.doc h1{font-size:24pt;line-height:1.08;font-weight:800;break-before:page;margin:0 0 6mm;padding-top:4mm;border-top:2.5pt solid #17212b;string-set:part content()}
+.doc h2{font-size:14.5pt;font-weight:700;margin:8mm 0 2mm}
+.doc h2::before{counter-increment:ch;content:counter(ch,decimal-leading-zero) "  ";font:500 9.5pt "IBM Plex Mono";color:#2563c9}
+p{margin:0 0 2.6mm;orphans:3;widows:3;hyphens:auto;text-align:left}
+ul,ol{padding-left:5mm;margin:0 0 3mm}
+li{margin-bottom:1.2mm}
+a{color:#2563c9;text-decoration:none}
+figure{margin:5mm 0 6mm;break-inside:avoid}
+figure img{width:100%;display:block;border:.4pt solid #c9d0d7}
+figcaption{font-size:8.8pt;line-height:1.4;color:#4a5562;margin-top:2mm}
+table{border-collapse:collapse;width:100%;font:8.6pt/1.35 "Archivo";margin:4mm 0 5mm;break-inside:avoid}
+caption{caption-side:bottom;text-align:left;font:8.5pt "Source Serif 4";color:#4a5562;padding-top:2mm}
+th,td{border-bottom:.5pt solid #c9d0d7;padding:1.6mm 2mm;text-align:left;vertical-align:top}
+thead th{background:#e7eef8;font-weight:700}
+td:first-child{font-weight:600}
+dl{margin:0}
+dt{font:700 9.5pt "Archivo";margin-top:2.4mm;break-after:avoid}
+dd{margin:0;font-size:9.6pt}
+.colophon{margin-top:10mm;font:8pt "IBM Plex Mono";color:#6b7684}
+"""
+
+
+def print_page(body, toc, meta):
+    toc_inner = re.sub(r"^<nav[^>]*>|</nav>\s*$", "", toc.strip())
+    cover = (FIG / "fig01-campus.jpg").as_uri()
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{meta['title']}</title>
+<style>{font_faces()}{PRINT_CSS}</style></head><body>
+<section class="cover"><img src="{cover}" alt=""><div class="t"><div class="eyebrow">Technical guide · {meta['date']}</div>
+<h1>{meta['title']}</h1><p>{meta['subtitle']}.</p></div><div class="by">{meta['author']}</div></section>
+<nav class="toc"><h2>Contents</h2>{toc_inner}</nav>
+<article class="doc">{body}</article>
+<p class="colophon">Figures are original 3-D renderings and schematics of generic, publicly documented designs; they do not depict any specific operator's facility.</p>
+</body></html>"""
+
+
+# ------------------------------------------------------------------ Word edition
+def reference_docx(path):
+    from docx import Document
+    from docx.shared import Pt, RGBColor, Mm
+    raw = subprocess.run(["pandoc", "--print-default-data-file", "reference.docx"], capture_output=True, check=True).stdout
+    doc = Document(io.BytesIO(raw))
+    ink, blue = RGBColor(0x17, 0x21, 0x2B), RGBColor(0x25, 0x63, 0xC9)
+    for s in doc.styles:
+        if s.type != 1:
+            continue
+        f = s.font
+        if s.name in ("Normal", "Body Text", "First Paragraph", "Compact"):
+            f.name, f.size, f.color.rgb = "Georgia", Pt(10.5), ink
+        elif s.name.startswith("Heading") or s.name in ("Title", "Subtitle", "TOC Heading"):
+            f.name, f.color.rgb = "Arial", ink
+            f.size = {"Title": Pt(32), "Subtitle": Pt(15), "Heading 1": Pt(22), "Heading 2": Pt(15), "Heading 3": Pt(12)}.get(s.name, f.size)
+            f.bold = s.name != "Subtitle"
+            if s.name == "Heading 1":
+                s.paragraph_format.page_break_before = True
+            if s.name == "Subtitle":
+                f.color.rgb = RGBColor(0x5A, 0x65, 0x73)
+        elif s.name in ("Image Caption", "Table Caption", "Caption"):
+            f.name, f.size, f.italic, f.color.rgb = "Georgia", Pt(9), False, RGBColor(0x4A, 0x55, 0x62)
+        elif s.name == "Hyperlink":
+            f.color.rgb = blue
+    for sec in doc.sections:
+        sec.page_width, sec.page_height = Mm(215.9), Mm(279.4)
+        sec.left_margin = sec.right_margin = Mm(22)
+        sec.top_margin = sec.bottom_margin = Mm(20)
+    doc.save(path)
+
+
+def build_docx():
+    ref = ROOT / ".reference.docx"
+    reference_docx(ref)
+    run("pandoc", str(SRC), "-o", "data-center-design.docx", f"--reference-doc={ref}", "--toc", "--toc-depth=2",
+        "--resource-path=.", "-f", "markdown+implicit_figures")
+    ref.unlink()
+    # pandoc sizes images from their DPI; force every picture to the text width
+    from docx import Document
+    from docx.shared import Mm
+    d = Document(ROOT / "data-center-design.docx")
+    for shp in d.inline_shapes:
+        ratio = shp.height / shp.width
+        shp.width = Mm(171.9); shp.height = int(Mm(171.9) * ratio)
+    for t in d.tables:
+        t.style = d.styles["Table"] if "Table" in [s.name for s in d.styles] else t.style
+    d.save(ROOT / "data-center-design.docx")
+
+
+# ------------------------------------------------------------------ main
+def main():
+    for stem in SCENE_OF:
+        jpeg_from_render(stem)
+    missing = [s for s in SCENE_OF if not (FIG / f"{s}.jpg").exists()]
+    if missing:
+        sys.exit(f"missing 3-D renders {missing}: run `cd 3d && npm install && node render.mjs` first")
+    build_2d()
+    body, toc, meta = pandoc_html()
+    body = wrap_tables(body)
+    three = sys.argv[sys.argv.index("--three") + 1] if "--three" in sys.argv else THREE_CDN
+    (ROOT / "artifact.html").write_text(web_page(web_figures(body), toc, meta, three, fragment=True))
+    (ROOT / "data-center-design.html").write_text(web_page(web_figures(body), toc, meta, three, fragment=False))
+    from weasyprint import HTML
+    HTML(string=print_page(print_figures(body), toc, meta), base_url=str(ROOT)).write_pdf(ROOT / "data-center-design.pdf")
+    build_docx()
+    for f in ("artifact.html", "data-center-design.html", "data-center-design.pdf", "data-center-design.docx"):
+        print(f"{f:28s} {(ROOT / f).stat().st_size / 1e6:6.2f} MB")
+
+
+if __name__ == "__main__":
+    main()

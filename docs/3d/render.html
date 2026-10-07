@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8">
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js"}}</script>
+<link rel="stylesheet" href="fonts.css"><style>html,body{margin:0;background:#fff}#wrap{position:relative;overflow:hidden}canvas{display:block}</style></head>
+<body><div id="wrap"><canvas id="c"></canvas><div id="ov" style="position:absolute;inset:0"></div></div>
+<script type="module">
+import * as THREE from "three";
+import { buildScene, makeRenderer, layoutLabels, skyTexture } from "./scenes.js";
+const q = new URLSearchParams(location.search);
+const W = +q.get("w") || 1600, H = +q.get("h") || 1000;
+const wrap = document.getElementById("wrap"); wrap.style.width = W + "px"; wrap.style.height = H + "px";
+const r = buildScene(THREE, q.get("s"));
+r.camera.aspect = W / H; r.camera.updateProjectionMatrix(); r.camera.lookAt(...r.target);
+r.scene.background = skyTexture(THREE, r.sky);
+makeRenderer(THREE, document.getElementById("c"), W, H, 1).render(r.scene, r.camera);
+layoutLabels(THREE, document.getElementById("ov"), r.camera, r.labels, W, H);
+window.__done = true;
+</script></body></html>

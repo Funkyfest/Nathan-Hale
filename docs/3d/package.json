@@ -1,0 +1,8 @@
+{
+  "name": "dc-guide-3d",
+  "private": true,
+  "description": "Renders the 3-D figures for the data-center design guide",
+  "type": "module",
+  "scripts": { "render": "node render.mjs" },
+  "devDependencies": { "three": "0.169.0", "playwright-core": "1.56.0" }
+}

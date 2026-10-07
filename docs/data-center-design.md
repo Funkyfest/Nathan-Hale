@@ -1,777 +1,761 @@
 ---
-title: "Data Center Design — A Comprehensive Guide to Digital and AI Infrastructure"
+title: "Data Center Design"
+subtitle: "How data centers and AI factories are designed, powered, cooled, connected and run"
 author: "Prepared for Nathan Hale"
-date: "September 10, 2026"
-subject: "Data center engineering, hyperscale, AI factories"
+date: "October 2026"
+lang: en-US
 ---
 
-# Data Center Design
+# Executive summary {.unnumbered}
 
-## A Comprehensive Guide to Digital and AI Infrastructure
+A data center is a building whose only job is to keep computer chips powered, cool, connected and safe. The concrete, chillers, switchgear, fibre and fences all serve that job. Every design decision is a trade-off between four things: how much useful computing you get, how much it costs, how much electricity it uses, and how often it fails.
 
-*From site selection to the silicon — how modern data centers and AI factories are conceived, built, powered, cooled, and operated.*
+In the last three years AI has changed the numbers more than the previous twenty did. A typical cloud server rack draws 10–20 kW. An AI training rack such as NVIDIA's GB200 NVL72 draws about 130 kW and weighs about 1.4 tonnes, and vendors have announced racks of 600 kW and more. Air cannot carry that much heat away, so the chips are now cooled by warm water flowing through metal plates bolted directly onto them. The largest new campuses are planned at one to five gigawatts, as much as a mid-sized city, and some bring their own gas turbines or contract with nuclear plants because the grid cannot connect them fast enough.
 
----
+This guide explains every layer of these buildings. It is written so a curious non-engineer can follow it, with enough precise numbers that an engineer or investor can use them. Each technical term is explained the first time it appears and again in the glossary.
 
-## Executive Summary
+### Key findings
+- **Power is the bottleneck.** Land, money and chips are easier to get than a large grid connection. In several US markets the wait for hundreds of megawatts is several years.
+- **AI racks draw 10× more than cloud racks** and the gap is still widening. Above roughly 30–45 kW per rack, air cooling stops being practical, so every serious AI build now uses liquid cooling at the chip.
+- **New buildings are very efficient already.** The best new facilities spend only 10–20% extra energy on top of the computers themselves (a PUE of 1.1–1.2). The next big gain is using the waste heat, for example for district heating.
+- **AI clusters behave like one machine.** Tens of thousands of GPUs work in lockstep. That demands extremely fast networks and creates large, synchronised swings in power draw that the grid has never seen from a building before.
+- **Energy supply is the next frontier.** On-site gas generation, large batteries, restarted and uprated nuclear plants, and in time small modular reactors are being contracted directly for data center campuses.
 
-A modern data center is best understood as **a building whose entire job is to keep silicon safe, cool, and fed with electricity**. Nothing in it — the concrete, the chillers, the switchgear, the fiber, the fences — exists for its own sake. Every subsystem is a means of getting **useful compute per watt per dollar per square foot per hour of uptime**.
+### Figures at a glance
+| Measure | Enterprise data center | Cloud hyperscale | AI factory |
+|---|---|---|---|
+| Typical size (IT load) | 1–10 MW | 30–300 MW per campus | 100 MW – 5 GW per campus |
+| Power per rack | 5–10 kW | 10–30 kW | 60–150 kW, heading to 600 kW+ |
+| Main cooling method | room air | air with containment, some liquid | direct-to-chip liquid plus air |
+| Network | general-purpose Ethernet | leaf-spine Ethernet | NVLink inside racks plus a dedicated InfiniBand or Ethernet GPU fabric |
+| Power profile | steady | steady, many small jobs | large synchronised swings |
+| Floor load | ~12 kPa (250 lb/ft²) | ~12–15 kPa | up to ~25–35 kPa (500–750 lb/ft²) |
+| Typical PUE | 1.5–1.8 | 1.1–1.2 | 1.1–1.3 |
+| Build time to first power | 18–30 months | 15–24 months | as little as 4–12 months for record builds |
 
-The last three years have collapsed decades of gradual change. Enterprise racks that averaged 4–8 kW in 2015 have given way to AI training racks in the **120 kW to over 1 MW** range, cooled not by air but by warm water flowing through cold plates bolted directly to the GPU. What used to be a suburban office park with a raised floor is now a **fenced 200-acre industrial campus** with its own 230 kV substation, its own water plant, and hundreds of megawatts of on-site backup generation. The people who plan them talk less about "IT rooms" and more about **factories** — because that is what they are.
+# How to read this guide {.unnumbered}
 
-This document is a technical guide for someone who wants to understand every layer of that factory. It is written to be readable by a curious generalist while remaining precise enough for an engineer, an investor, or a policymaker to trust the numbers. Where a term of art appears — *2N*, *PUE*, *CDU*, *rail-optimized*, *NVLink*, *Uptime Tier IV* — it is defined the first time it is used and again in the glossary at the end.
+The guide has nine parts. Parts I and II give you the overall picture and the campus. Parts III and IV cover the electrical and cooling systems; every other part uses their vocabulary. Parts V to VII cover the inside of the building, the network and what makes AI facilities different. Parts VIII and IX cover operations, money and what comes next. The final chapter works through the numbers for a 100 MW AI hall from start to finish.
 
-The document is organized into nine parts:
-
-1. **Foundations** — what a data center is and how the species evolved
-2. **Siting and Civil** — where you put one and how the building is shaped
-3. **The Power Chain** — from the utility to the chip, and how it is made redundant
-4. **Thermal Management** — why cooling is the hardest problem, and how liquid replaced air
-5. **The White Space** — the geometry of racks, aisles, and cabling
-6. **The Network** — leaf-spine, InfiniBand, and rail-optimized fabrics for GPUs
-7. **The AI Factory** — what is different when the tenant is 100,000 GPUs
-8. **Safety, Security, Operations** — fire, guards, DCIM, and commissioning
-9. **The Business and the Future** — economics, regulation, and the frontier
-
-Ten technical figures — isometric renderings and diagrams — accompany the text.
-
-**Key findings, up front:**
-
-- The binding constraint on new capacity is no longer land, capital, or chips. It is **grid interconnection** — the queue of permits, transformers, and transmission lines a utility can build.
-- **Power density has grown ~30× in a decade** and is still climbing. Air cooling is out of budget above roughly 30–40 kW per rack. Every serious AI build is now liquid-cooled at the chip.
-- The industry is converging on **~1.10 PUE** for new hyperscale and **~1.20** for retrofits. The next order-of-magnitude efficiency gain will come from **heat reuse** (district heating, greenhouses), not from further compression of the mechanical loop.
-- **AI training clusters are not just bigger; they are qualitatively different.** They demand a coherent scale-up domain (measured in nanoseconds), a rail-optimized scale-out fabric, and synchronous power transients that stress the utility feeder in a way conventional loads do not.
-- The frontier in the next five years is not more clever software but **primary energy** — behind-the-meter gas, on-site solar plus storage, and the first small modular reactors (SMRs) contracted directly to compute campuses.
-
-The rest of this document explains, in detail, how each of these observations comes to be true.
-
----
-
-## How to Read This Document
-
-Read Parts I–II if you want the shape of the industry and the campus. Skim Parts III–IV if you are not interested in electrical or mechanical engineering, but read the summaries — the vocabulary here is used in every other section. Parts V–VII are the meat for anyone specifically interested in AI infrastructure. Parts VIII–IX are for operators and decision-makers.
-
-Chapters are short and self-contained. Every unusual term is defined at first use. A **glossary** at the back gives one-line refreshers for everything.
-
-Numbers throughout are typical of new-build hyperscale and AI campuses as of late 2025 / 2026. Where a range is given, the low end is a good enterprise data center; the high end is a state-of-the-art AI factory.
-
----
+The figures are 3-D renderings and engineering schematics made for this guide. The HTML edition lets you rotate the 3-D models. Numbers are typical for new builds in 2025–2026. Where a range is given, the low end is a good conventional data center and the high end is a leading AI facility.
 
 # Part I — Foundations
 
-## Chapter 1 · What a Data Center Actually Is
+## What a data center is
 
-A **data center** is a purpose-built industrial facility whose primary function is to house, power, cool, connect, and protect computing equipment. Everything else — the walls, the roof, the loading dock, the security fence, the diesel generators, the fiber vault — exists in service of that function.
+A **data center** is an industrial building designed to house, power, cool, connect and protect computers. A modern one is usually a large windowless box of one or two storeys, close to a high-voltage substation and a fibre route, and usually far from homes.
 
-Physically, a modern data center is a windowless single- or two-story warehouse-scale building, usually rectangular, usually near a substation, usually near a fiber route, usually far from anything else. It contains:
+Its spaces fall into four groups:
 
-- **White space** — the rooms where computers live (the visible product)
-- **Grey space** — the mechanical, electrical, and telecom rooms that keep the white space alive (much larger than most people expect)
-- **Support space** — offices, security, loading, staging, storage
-- **Yard space** — generator paddocks, water plant, transformer yard, cooling towers, solar, batteries
+- **White space**: the rooms where the computers stand in rows of racks.
+- **Grey space**: the electrical, mechanical and telecom rooms that keep the white space running. It often takes up as much floor area as the white space.
+- **Support space**: offices, the security desk, loading docks, storage and workshops.
+- **Yard**: generators, transformers, cooling equipment, water tanks, batteries and sometimes solar panels.
 
-The interior is designed around three inviolable requirements:
+Three requirements drive nearly every design decision:
 
-1. **Electricity must be delivered reliably** and at very tight voltage and frequency tolerances, to every rack, 8,760 hours a year.
-2. **Heat must be removed** as fast as it is generated. A 100 MW data center is thermodynamically equivalent to a small steel mill — the electricity in becomes heat out.
-3. **Data must be able to leave the building**, in both directions, at hundreds of terabits per second, over redundant fiber paths.
+1. **Electricity must arrive reliably**, within tight voltage and frequency limits, to every rack, 8,760 hours a year.
+2. **Heat must leave as fast as it is made.** Essentially every watt of electricity that goes in comes out as heat. A 100 MW data center gives off as much heat as about 50,000 electric space heaters running flat out.
+3. **Data must flow in and out** at hundreds of terabits per second over at least two separate fibre routes.
 
-Almost every design decision — where the building sits, what its roof looks like, how the aisles are laid out, how the doors open — is downstream of one of these three requirements.
+## From mainframes to AI factories
 
-## Chapter 2 · From Mainframes to AI Factories
+Data centers have gone through five overlapping generations.
 
-Data centers evolved through five overlapping generations. Understanding the pattern makes the current AI-factory era easier to place.
+1. **Mainframe rooms (1960s–1980s).** One large computer in a raised-floor room, cooled by room air conditioners. 1–3 kW per machine.
+2. **Server rooms and early colocation (1990s).** Racks of small servers. The internet boom created **colocation** buildings, where companies rent space, power and cooling for their own equipment. 2–5 kW per rack. UPS systems, dual power feeds and the Uptime Institute's tier ratings appeared in this era.
+3. **Enterprise data centers (2000s).** Multi-megawatt sites run by banks, telecom companies and large corporations. Hot-aisle/cold-aisle layouts and the PUE efficiency metric became standard. 3–6 kW per rack.
+4. **Hyperscale (2010s–present).** Google, Amazon, Microsoft, Meta, Alibaba and others built 30–300 MW campuses with custom hardware, outside-air cooling and PUEs near 1.1. 8–30 kW per rack.
+5. **AI factories (2023–present).** Buildings designed around one job: training and running large AI models on GPUs or other accelerators. Racks of 60–150 kW are normal and much larger ones are coming. Liquid cooling is required. Tens of thousands of chips act as one computer. Power draw can swing by tens of megawatts in under a second.
 
-**Generation 1 — Mainframe rooms (1960s–80s).** A single large computer in a raised-floor room in a corporate basement. Chilled by CRAC units. Uptime measured in "the machine was down all Tuesday." 1–3 kW per system.
+The move from generation 4 to 5 is a change in kind, not just in size. Power distribution, cooling and networking are all being redesigned at once.
 
-**Generation 2 — Client-server data rooms (1990s).** Racks of pizza-box servers. Growth of the internet drove the first commercial *colocation* buildings — third-party facilities that rented cages to enterprises. 2–5 kW per rack. UPS systems, dual power, and Uptime Institute's tier classifications emerged in this era.
+## The anatomy at a glance
 
-**Generation 3 — Enterprise data centers (2000s).** Multi-megawatt facilities operated by banks, telcos, and Fortune 500s. Hot/cold aisle containment became standard. PUE (Power Usage Effectiveness) emerged as the efficiency metric. Typical rack 3–6 kW.
+Figure 1 shows a typical AI campus: a 230 kV substation, three data halls, a generator yard beside each hall, a central utility plant, battery storage, an office and security building, and solar panels. The rest of this guide zooms into these pieces.
 
-**Generation 4 — Hyperscale (2010s–present).** Google, Amazon, Microsoft, Meta, Alibaba began operating facilities at 30–100 MW critical IT load, using custom hardware (Open Compute Project) and unprecedented efficiency (PUE 1.10–1.15). Free cooling, evaporative cooling, and warm-water designs became standard. Typical rack 8–15 kW; late-generation halls 20–30 kW.
+![Figure 1 — A 144 MW AI campus seen from the air. Each hall has its own generator row and unit-substation transformers; dry coolers on the roofs reject the heat.](figures/fig01-campus.jpg){#fig:campus}
 
-**Generation 5 — AI factories (2023–present).** GPU-dominated buildings whose entire electromechanical stack is redesigned around one workload: **large-model training and increasingly inference**. Racks 60–200 kW routine, 500 kW–1 MW proposed. Liquid-cooling mandatory. Coherent memory domains measured in nanoseconds. Power draw that can transient tens of megawatts in seconds — a genuinely new problem for the electric grid. Prominent examples now under construction or expansion include **xAI Colossus** (Memphis), **Meta Hyperion / Prometheus**, the **Microsoft–OpenAI Stargate** program, **Google's Council Bluffs and Oklahoma TPU campuses**, and CoreWeave / Crusoe / Nebius purpose-built AI colo.
+The campus in Figure 1 holds about 144 MW of computing load on roughly 60 hectares (150 acres). Campuses now under construction range from about 100 MW to several gigawatts on hundreds of hectares, but the layout pattern is the same everywhere: buildings for the computers, and an industrial yard of utilities to feed them.
 
-The transition from Gen 4 to Gen 5 is not incremental — it is a phase change. The plumbing, the electrical topology, and the network fabric are all being reimagined at the same time.
+Figure 2 opens up one hall. The roof is lifted so you can see the inside. Electrical rooms sit at one end. A mechanical gallery of pumps and coolant distribution units runs along one wall. Rows of racks fill the middle, with overhead power and fibre. The roof carries the heat-rejection equipment.
 
-## Chapter 3 · The Anatomy at a Glance
+![Figure 2 — Exploded cutaway of one data hall: electrical room (left), contained rows of liquid-cooled racks (centre), mechanical gallery (back wall), generators (right) and the roof with dry coolers lifted off.](figures/fig02-cutaway.jpg){#fig:cutaway}
 
-Before we go deeper, it helps to see the whole factory at once. Figure 1 shows a typical hyperscale AI campus — one substation, three data halls, a central utility plant, a generator yard, admin/SOC, fiber meet-me room, and a solar/BESS field. Everything else in this document is a zoom into one of these boxes.
+# Part II — Siting and the building
 
-![Figure 1 · Isometric campus](diagrams/01-campus-iso.svg)
+## Choosing a site
 
-The campus in Figure 1 is a plausible ~144 MW facility on ~150 acres. Real hyperscale campuses now under construction range from ~100 MW to over **2 GW** on 500–2,000 acres. But the pattern — buildings for compute, an industrial park for the utilities that feed them — is universal.
+Developers score candidate sites against dozens of weighted factors, often over 6–24 months. The most important factors have changed.
 
-Figure 2 slices one of those buildings vertically. The vertical stack of *roof mechanical → penthouse → data halls → electrical* is the defining shape of the modern data center. Older enterprise sites put all this on one floor; new hyperscale buildings stack it to shorten pipe runs and preserve floor plate for compute.
+Ten years ago the top three were fibre (several long-distance routes nearby), latency to users, and the cost of land and power. For AI campuses today they are:
 
-![Figure 2 · Building cutaway](diagrams/02-building-cutaway.svg)
+1. **Time to power.** How soon can the utility deliver 100–1,000 MW of firm capacity? This includes new transmission lines and substation transformers, which can take years to manufacture.
+2. **Water.** Is there enough for cooling, and a permit to use it and discharge it? This matters less for designs that use little water (see [Efficiency](#efficiency-pue-wue-and-cue)).
+3. **Local acceptance.** Will the county grant zoning, noise and air permits?
 
-The rest of the document explains what is happening inside each of those slices.
+Other factors still count:
 
----
+- **Climate.** Cool, dry places allow more hours of cooling with outside air (the Nordics, the Pacific Northwest, Iowa, Ireland). Hot or humid places need more mechanical cooling or evaporative assistance.
+- **Natural hazards.** A 100-year floodplain is usually ruled out. Earthquake, tornado and wildfire risk raise construction and insurance costs.
+- **Taxes and incentives.** Sales-tax exemptions on equipment, property-tax abatements and industrial power rates.
+- **Fibre.** Training campuses need big links between their own buildings more than to cities. Inference sites, which answer user requests, want to be closer to users.
+- **Workforce.** Electricians, pipe-fitters and data center technicians for construction and for 24/7 operation.
+- **Zoning and setbacks.** Industrial zoning, distance from homes, and noise limits at the property line, which shape generator enclosures and fan choices.
+- **Environmental review.** Wetlands, protected species and air-quality modelling can add 6–18 months.
 
-# Part II — Siting and Civil
+In practice the site team rules out most candidates in the first week using mapping data, then spends a year on the few that remain. The usual deal-breakers are: the utility can offer 30 MW now but 300 MW only years later; the county says no; or the water supplier cannot guarantee volumes in a drought.
 
-## Chapter 4 · Site Selection
+## The campus and the building shell
 
-Choosing a site is a multi-variable optimization problem. In practice, the developer builds a scoring model with dozens of weighted factors and evaluates candidate sites over 6–24 months. The dominant factors have shifted in the last decade.
+Modern campuses use a few standard building forms.
 
-**Historically the top three factors were:**
+- **Single-block hall.** Roughly 150–200 m long and 50–80 m wide, one or two storeys, 30–80 MW of IT load. Precast concrete or steel. Generators along one long side, transformers along the other, loading dock at one end.
+- **Multi-hall campus.** Three to eight identical halls sharing a substation and a central utility plant, as in Figure 1.
+- **Multi-storey.** In dense markets such as Northern Virginia, Frankfurt, Singapore and Tokyo, halls are stacked three to eight storeys high. Microsoft's Fairwater AI site in Wisconsin uses two storeys of racks to shorten cable runs between GPUs.
+- **Modular and prefabricated.** Electrical rooms, cooling skids and even whole data halls are built in factories and delivered on trucks. Prefabrication now drives much of the schedule compression.
 
-1. Fiber diversity (multiple long-haul routes converging)
-2. Latency to end users (metro proximity)
-3. Cost of land and power
+Structural norms:
 
-**Today the top three factors for AI-class builds are:**
+- **Floors** are reinforced concrete slabs. A loaded NVL72 rack weighs about 1.4 tonnes on a 0.6 × 1.2 m footprint, roughly 20 kPa (about 400 lb/ft²) directly under the rack. AI floors are designed for 25–35 kPa.
+- **Clear height** is 6–10 m to fit overhead busway, cable trays, pipes and a hot-air return space.
+- **Fire compartments** of a few thousand square metres are separated by two-hour fire walls.
+- **No windows** in data halls.
+- **Two of everything that enters**: two fibre vaults at opposite ends and two power routes that never share a trench.
 
-1. **Speed to power** — how fast can the utility deliver 100–500 MW of firm interconnection?
-2. **Water availability** — do we have a supply for evaporative cooling and, increasingly, a discharge permit for warm return?
-3. **Political and community acceptance** — will the county grant the special-use permit and the noise variance?
+Record builds have gone from bare site to running GPUs in about four months. xAI's first Colossus cluster in Memphis took 122 days, by reusing an existing factory building and bringing in temporary gas turbines. Typical schedules are 15–24 months to first power. The grid connection, not construction, is usually what sets the date.
 
-Other factors that still matter:
+# Part III — The power chain
 
-- **Climate.** Cool, dry climates favor free-cooling (Nordic, Pacific Northwest, Iowa, Ireland). Warmer, wetter climates need adiabatic or mechanical cooling.
-- **Seismic and severe-weather risk.** Buildings are hardened to local codes; Tier IV requires higher factors of safety. Tornado alley builds now include hardened concrete tilt-ups instead of steel skin.
-- **Natural-disaster exposure.** 100-year floodplain is disqualifying. Wildfire wildland-urban interface adds insurance cost.
-- **Tax and incentive environment.** Sales-tax exemption on IT gear, property-tax abatement, cheap industrial electricity rates.
-- **Fiber and dark-fiber availability.** For AI training, cross-campus fiber matters more than long-haul; for inference and edge, metro proximity matters more.
-- **Labor market.** Skilled electricians, mechanical trades, and DC technicians for both construction and operations.
-- **Zoning and setbacks.** Industrial (M-1/M-2) with adequate setbacks for generators and cooling towers. Noise limits at property line drive generator enclosure design.
-- **Environmental review.** NEPA/state equivalents; wetland delineation; endangered-species surveys. These can add 6–18 months.
+## From the grid to the chip
 
-A useful rule of thumb: the site-selection team's first job is to eliminate 95 percent of candidate sites in the first week using GIS layers, and then spend a year on the remaining 5 percent. The three showstoppers, in practice, are: (a) utility says "we can give you 30 MW in 2028 or 300 MW in 2032"; (b) the county says "not here"; (c) the water utility says "we can't guarantee your cooling volume in a drought year."
+Electricity reaches a large campus at transmission voltage, usually 115–345 kV. Inside the fence it is stepped down in stages until it reaches the chip at under one volt. Figure 3 shows the chain.
 
-## Chapter 5 · The Campus and Building Shell
-
-Modern hyperscale campuses share a small family of building shapes.
-
-**The single-block hyperscale hall.** ~200 m × ~80 m, one or two stories, 30–80 MW critical load. Steel or tilt-up concrete. Flat roof housing the mechanical plant. Central spine of support space with data halls to either side. Loading dock at one gable end; MV switchgear yard along one long side; generators along the other.
-
-**The multi-hall campus.** 3–8 identical blocks on a common utility spine, sharing a central utility plant (CUP) that houses chillers, pumps, and the water plant. This is what Figure 1 shows.
-
-**The multi-story stack.** In dense metros (northern Virginia, Frankfurt, Singapore, Tokyo, San Jose) where land is scarce, halls are stacked 3–8 stories, with the ground floor and roof reserved for mechanical/electrical.
-
-**Modular / prefab.** For faster deployment, some builds use pre-assembled 40-foot or 53-foot skids or ISO-container-shaped units delivered pre-cabled. Common for edge, colocation, and rapid AI expansion.
-
-**Structural specifics:**
-
-- **Slab-on-grade** with 6–10 inch reinforced concrete rated for 250–500 lb/ft² live load (raised-floor days) or up to 1,000+ lb/ft² for liquid-cooled AI racks that can exceed 2 metric tons apiece.
-- **Ceiling height** 20–35 ft to allow overhead cable trays, busway, and mechanical piping in a common return plenum.
-- **Fire compartments** every 25,000–50,000 ft², separated by 2-hour fire walls.
-- **No windows** in data halls (thermal load and security). Admin has glazing.
-- **Redundant physical entrances** for utilities: two fiber vaults on opposite sides of the building, two MV feeds routed through non-adjacent conduits.
-
-Construction schedules for new hyperscale builds have compressed from ~24 months to as fast as **12–14 months** for the shell + first hall, driven by prefab electrical rooms, MV skid packages, and integrated commissioning workflows. The rate-limiting step is almost never construction — it is utility interconnection.
-
----
-
-# Part III — The Power Chain
-
-## Chapter 6 · From the Grid to the Chip
-
-Electricity enters a hyperscale data center from the utility at **transmission voltage** — typically 115 kV, 230 kV, or 345 kV. Inside the fence, it is stepped down through a sequence of transformers and distribution equipment before it finally arrives at a GPU as ~0.7 volts DC. The complete chain is shown in Figure 5.
-
-![Figure 5 · Power single-line](diagrams/05-power-single-line.svg)
+![Figure 3 — The power path from the transmission line to the chip, with two fully independent paths (A and B) that meet only inside the rack.](figures/fig03-power.png){#fig:power}
 
 The stages, in order:
 
-1. **Utility feeder(s).** One or two independent transmission lines terminate at the campus. Two feeders from two different substations, ideally on two different transmission rings, is the gold standard.
-2. **On-site substation.** A gravel yard filled with structural steel, disconnect switches, breakers, and one or more large power transformers ("main transformers") that step 115–345 kV down to **medium voltage** — most often 34.5 kV in North America, 11 kV or 33 kV elsewhere.
-3. **MV switchgear.** Metal-clad breakers and bus that distribute MV around the campus, feeding each data building. Redundant bus arrangements ("main-tie-main" or "ring bus") allow any single breaker to be maintained without dropping load.
-4. **Building unit substations.** Each hall has its own transformers stepping MV down to **low voltage** — 480 V in North America, 400 V in Europe, 415 V in most of the rest of the world.
-5. **Low-voltage main switchboard (LV MSB).** The building's electrical "spine" from which UPS systems, mechanical loads, and PDUs branch.
-6. **Uninterruptible power supply (UPS).** Battery- or flywheel-backed system that carries the IT load through utility disturbances. Modern UPS are Li-ion battery-based, ~2–5 minutes autonomy — long enough for generators to start.
-7. **Static transfer switch (STS).** Sub-cycle transfer between two independent UPS-fed sources.
-8. **Power distribution unit (PDU).** Wall- or floor-mounted transformer plus breakers that hands off dedicated circuits to each row or each rack.
-9. **Overhead busway.** Aluminum or copper bus running along the top of each row, tapped at every rack with plug-in breakers.
-10. **Rack PDU ("PDU strip" or "smart strip").** Vertical bar in the rack that distributes A-side and B-side circuits to individual server power supplies.
-11. **Server PSU.** Converts AC (or 380/48 VDC in newer OCP designs) to a DC bus (typically 12 V or, increasingly, 48 V or 400 V) delivered to the motherboard.
-12. **Voltage regulator modules (VRMs).** On the motherboard, step the DC bus down to the chip's operating voltage — often 0.7–1.0 V at hundreds to thousands of amperes per socket.
+1. **Utility feeds.** One or, ideally, two lines from different substations.
+2. **On-site substation.** A gravel yard with steel gantries, circuit breakers and large **main transformers** that step down to **medium voltage (MV)**, usually 34.5 kV in North America or 11–33 kV elsewhere.
+3. **MV switchgear.** Breakers that distribute MV around the campus. Ring or "main-tie-main" layouts let any breaker be serviced without cutting power.
+4. **Unit substations.** Transformers at each building step MV down to **low voltage (LV)**: 480 V in North America, 400–415 V in most other places.
+5. **LV switchboards.** The main distribution boards for UPS systems, cooling plant and building services.
+6. **Uninterruptible power supply (UPS).** Batteries (now mostly lithium-ion) and power electronics that carry the load through any utility disturbance until generators start. Typical ride-through is about five minutes.
+7. **Distribution to the rows.** Power distribution units (PDUs) or remote power panels feed **overhead busway**: a metal bar running above each row with a plug-in tap box for every rack.
+8. **Rack power shelves.** Inside AI racks, power shelves convert AC to roughly 50 V DC and feed a copper **busbar** running up the back of the rack.
+9. **Voltage regulators (VRMs).** On each board, next to the chip, these step 50 V (or 12 V) down to about 0.7–1.0 V at hundreds to more than a thousand amperes per chip.
 
-At every stage there are transformer losses (0.5–1%), conversion losses (1–3% in the UPS, 5–8% at the PSU, 5–10% at the VRM), and distribution losses (~1%). Together these amount to **10–15% of the electricity delivered to the building becoming waste heat before the CPU/GPU ever sees a volt**. Cutting that number is worth billions across the industry.
+Every stage loses a little energy: about 0.5–1% per transformer, 2–4% in a double-conversion UPS (less in "eco" modes), 2–5% in power supplies and 5–10% in on-board regulators. Together, roughly 10–15% of the electricity entering the building becomes heat before it reaches a transistor.
 
-The push to move the DC distribution voltage upward — from 12 V motherboards to 48 V (OCP), and now to **400 V DC in-row** for AI racks — is an attempt to reduce copper mass and I²R losses at very high current. NVIDIA's roadmap for the post-Blackwell era assumes ~800 V DC rack distribution.
+Higher voltages mean less current, thinner copper and lower losses. That is why rack power moved from 12 V to 48–50 V, and why NVIDIA has announced an **800 V DC** rack architecture for its next generation of very large racks. That design moves AC-to-DC conversion out of the rack and into the building.
 
-## Chapter 7 · Redundancy and the Uptime Tiers
+## Redundancy and the Uptime tiers
 
-Not every data center needs the same level of reliability. The industry standard framework for classifying reliability is the **Uptime Institute Tier system**, summarized in Figure 10.
+Not every facility needs the same reliability. The common framework is the **Uptime Institute Tier** classification. It uses this vocabulary:
 
-![Figure 10 · Tier classification](diagrams/10-tier-comparison.svg)
+- **N**: exactly enough equipment to carry the load, no spare.
+- **N+1**: one spare unit, such as nine generators where eight are needed.
+- **2N**: two complete, independent systems, each able to carry the whole load (the A and B paths in Figure 3).
+- **2(N+1)**: two independent systems, each with its own spare.
 
-The vocabulary is precise:
+| | Tier I | Tier II | Tier III | Tier IV |
+|---|---|---|---|---|
+| Power and cooling paths | one | one, with spare components | several, one active | several, all active |
+| Can be serviced without shutdown | no | no | **yes** | **yes** |
+| Survives any single failure | no | no | not always | **yes** |
+| Commonly quoted availability | 99.671% | 99.741% | 99.982% | 99.995% |
+| Equivalent downtime per year | ~29 h | ~23 h | ~1.6 h | ~26 min |
+| Typical users | labs, small offices | small businesses | enterprise, colocation, cloud | finance, government, critical services |
+| Relative build cost | 1× | ~1.3× | ~1.8–2.2× | ~2.4–3× |
 
-- **N** — enough equipment to serve the load. No spare.
-- **N+1** — one additional spare unit beyond N.
-- **2N** — two independent, complete systems, each of which can carry the full load alone.
-- **2(N+1)** — two independent systems, each with its own internal spare. Belt, suspenders, and a second pair of pants.
+Table: Uptime Institute tiers. The availability percentages are long-standing industry rules of thumb; Uptime's certification is based on design topology, not on a promised percentage.
 
-Tier definitions map to these:
+Three points matter in practice:
 
-- **Tier I (Basic).** Single non-redundant path. Any maintenance takes the data center down. Common only in labs and small enterprises.
-- **Tier II (Redundant components).** Single path but with N+1 spare capacity components. Still requires shutdown for path maintenance.
-- **Tier III (Concurrently maintainable).** Multiple paths, one active. Any single component can be replaced or serviced without dropping the load. This is the sweet spot for enterprise, colocation, and most hyperscale.
-- **Tier IV (Fault tolerant).** Two active, independent paths. Survives any single failure or event. Highest capex; used by finance, government, and critical infrastructure.
+- **People cause most outages.** Uptime's surveys consistently find that a large share of serious outages involve human error or procedure failures, not just equipment.
+- **Cloud providers often build to Tier III.** Their software already shifts work between buildings and regions, so paying for Tier IV inside every building buys little.
+- **AI training is different again.** A training job saves its progress (a **checkpoint**) regularly and can restart from it. Losing power to a training hall wastes hours of work but does not lose customer data. Some AI training halls therefore use less redundancy, for example single-path power to the GPUs, and spend the savings on more compute. Inference halls, which serve users directly, keep cloud-style redundancy.
 
-Availability numbers are misleadingly precise; **the real driver of downtime is human error**, not equipment failure, and Uptime's own field data suggests that ~70% of outages trace to operations rather than hardware.
+## Backup power
 
-A subtle point: **many hyperscalers deliberately build Tier III rather than Tier IV**, because their software already handles single-facility failures via geographic distribution. If Google's US-central-1 fails, the load shifts to US-west-2. Paying for 2N inside every building buys them very little.
+When the utility fails, the data center runs first on batteries and then on generators.
 
-**For AI training** the calculus is different again. A single lost checkpoint costs hours or days of training. But because training is inherently stateful and asynchronous, the workload can *pause and resume*. This means training halls can — and increasingly do — build to Tier II or III rather than Tier IV, spending the saved capex on more compute instead.
+### Batteries (UPS)
+- **Valve-regulated lead-acid (VRLA)**: the old standard; heavy, bulky, replaced every 4–6 years.
+- **Lithium-ion**, mostly lithium iron phosphate (LFP): now standard in new builds. It takes about a third of the space, lasts 10–15 years, and can also earn money by helping the grid with frequency regulation.
+- **Flywheels**: a spinning mass that gives 15–30 seconds of ride-through. Sometimes used instead of batteries where the generators start fast.
 
-## Chapter 8 · Backup Power
+**Generators.** The standard is diesel: 2–3.5 MW engines in sound-proofed enclosures, arranged N+1 or better. They reach full load in about 10 seconds, and an **automatic transfer switch (ATS)** moves the load onto them. A large campus can have more than a hundred. Diesel is reliable and stores well, but faces growing limits:
 
-When the utility fails — and it always will, eventually — the data center relies on stored and locally generated energy to ride through until utility restoration or until it can shed load gracefully.
+- **Air permits** often cap running hours, typically 50–500 hours a year including testing, and require modern emission controls.
+- **Fuel.** Running a 300 MW campus on generators for three days takes on the order of 5–6 million litres (1.5 million US gallons) of diesel.
+- **Neighbours** notice the smoke and the noise of monthly tests.
 
-**Batteries (UPS).** Every serious data center has a UPS. The dominant technologies:
+Alternatives in use or being deployed:
 
-- **Valve-regulated lead-acid (VRLA).** Legacy, 3–5 year lifespan, high floor loading, needs 20+% floor space.
-- **Wet-cell lead-acid.** Long-life, 15–20 year, larger footprint.
-- **Lithium-ion (LFP or NMC).** Now dominant in new-build. 8–15 year lifespan, one-third the footprint of VRLA, more thermally tolerant, higher round-trip efficiency, and — critically — able to double as **grid-services BESS** (battery energy storage system) that can inject or absorb power from the utility for frequency regulation and demand response.
-- **Flywheel.** Kinetic storage in a spinning mass; 15–30 seconds of ride-through. Common as a supplement to diesel start-up rather than a standalone.
+- **Natural-gas engines and turbines.** Cleaner and fed by pipeline rather than tank. At AI campuses they are increasingly installed **behind the meter** as the primary power source, with the grid as backup, because the grid connection would take too long.
+- **Fuel cells.** Solid-oxide fuel cells running on natural gas, used as on-site primary power at several US sites.
+- **Large battery systems (BESS).** Container-sized lithium batteries that provide minutes to hours of backup, smooth AI power swings and earn grid-service revenue.
+- **Nuclear.** Data center operators have signed long-term contracts with existing and restarting nuclear plants (for example Microsoft with Constellation for the former Three Mile Island Unit 1, and Amazon at Talen's Susquehanna plant). They have also backed small modular reactor developers (Amazon with X-energy, Google with Kairos Power) for the 2030s.
 
-Modern UPS ride-through is **1–5 minutes**. Anything longer is wasteful; the generators start in seconds.
+# Part IV — Cooling
 
-**Generators.** The industry standard is **standby diesel** — 2–3 MW cylindrical engines packaged in acoustic enclosures on outdoor concrete pads. A hyperscale campus may have twenty or more, arranged N+1 or N+2. Cold-start to full load is 8–12 seconds, and an ATS (automatic transfer switch) picks up the load once the gen bus is stable.
+## Why cooling is the hardest problem
 
-Diesel is entrenched because of energy density, reliability, and the developed maintenance supply chain. But it has increasing problems:
+Essentially all the electricity a data center uses becomes heat. A 100 MW building must reject 100 MW of heat continuously, in any weather, while holding the chips within a few degrees of their target.
 
-- **Air-permit constraints.** Many jurisdictions cap the annual runtime of diesel gensets (typically 100–500 hours/year) and impose Tier 4 emissions requirements. In the AI-factory era, permit boards are pushing back on new diesel farms altogether.
-- **Fuel logistics.** A campus that runs 40 gensets at load for 72 hours can burn well over 1 million gallons of diesel; on-site tank farms and delivery contracts are non-trivial.
-- **Public perception.** Diesel spills and diesel smoke are highly visible.
+That is manageable when racks draw 5 kW and are spread out. It becomes very hard at 130 kW per rack packed shoulder to shoulder. **Heat density matters more than the total.** An AI rack gives off about as much heat as 60–70 household space heaters crammed into a wardrobe-sized box.
 
-Alternatives now being deployed or piloted:
+Cooling is also the largest energy overhead after the computers. In an older facility with a PUE of 1.6, the cooling plant can use almost half as much energy as the IT equipment. Each 0.1 improvement in PUE on a 100 MW site saves roughly 8–9 GWh a year, worth about $5 million at industrial power prices.
 
-- **Natural-gas reciprocating engines.** Similar dynamics to diesel but with cleaner emissions and pipeline fuel. Increasingly popular where a gas main exists.
-- **Natural-gas turbines** (aeroderivative or industrial frame). Larger blocks (10–40 MW each), used at gigawatt-scale campuses. Sometimes run **behind-the-meter** as primary generation, with the utility as backup — a growing pattern for accelerating AI builds.
-- **Fuel cells.** Bloom Energy solid-oxide fuel cells run on pipeline gas and produce cleaner power at slightly lower efficiency than the grid. Increasingly used as primary distributed generation.
-- **BESS (utility-scale batteries).** Large lithium arrays now provide 15 minutes to 4 hours of full-load ride-through, participate in grid ancillary markets, and buffer transient loads.
-- **Small modular reactors (SMRs).** Contracted at several sites (Amazon–TVA, Google–Kairos, Oracle–Oklo) for 2028–2032 delivery. The first SMR-powered AI campuses will change the shape of the industry.
+## Air cooling and containment
 
-The dominant trend of the coming decade is **behind-the-meter primary generation** — putting a small power plant, gas or nuclear, directly on the fence line — because the utility grid queue can no longer keep up with AI demand.
+Early data centers simply filled the room with cold air. The problem was **recirculation**: hot air leaving the back of one rack was pulled into the front of the next, so the air conditioners were cooling their own exhaust.
 
----
+The fix, standard since the mid-2000s, is the **hot aisle / cold aisle** layout. Rows of racks face each other in pairs, so fronts draw cool air from a shared cold aisle and backs blow hot air into a shared hot aisle. **Containment** then puts a physical barrier around one of the aisles:
 
-# Part IV — Thermal Management
+- **Cold-aisle containment** encloses the cold aisle with doors and a roof. It is easy to add to older raised-floor rooms.
+- **Hot-aisle containment** encloses the hot aisle and ducts the hot air to a return space above the ceiling (Figure 4). The rest of the room becomes a large pool of cool air. This is preferred in new builds because the return air is hotter, which makes the cooling coils more efficient.
 
-## Chapter 9 · Why Cooling Is the Hardest Problem
+The air is cooled by:
 
-The second law of thermodynamics is inescapable: every watt of electricity that enters a data center leaves as an equal watt of heat. A 100 MW building must therefore reject 100 MW of heat continuously, in every weather condition, without ever letting the interior temperature drift outside a narrow band.
+- **CRAC units** (computer room air conditioners), each with its own refrigerant compressor. Older design.
+- **CRAH units** (computer room air handlers): fans blowing over coils filled with chilled water. Most common today.
+- **Fan walls**: a wall of large, efficient fans with coils, serving a whole room or hall.
 
-This is not a hard problem when racks draw 3 kW and are spread out. It becomes extraordinarily hard when racks draw 120 kW and are packed shoulder to shoulder.
+ASHRAE's thermal guidelines recommend 18–27 °C (64–81 °F) at the server inlet and allow higher temperatures for short periods. Every degree warmer means more hours a year when outside air alone can do the cooling.
 
-**Heat flux — watts per unit area — is what matters, not total watts.** A 1990s server rack rejected ~500 W/ft² of floor. A modern AI rack rejects **5,000–15,000 W/ft²** — heat densities comparable to a steel-mill electrode. Air can carry away perhaps 20–30 kW per rack economically before airflow velocities become dangerous and acoustic power becomes intolerable. Above that, liquid is mandatory.
+![Figure 4 — Inside a liquid-cooled AI hall. Blue (supply) and red (return) water headers run above the contained hot aisles and drop into every rack. Busway with a plug-in tap per rack and yellow fibre in ladder trays run overhead. The CDU sits at the end of each row.](figures/fig04-hall.jpg){#fig:hall}
 
-Cooling is also **the single largest source of parasitic overhead** in a data center. In a 1.5-PUE facility, the cooling plant consumes as much electricity as one-third of the IT load itself. Every point of PUE improvement is worth 8-figures per year at hyperscale.
+## Liquid cooling
 
-## Chapter 10 · Air Cooling and the Evolution of the Aisle
+Above roughly 30–45 kW per rack, air stops working well. Fan power rises steeply as airflow increases, and the air gets too loud and fast to move through the servers. Water carries about 3,500 times more heat than the same volume of air, so the industry has moved to liquid.
 
-The original air-cooling approach — "just put a lot of CRAC units around the room" — worked until it didn't. The failure mode is **short-circuit airflow**: hot exhaust from the back of one row is drawn into the front of the adjacent row, and the CRAC units end up cooling their own exhaust.
+| Method | How it works | Typical rack power | Where it is used |
+|---|---|---|---|
+| Rear-door heat exchanger | a water-cooled coil replaces the rack's back door and cools the exhaust air | 20–50 kW (up to ~80 with active fans) | retrofits, mixed halls |
+| Direct-to-chip (DLC) | metal **cold plates** sit on each GPU and CPU; water flows through micro-channels inside them | 60–200 kW today | today's standard for AI (NVIDIA GB200/GB300, AMD MI300/MI350 series, Google TPU) |
+| Single-phase immersion | whole servers sit in a tank of non-conducting oil; pumps move the fluid | 100 kW+ per tank | crypto mining, some HPC, pilots |
+| Two-phase immersion or two-phase cold plates | the fluid boils at the chip and condenses elsewhere, absorbing a lot of heat per litre | highest | emerging; limited by fluid cost and environmental rules |
 
-The fix, standardized in the mid-2000s, is **hot-aisle / cold-aisle** arrangement: rows of racks are placed back-to-back so the exhausts face into a common hot aisle, and cold supply arrives at the front of each rack from the opposite side. Figure 3 shows the geometry.
+Table: Liquid-cooling methods.
 
-![Figure 3 · Aisle containment](diagrams/03-aisle-containment.svg)
+With direct-to-chip cooling, about 80–85% of a rack's heat leaves in the water. The rest, from memory, network cards and power supplies, is still removed by fans and room air. Figure 5 shows an NVL72-class rack with one compute tray pulled out, its copper cold plates visible.
 
-Two variants dominate:
+![Figure 5 — A liquid-cooled NVL72-class rack. One compute tray is pulled out to show the cold plates on the GPUs and CPUs. Supply and return manifolds and the copper DC busbar run up the back; the NVLink "spine" of copper cables joins all 72 GPUs.](figures/fig05-rack.jpg){#fig:rack}
 
-- **Cold-aisle containment (CAC).** A physical barrier — plastic curtains, sliding doors, glass panels — encloses the cold aisle. Cold air is trapped where it is needed. The rest of the room becomes hot exhaust. Retrofit-friendly, since existing raised-floor supply can be used.
-- **Hot-aisle containment (HAC).** The hot aisle is enclosed and vented to a return plenum, typically the space above a suspended ceiling. The rest of the room becomes a large cold-air reservoir. Preferred for new builds; more efficient because the temperature differential (ΔT) across the CRAH is higher.
+The key design choice is **warm water**. Cold plates accept coolant at 25–45 °C. Water that warm can be cooled by outside air in most climates for most of the year, with no refrigeration compressor running. That is how AI halls reach PUEs near 1.1 despite their density.
 
-The supply air itself is delivered by:
+## The cooling loops
 
-- **CRAC units** (Computer Room Air Conditioners) with internal compressors. Older approach.
-- **CRAH units** (Computer Room Air Handlers) — fan coils on a chilled-water loop, no compressor. Dominant in modern builds.
-- **Fan walls** (in-row or wall-mounted arrays of EC fans). Highest efficiency, lowest footprint.
+Most liquid-cooled facilities have two or three connected loops (Figure 6).
 
-Recommended set-points have crept upward: ASHRAE's TC 9.9 committee now allows **cold-aisle supply up to 27 °C (80.6 °F)** for the "recommended" envelope and up to **40 °C (104 °F)** for "allowable." Warmer supply means more hours of free cooling — the biggest single lever on PUE.
+![Figure 6 — Cooling loops. The facility loop moves heat from the CDU to the outside; the technology loop moves heat from the cold plates to the CDU; residual heat goes to room air.](figures/fig06-cooling.png){#fig:cooling}
 
-## Chapter 11 · Liquid Cooling
+- **Facility water loop.** Carries heat from the building to the outside. It includes pumps, large pipes and heat-rejection equipment: **dry coolers** (big radiators with fans), **cooling towers** (which evaporate water and are more efficient but use water), or **adiabatic** dry coolers that spray water only on the hottest days. Some sites add a small **trim chiller** for heat waves.
+- **Technology (rack) loop.** Carries very clean, treated water or a water-glycol mix through the rack manifolds and cold plates.
+- **Coolant distribution unit (CDU).** A heat exchanger with pumps, filters and sensors that separates the two loops. A leak or contamination in one loop cannot drain or foul the other. CDUs can sit in a gallery (Figure 2), at the end of a row (Figure 4) or inside the rack.
+- **Air loop.** Fans and coils (CRAHs or fan walls) remove the heat the liquid does not capture.
 
-Above ~30 kW per rack, air cooling loses. Fan power grows with the cube of airflow, so doubling the heat output roughly quadruples fan energy. The industry answer is to move the heat out of the box using liquid, which is ~3,500× more effective per unit volume.
+Design goals:
 
-Four dominant liquid approaches:
+- **A large temperature rise (ΔT).** A 10 K rise across the rack needs half the flow of a 5 K rise, so pipes and pumps can be smaller.
+- **Warm supply temperatures**, to maximise hours without compressors.
+- **N+1 redundancy** on pumps, CDUs and heat-rejection units, with valves that let any one be isolated for repair.
+- **Leak detection** at every rack and under every pipe joint, with automatic shut-off valves.
+- **Low water use.** Closed-loop dry cooling uses almost no water. Evaporative cooling saves electricity but can use 1–2 litres of water per kWh of IT energy.
 
-- **Rear-door heat exchangers (RDHx).** A finned coil bolted to the back of a rack. The rack still contains air-cooled servers, but the coil captures the exhaust before it enters the room, reducing effective air heat load to near zero. 40–80 kW per rack routine. Retrofittable and vendor-neutral.
-- **Direct-to-chip cold plates (DTC or DLC).** A metal plate with internal microchannels sits atop each CPU/GPU package. Warm water — supply typically 30–45 °C — flows through the plate and picks up 70–90% of the chip's heat. Rear-door or in-cabinet air still handles the residual (memory, NICs, PSUs). This is the standard for NVIDIA GB200 NVL72, HGX H100/H200 in high-density mode, and AMD MI300X. Figure 4 shows a representative rack.
-- **Immersion cooling.** Whole servers submerged in a dielectric fluid. Two subtypes:
-  - **Single-phase** — fluid stays liquid; heat carried out by pumped flow.
-  - **Two-phase** — fluid boils at chip temperature, vapor rises, condenser at top returns liquid. Highest heat flux capacity, complex.
-- **Spray cooling.** Fluid sprayed at chips inside sealed servers. Niche.
+## Efficiency: PUE, WUE and CUE
 
-![Figure 4 · Liquid-cooled AI rack](diagrams/04-liquid-rack.svg)
+Three ratios dominate efficiency reporting.
 
-The industry has converged on **DTC + rear-door as the standard** for GPU racks in the 60–200 kW range, and is watching immersion for the >500 kW rack of the near future.
+- **PUE (power usage effectiveness)** = total facility energy ÷ IT equipment energy. A PUE of 1.0 would mean no overhead at all. The best new facilities report 1.08–1.2. The global average reported by Uptime's surveys has hovered around 1.5–1.6 for years, pulled up by older sites.
+- **WUE (water usage effectiveness)** = litres of water consumed ÷ kWh of IT energy. It ranges from near zero for closed-loop dry cooling to about 2 L/kWh for heavily evaporative sites. Communities and regulators increasingly ask for it.
+- **CUE (carbon usage effectiveness)** = kg of CO₂ ÷ kWh of IT energy. It depends mostly on the local grid and on clean-energy contracts.
 
-An important design choice: **warm water, not cold water.** DTC systems are designed to accept **facility water in the 30–45 °C range** — warm enough that the outside air (in most climates) can reject the heat without any mechanical refrigeration. This is what enables PUEs approaching 1.05.
+PUE is a blunt tool. It ignores what the computers achieve, it gives no credit for reusing heat, and moving equipment such as server fans into or out of the "IT" side can change it. It remains the industry's common language anyway.
 
-## Chapter 12 · The Cooling Loops
+**Heat reuse** is the next step. Water coming back from cold plates at 40–45 °C is warm enough, with a heat pump, to feed district heating networks. Meta's data center in Odense, Denmark, Microsoft's partnership with Fortum in Finland and the Stockholm Data Parks programme all do this. Heat reuse only works where there is a heat customer within a few kilometres, which rules out most remote AI campuses.
 
-A production data center has two or three coupled fluid loops, each optimized for its own physical role. Figure 6 shows the coupling.
+# Part V — The white space
 
-![Figure 6 · Cooling loops](diagrams/06-cooling-loop.svg)
+## Data hall layout
 
-**Facility loop (a.k.a. condenser-water loop or primary loop).** Rejects heat from the building to the outside atmosphere. Composed of pumps, piping, heat-rejection equipment (dry coolers, cooling towers, adiabatic coils, or a mix), and — in warmer climates or for critical redundancy — mechanical chillers that can force-cool the loop below outside ambient.
+The white space is where the racks stand. Its layout balances power, cooling, cabling, weight and access.
 
-**Technology loop (a.k.a. secondary loop, CDU loop, or tech-cool water loop).** Carries treated, filtered water (or a water-glycol mix) directly to the rack manifolds and cold plates. Isolated from the facility loop by a **coolant distribution unit (CDU)** — a plate-and-frame heat exchanger with its own pumps, filters, and instrumentation. The CDU is the demarcation between "building water" and "IT water."
+- **Raised floor or slab.** For decades, cold air came up through perforated tiles in a raised floor about 0.6 m high, with cables underneath. New AI halls almost always use a **concrete slab with everything overhead** (Figure 4). Slabs carry heavy liquid-cooled racks better, perform better in earthquakes, and keep leaks and cables apart.
+- **Aisle widths.** Cold aisles are about 1.2 m wide, enough for a person and a server lift. Hot aisles are often about 0.9–1.2 m.
+- **Row length** is limited by fire compartments, busway ratings and cable reach. Rows of 15–30 m are typical.
+- **Containment** is standard in all new builds.
+- **Clear height** of 6–10 m leaves room for busway, trays, pipes and the hot-air return space.
+- **Access.** Wide doors, ramps and a clear route from the loading dock so a 1.4-tonne rack on a pallet jack can reach any position.
 
-**Air loop.** A conventional chilled-water loop feeding CRAH units or fan walls that handle whatever heat the liquid loop does not — memory, optics, PSUs, power electronics.
+## Racks
 
-The design goals for these loops:
+The **19-inch rack**, standardised in the 1960s, is still the basic unit. It is 19 inches (482.6 mm) between mounting rails, typically 42–52 **U** tall (1U = 1.75 in, 44.45 mm), 600–800 mm wide and 1,000–1,200 mm deep.
 
-- **High ΔT.** Bigger temperature differences mean lower flow rates, smaller pipes, and smaller pumps. Modern designs target 10–15 K rise across the rack, up from 5–8 K in older builds.
-- **High supply temperature.** Every degree of supply temperature above the outside wet-bulb reduces or eliminates chiller runtime.
-- **Redundancy.** N+1 on pumps, chillers, cooling-tower cells, CDUs. Cross-tied piping to allow any single unit to be isolated for service.
-- **Water conservation.** WUE (Water Usage Effectiveness) increasingly reported; targets under 0.5 L/kWh IT drive designs toward closed-loop dry coolers rather than open evaporative towers.
+Variants in high-density facilities:
 
-## Chapter 13 · Efficiency: PUE, WUE, CUE
+- **Open Compute Project (OCP) Open Rack.** A 21-inch-wide equipment space with a shared DC busbar at the back and hot-swappable power shelves. Used widely by Meta and Microsoft.
+- **NVIDIA MGX and NVL72-class racks** (Figure 5). Built around GPU trays, liquid manifolds and a DC busbar. An NVL72 holds 18 compute trays (72 Blackwell GPUs and 36 Grace CPUs) and 9 NVLink switch trays.
+- **Next-generation AI racks**, designed for 600 kW to 1 MW per rack, with power conversion moved to a separate sidecar or to the building.
 
-Three metrics dominate operational reporting:
+**Cable management** is a craft of its own. Pre-terminated fibre trunks with multi-fibre **MPO** connectors, labelled patch panels and overhead trays keep airflow clear and make changes quick.
 
-- **PUE (Power Usage Effectiveness) = Total facility power ÷ IT power.** A perfect data center has PUE = 1.0 (every watt goes to compute). Best hyperscale new-build now runs **1.08–1.15**. Legacy enterprise sites often 1.6–2.0. Colocation typical 1.4–1.5.
+## Cabling and fibre
 
-- **WUE (Water Usage Effectiveness) = Liters of water consumed ÷ IT kWh.** Ranges from ~0 (fully closed dry-cooled, sometimes at PUE cost) to ~2.5 L/kWh (aggressive evaporative). Increasingly the metric that regulators and communities care about.
+A data center is a fibre plant as much as a power plant. One AI training cluster can need hundreds of thousands of optical links.
 
-- **CUE (Carbon Usage Effectiveness) = kg CO₂ ÷ IT kWh.** Depends on the local grid mix; drives the shift to on-site renewables, PPAs, and 24/7 carbon-free energy matching.
+- **Fibre types.** Multimode fibre is cheaper for short runs (under about 100 m). Singlemode fibre is used for everything longer and increasingly for everything, because the fastest optics (400G, 800G, 1.6T) use it.
+- **Connectors.** LC for single links; MPO/MTP for 8–24 fibres at once; very small form-factor connectors (MDC, SN) where panel space is tight.
+- **Standards.** ANSI/TIA-942, ISO/IEC 11801-5 and BICSI 002 cover cabling layout, labelling and grounding.
+- **Meet-me room (MMR).** A secure telecom room where outside carriers and cloud connections meet the building's network.
 
-PUE is a coarse metric — it does not distinguish between wasted heat and useful heat, does not credit heat reuse, and can be gamed by moving certain loads across the "IT" boundary. But it remains the *lingua franca* of the industry.
+**Optical transceivers**, the small modules that turn electrical signals into light, are now a large share of network cost and power. An 800G transceiver uses roughly 15 W, and a large cluster needs hundreds of thousands of them. **Co-packaged optics**, which put the lasers next to the switch chip, cut that power substantially. NVIDIA and Broadcom began shipping co-packaged-optics switches in 2025–2026.
 
-The next frontier is **heat reuse** — capturing the ~30 °C water returning from CDUs and using it for district heating (already deployed in Nordic sites, notably Meta Odense and CloudHQ Stockholm), for greenhouses (Facebook Prineville), for adjacent industrial processes, or for absorption chillers that recycle the heat into further cooling. Full heat reuse breaks the PUE formalism and requires new metrics (ERE — Energy Reuse Effectiveness).
+# Part VI — The network
 
----
+## Fabric topologies
 
-# Part V — The White Space
+Old data center networks were built like a tree: access switches fed aggregation switches, which fed a core. That suited traffic going in and out of the building ("north-south"). Modern workloads send most traffic between servers ("east-west"), and a tree chokes on that.
 
-## Chapter 14 · IT Hall Geometry
+The answer is the **leaf-spine** design (Figure 7), a form of the **Clos** network invented for telephone exchanges in the 1950s.
 
-The "white space" is where the servers live. Its geometry is the compromise between many competing pressures.
+![Figure 7 — Leaf-spine fabric with rail-optimized GPU connections. Every leaf connects to every spine; GPU number 0 in every server connects to the rail-0 leaf, and so on.](figures/fig07-fabric.png){#fig:fabric}
 
-**Raised floor vs slab.** For decades, the standard was a **raised access floor** — perforated tiles above a plenum through which cold air was delivered. The plenum also carried power and structured cabling. But raised floors have downsides: floor loading limits, seismic performance, contamination risk, and — most damningly — poor airflow control at very high heat densities.
+- **Leaf switches** connect to servers.
+- **Spine switches** connect to every leaf.
+- Any two servers are at most three switch hops apart (leaf, spine, leaf), and there are many equal paths between them.
 
-Modern AI halls almost always use **slab-on-grade** with overhead everything: overhead cable trays, overhead busway, overhead pipe. This preserves the concrete for the enormous mechanical loads of liquid-cooled racks (a fully loaded GB200 NVL72 rack can weigh **1,800 kg**) and improves seismic performance.
+A non-blocking fabric has as much spine capacity as the leaves can send. Very large networks add a third tier, the **super-spine**. Google's Jupiter network goes further and uses **optical circuit switches** (mirrors that redirect light) in place of the spine.
 
-**Aisle pitch.** The cold aisle is typically 4 tiles wide (~1.2 m). The hot aisle is often narrower (~0.9 m) since no one stands in it under load. Row length is set by fire compartments and cabling reach — 15–25 m is typical.
+## Ethernet, InfiniBand and NVLink
 
-**Aisle containment.** As discussed, universal in new builds.
+Three kinds of network sit inside an AI factory.
 
-**Ceiling height.** 20–35 ft in modern halls, to accommodate overhead infrastructure and a warm-return plenum.
+| | NVLink (and similar) | InfiniBand | Ethernet (RoCE / Ultra Ethernet) |
+|---|---|---|---|
+| Role | **scale-up**: makes the GPUs in one rack act as one large GPU | **scale-out**: connects racks in a training cluster | scale-out GPU fabric, storage, management and connection to the outside |
+| Reach | inside a rack (copper), or a few racks | the whole cluster | anywhere |
+| Speed | 1.8 TB/s per GPU (NVLink 5) | 400 Gb/s (NDR) or 800 Gb/s (XDR) per port | 400–800 Gb/s per port, 1.6 Tb/s arriving |
+| Who makes it | NVIDIA; open alternatives (UALink) in development | NVIDIA (from its Mellanox acquisition) | many vendors |
 
-**Rack density.** New AI halls target **200–400 racks per hall**, arranged in 8–20 rows of 20–30 racks each, all in a single fire compartment where possible.
+Table: Network technologies in an AI cluster.
 
-**Egress and access.** Every hall has multiple large service doors, allowing forklift access. Aisles are laid out so a fully loaded pallet jack can reach any rack.
+- **NVLink** links 72 GPUs in an NVL72 rack into one domain through the NVLink switch trays and about 5,000 copper cables in the rack's spine. Any GPU can read another's memory directly.
+- **InfiniBand** was built for supercomputers. It does not drop packets and steers traffic around congestion, giving very consistent latency. It has dominated large training clusters.
+- **Ethernet** is everywhere and has many suppliers. With **RDMA over Converged Ethernet (RoCE)** and newer congestion control, it now runs many of the largest training clusters, including Meta's and xAI's. The **Ultra Ethernet Consortium** published its 1.0 specification in 2025 to tune Ethernet further for AI.
 
-## Chapter 15 · Racks and Cabinets
+## Rail-optimized GPU networks
 
-The **19-inch rack** — a standard set by the Electronic Industries Association in 1965 — is still the fundamental unit of the data center. A rack is 19 inches wide inside its rails, 42–48U tall (a "U" is 1.75 inches), and typically 600 mm or 800 mm wide externally, 1000 mm or 1200 mm deep.
+During training, GPUs constantly exchange results. In a common pattern, GPU 0 in every server talks mostly with GPU 0 in other servers, GPU 1 with GPU 1, and so on.
 
-For high-density and hyperscale, several variants coexist:
+A **rail-optimized** network takes advantage of this. Each 8-GPU server has 8 network cards. Card 0 in every server connects to the "rail 0" leaf switch, card 1 to rail 1, and so on (Figure 7). Most training traffic then crosses one switch instead of three, which lowers latency and frees spine capacity. Nearly every large GPU cluster is now built this way.
 
-- **Standard 19".** The universal enterprise/colocation cabinet.
-- **Open Compute Project (OCP) rack (OpenRack V3).** 21-inch equipment width in a 600 mm-external form factor; centralized 48 VDC bus bar; hot-pluggable trays. Used inside Meta, Microsoft, and much of hyperscale.
-- **NVIDIA MGX / NVL72 / OCP-derived AI racks.** Optimized for GPU trays, warm-water manifolds, integrated bus bar, weighed and structural-engineered to floor loading.
-- **21-inch and 24-inch "AI cabinet" proposals.** Emerging for the >1 MW rack era.
+## Connecting buildings
 
-**Cable management** is a discipline of its own. Horizontal cable managers in every U, vertical cable channels on both sides, and structured overhead pathways keep the front doors closable and airflow uncontaminated. Modern halls use **pre-terminated fiber cassettes** and **MTP/MPO** trunks so a rack's uplinks are plug-and-play.
+A large operator runs a **region**: several buildings or campuses within a few tens of kilometres, linked by **data center interconnect (DCI)**. This is fibre carrying many wavelengths of light (DWDM) at 400 Gb/s to 1.6 Tb/s each, with round-trip times well under a millisecond. Across continents, private backbones (Google's B4, Microsoft's WAN, Meta's Express Backbone) carry petabits per second.
 
-## Chapter 16 · Structured Cabling and Optical Distribution
+AI is pushing these links harder. Google has described training Gemini models across multiple data centers, and Microsoft links its Fairwater AI sites over a dedicated high-speed network. When no single site can get enough power, splitting training across sites becomes necessary.
 
-Every data center is a fiber factory. A single AI training pod can have **tens of thousands of optical connections**. Getting the cable plant right is often the difference between a hall that turns up in weeks and one that turns up in months.
+# Part VII — The AI factory
 
-**Physical layers:**
+## Why AI data centers are different
 
-- **Fiber types.** Multi-mode (OM3/OM4/OM5) for short reach (≤100 m) at lower cost; single-mode (OS2) for everything else. High-speed AI fabrics (400G/800G/1.6T) are increasingly single-mode-only because of reach and lane density.
-- **Connectors.** LC for legacy duplex; MPO/MTP for 8/12/16/24-fiber trunks; new **VSFF** (very small form factor: MDC, SN) for higher panel density.
-- **Structured cabling standards.** ANSI/TIA-942, ISO/IEC 24764, BICSI-002. Set the rules for pathways, spaces, grounding, labeling.
-- **Meet-me room (MMR).** Central telecom room where carriers, cloud on-ramps, and internal cross-connects terminate. Physically a fortress within the fortress.
-- **Zone distribution.** Modern practice divides the hall into zones, each with its own patch enclosure ("zone distribution area"), reducing the reach and complexity of any single trunk.
+A cloud data center serves many small, independent jobs. Each rack mostly works alone, failures are local, and the total power draw is smooth because thousands of unrelated jobs average out.
 
-**Optical transceivers** are increasingly the *dominant capital cost of the fabric*, not the switches. A single 800G optic can cost more than a 1U server. AI networks use hundreds of thousands of them. This is driving the industry toward **co-packaged optics (CPO)** — moving the laser onto the ASIC package itself, eliminating the pluggable transceiver — which will roll out in 2026–2028.
+An AI training data center runs a few enormous jobs. Every GPU is part of one calculation, so a slow or failed GPU can hold up thousands of others. Five properties set these buildings apart:
 
----
+1. **Rack density** of 60–150 kW today, heading to 600 kW and more (Figure 8).
+2. **Liquid cooling everywhere** (see [Liquid cooling](#liquid-cooling)).
+3. **Very large scale-up domains.** A whole rack, and soon several racks, behaves as one machine.
+4. **Dedicated GPU networks**, rail-optimized and usually non-blocking.
+5. **Synchronised power swings** (see [Power swings](#power-swings)).
 
-# Part VI — The Network
+![Figure 8 — Rack power density, 2016–2028, on a log scale. Cloud racks have roughly tripled; AI racks have grown about tenfold, past the practical limit of air cooling.](figures/fig08-density.png){#fig:density}
 
-## Chapter 17 · Fabric Topologies
+The building changes to match:
 
-For decades, data-center networks were **hierarchical**: access → aggregation → core, with over-subscription at each layer. This is a *scale-up* topology: it works well when most traffic is north-south (client to server).
+- Heavier floors and stronger slabs.
+- More mechanical space per megawatt: CDUs, pumps and bigger pipes.
+- Fewer, larger electrical feeds per row: busway rated 800–1,600 A or more.
+- Warmer white space (25–30 °C), because liquid does most of the work.
+- Room to grow: power and cooling designed for the next GPU generation, not just this one.
 
-Modern data-center workloads are dominated by **east-west** traffic (server to server), and hierarchical designs cannot deliver enough bisection bandwidth for them. The industry has therefore converged on the **leaf-spine (Clos) fabric**.
+## GPU pods
 
-![Figure 7 · Leaf-spine](diagrams/07-leaf-spine.svg)
+The building block of an AI factory is the **pod** or **scalable unit**: a group of racks that are installed, cabled, tested and scheduled together. Figure 9 shows one.
 
-A leaf-spine has two layers:
+![Figure 9 — A GPU pod row. Eight NVL72 racks (576 GPUs) with network racks in the middle, in-row CDUs at each end, dual overhead busway, liquid headers and fibre running to the spine row.](figures/fig09-pod.jpg){#fig:pod}
 
-- **Leaf (ToR) switches.** One per rack (or per pair of racks). Every host connects to the leaf.
-- **Spine switches.** Every leaf connects to every spine. Every server can reach every other server in exactly two hops.
+A typical NVIDIA GB200 scalable unit has:
 
-Bisection bandwidth is set by *spine × spine-port-speed*. Modern hyperscale designs run **non-blocking** — spine capacity equals aggregate leaf uplink capacity.
+- **8 NVL72 racks = 576 GPUs**, about 1–1.1 MW of IT load.
+- **Network racks** holding the rail leaf switches for the scale-out fabric.
+- **Liquid distribution**: in-row CDUs or connections to a facility CDU gallery.
+- **Dual busway** (A and B) above the row.
 
-For very large fabrics (>10,000 hosts), a three-tier variant is used: **super-spine** at the top, connecting several leaf-spine pods. Google's Jupiter and Meta's F16 are large-scale examples.
+Clusters are built by repeating this unit: 16 units make about 9,000 GPUs, and 100 units make about 57,000. Job schedulers such as Slurm or Kubernetes place training jobs in whole units so traffic stays local.
 
-Other topologies worth knowing:
+Other vendors use similar ideas: Google's TPU v5p pods link 8,960 chips and its Ironwood (v7) pods 9,216 chips with optical circuit switches; Amazon's Trainium2 UltraServers link 64 chips; AMD's MI350-series racks link 8-GPU nodes over Ethernet.
 
-- **Dragonfly / dragonfly+.** Used in HPC and some AI supercomputers (Frontier, Aurora). Fewer long wires, higher radix routers.
-- **Torus / hypercube.** Legacy HPC (e.g., Blue Gene). Rare in commercial DC.
-- **Fat-tree.** Precursor to Clos, still used academically.
+## Power swings
 
-## Chapter 18 · Ethernet vs InfiniBand vs NVLink
+The power draw of an AI training cluster is unusual.
 
-Three distinct network technologies coexist in the AI factory.
+A cloud building's power curve is smooth, because many independent jobs average out. A training cluster's curve is jagged and synchronised. All GPUs compute together at full power, then pause together while they exchange results over the network, then compute again. They repeat this cycle many times a second.
 
-**Ethernet** is the universal fabric of the internet, cloud, and enterprise. It has evolved to remarkable speeds — 100/200/400G is mainstream, 800G is shipping, 1.6T is imminent — and, with lossless extensions (RoCE v2, DCB, priority-flow-control), can carry RDMA traffic at nearly wire speed. The **Ultra Ethernet Consortium** (2023+) is standardizing extensions specifically for AI (multipath, in-network reduction, better congestion control).
+At 100,000 GPUs of about 1.2–1.4 kW each (including their share of CPU, memory and network), that is a load of well over 100 MW that can drop and recover by a large fraction in a fraction of a second. A job that crashes or finishes can drop it all at once. To the grid, this looks like a very large, very fast industrial load. Grid operators, including ERCOT in Texas and NERC, now study large AI loads specifically after several incidents in which groups of data centers dropped off the grid together during voltage dips.
 
-**InfiniBand** (now owned by NVIDIA via Mellanox) was born in the HPC world and remains dominant in large-model training. It uses a lossless, credit-based flow control that avoids Ethernet's tail-latency variance, and its "adaptive routing" spreads traffic across paths. NVIDIA's current products (NDR at 400G per lane, XDR at 800G) are found in every leading AI supercomputer.
+Engineering responses include:
 
-**NVLink / NVSwitch.** NVIDIA's proprietary intra-node and (with NVSwitch) intra-rack interconnect. Not a network in the traditional sense — it presents as a coherent memory fabric with sub-microsecond latency, hundreds of gigabytes per second per link. NVL72 racks use NVLink to build a **72-GPU coherent domain** where any GPU can dereference any other GPU's memory.
+- **Batteries on the building bus** to absorb and supply the swings.
+- **Software power smoothing.** GPU firmware and training frameworks keep power near a steady floor, for example by running filler work during network phases. NVIDIA added power-smoothing features for this purpose.
+- **Grid-forming inverters** and fast reactive-power control at the substation.
+- **Ride-through settings** agreed with the utility, so the campus does not disconnect during brief voltage dips.
 
-**Choosing.** The rough rule is: **NVLink for scale-up (intra-rack), InfiniBand or Ultra Ethernet for scale-out (rack-to-rack in the training cluster), Ethernet for everything else (storage, management, external egress).**
+## Training halls and inference halls
 
-## Chapter 19 · Rail-Optimized Networks for GPU Clusters
+**Training halls** build new models. They run long, tightly coupled jobs and are optimised for maximum computation per watt and the largest possible coherent clusters. They can be far from users and are often in rural areas with cheap power.
 
-Training workloads have a highly structured communication pattern: at every gradient step, GPU-*i* on every host must exchange gradients with GPU-*i* on every other host (all-reduce, ring, or tree reductions). If the network is not aware of this, the traffic passes through the spine and creates hot spots.
+**Inference halls** run trained models to answer user requests. They are optimised for cost per answer and fast response, so they sit closer to population centres and need cloud-style reliability. Their racks may be just as dense, since the same GPUs are used, but their networks look more like a normal cloud than a supercomputer.
 
-**Rail-optimized** fabrics solve this by grouping "same-index" NICs across many hosts onto a dedicated ToR (a "rail switch"). A typical 8-GPU host has 8 NICs; a rail-optimized fabric has 8 dedicated ToRs (one per rail), each connecting to the corresponding NIC on every host in the pod.
+The boundary is blurring. Inference now uses a growing share of AI compute, and many operators design halls that can switch between the two. The overall pattern is gigawatt training campuses where power is available, and smaller inference sites near users.
 
-Figure 7 shows the topology; the shaded lines highlight two rails.
+## Notable AI campuses
 
-The practical effect is dramatic: **all-reduce traffic collapses to a single switch hop** for the fast phase of the algorithm, reducing latency variance and freeing spine capacity for other traffic. Rail-optimized designs are now standard in every serious AI cluster.
+As publicly reported through mid-2026:
 
-## Chapter 20 · Data Center Interconnect (DCI)
+- **xAI Colossus, Memphis, Tennessee.** About 100,000 H100 GPUs installed in 122 days in 2024, expanded beyond 200,000. A second, larger site (Colossus 2) targets around a gigawatt, using on-site gas turbines and Tesla Megapack batteries.
+- **OpenAI Stargate**, with Oracle and SoftBank. A multi-site US programme, the first in Abilene, Texas (built by Crusoe and operated with Oracle), and further sites announced in Texas, New Mexico, Ohio and the Midwest, plus partner projects abroad.
+- **Meta Prometheus** (New Albany, Ohio, ~1 GW) and **Hyperion** (Richland Parish, Louisiana), planned to grow to several gigawatts.
+- **Microsoft Fairwater** (Mount Pleasant, Wisconsin, and Atlanta). Two-storey halls with closed-loop liquid cooling, linked into one distributed AI system.
+- **Amazon Project Rainier** (New Carlisle, Indiana). Hundreds of thousands of Trainium2 chips, built for Anthropic.
+- **Google TPU campuses** in Iowa, Oklahoma, Ohio and elsewhere, built around TPU pods and optical circuit switching.
+- **Neoclouds** such as CoreWeave, Nebius, Crusoe and Lambda, which build or lease GPU-specific facilities, often in secondary markets with available power.
 
-A hyperscale operator does not have "a data center" — it has a **region**, made of 3–8 buildings within a metropolitan area, connected by very high-capacity fiber. The DCI network:
+Common features: hundreds of megawatts to several gigawatts of contracted power; on-site generation or dedicated substations; warm-water liquid cooling; rail-optimized networks at 400–800 Gb/s per GPU; and build schedules far faster than the industry managed before.
 
-- Runs at **400G–3.2T per wavelength** over DWDM;
-- Uses coherent optics with digital signal processing;
-- Provides sub-millisecond latency between buildings, enabling zonal fault tolerance;
-- Terminates at **spine or super-spine** switches, not at edge routers.
+# Part VIII — Safety, security and operations
 
-Beyond the metro, **long-haul backbones** (Google B4, Microsoft SWAN, Meta Express Backbone) span continents at petabit-scale, with software-defined routing that treats the whole planet as one fabric.
+## Physical security
 
-For **AI**, an additional consideration: model-parallel training across geographically distributed buildings is now being tried (Google Gemini has done cross-region training). This requires DCI capable of tens of terabits per second at sub-millisecond stability.
+Large data centers are protected in layers, each harder to pass than the last:
 
----
+- **Perimeter**: fences, crash-rated barriers and gates, cameras, and intrusion sensors such as radar or buried cable.
+- **Site entry**: a staffed guardhouse, vehicle inspection and number-plate recognition.
+- **Building**: no windows in halls, hardened walls, badge-controlled doors, and **mantraps** (two-door booths that let one person through at a time, often with biometric checks).
+- **Inside**: separate access zones; data halls typically need a badge plus fingerprint or face recognition.
+- **Customer cages** in colocation sites, with locked cabinets and their own cameras.
+- **Security operations centre**: 24/7 monitoring and guards.
 
-# Part VII — The AI Factory
+Insider risk is taken seriously: background checks, two-person rules for sensitive rooms, and strict control of anything that stores data leaving the building. Used drives are typically shredded on site.
 
-## Chapter 21 · Why AI Data Centers Are Different
+## Fire detection and suppression
 
-A traditional cloud data center is designed for **many small, independent workloads**. Each rack is more or less self-contained; failures are localized; power draw is smoothed by the law of large numbers.
+Fire in a data center is dangerous because of the high-value equipment, the electrical energy and the fast air movement.
 
-An AI training data center is designed for **one enormous, tightly coupled workload**. Every GPU is a piece of one distributed computation. Failures cascade. Power draw is *synchronous* — 100,000 GPUs stepping in lockstep can present the grid with a **±30–50 MW step load** at every gradient synchronization.
+### Detection
+- **Aspirating smoke detection** (VESDA is a common brand) continuously samples air through small pipes and can detect an overheating component long before flames. Alarms escalate in stages: alert, action, fire 1, fire 2.
+- **Spot smoke and heat detectors** as backup.
+- **Linear heat detection** along cable trays.
+- **Gas detection** in battery rooms.
 
-Five properties make AI data centers qualitatively different:
+### Suppression
+- **Pre-action sprinklers.** The pipes stay dry until a detector alarms. Water is released only if a sprinkler head is also opened by heat, so two things must go wrong before water reaches the equipment.
+- **Clean-agent gas** (inert gases or chemical agents) in small high-value rooms such as telecom rooms. Some agents are being phased out over environmental concerns.
+- **Water mist** systems, which use less water than sprinklers.
 
-1. **Extreme rack density.** 60–200 kW today, 500 kW–1 MW planned. Air is out. Figure 9 shows the trajectory.
+**Compartments.** Fire walls divide the building, and every cable or pipe passing through them is sealed with fire-stopping.
 
-![Figure 9 · Rack power density evolution](diagrams/09-power-density-evolution.svg)
+**Battery rooms** get special treatment. Lithium-ion batteries can enter **thermal runaway**, a self-sustaining fire. Standards such as NFPA 855 and UL 9540A set the rules for spacing, ventilation, explosion control and testing.
 
-2. **Liquid cooling everywhere.** DTC + rear-door is the new default.
-3. **Coherent scale-up domains.** Racks and pods are single logical machines; you cannot lose one GPU without impacting the whole pod.
-4. **Rail-optimized fabrics.** Network is designed for the collective communication of training.
-5. **Transient power dynamics.** Training oscillates between compute-heavy and network-heavy phases at multi-Hz frequencies, presenting a novel load profile to the utility. This has forced hyperscalers to add **BESS or flywheels between the UPS and the utility** specifically to smooth transients, and to publish "harmonic filters" and "power-quality" specifications the utility can enforce.
+## Operations
 
-The building itself changes too:
+A data center is only as reliable as the people running it.
 
-- **Higher floor loading** (1,000+ lb/ft² vs 250 lb/ft²).
-- **More mechanical space** per MW of IT (pumps, CDUs, primary and secondary loops).
-- **Fewer, larger PDUs** feeding busway rated 800–1600 A.
-- **Warmer white space** (25–27 °C) since liquid does most of the heavy lifting.
+- **Network operations centre (NOC).** Watches the network and services 24/7.
+- **Building management system (BMS).** Controls and monitors the cooling plant, electrical system and alarms.
+- **Electrical power monitoring system (EPMS).** Records every breaker and meter at high speed, so faults can be traced afterwards.
+- **DCIM software** (data center infrastructure management). Tracks every asset, its power, temperature and location, and plans capacity.
+- **Maintenance management.** Generators are run under load monthly; batteries, breakers and cooling units are tested on fixed schedules.
+- **Change control.** Every change follows a written method, peer review and a rollback plan. Most avoidable outages trace to skipped or unclear procedures.
+- **Staffing.** A 100 MW site might have 30–80 staff across security, electrical, mechanical, IT and management, working in shifts around the clock.
 
-## Chapter 22 · GPU Pods
+## Commissioning
 
-The unit of compute in an AI factory is not the rack or the server — it is the **pod**. Figure 8 shows a representative 1,024-GPU pod.
+Before a data center goes live, it is tested in five levels:
 
-![Figure 8 · AI pod](diagrams/08-ai-pod.svg)
+1. **Level 1, factory testing.** Major equipment is tested at the manufacturer.
+2. **Level 2, delivery inspection.** Equipment is checked on arrival for damage and conformity.
+3. **Level 3, installation and start-up.** Each item is installed and started by its vendor.
+4. **Level 4, system testing.** Each system (UPS, generators, cooling plant) is tested on its own under load.
+5. **Level 5, integrated systems testing.** The whole facility is tested together under simulated full load using **load banks**, with real failures staged: pull the utility, fail a generator, fail a pump, trip a breaker. Only after Level 5 is the hall handed over for IT equipment.
 
-A pod contains:
+For liquid-cooled halls, commissioning also includes flushing and filling the technology loop, checking water quality, and leak-testing every connection. An independent **commissioning agent** documents the results for the owner, insurers and tenants.
 
-- 16–64 racks of 8-GPU or 72-GPU compute trays;
-- An intra-pod scale-up fabric (NVLink, or an equivalent) providing coherent memory across every GPU;
-- A pod-local rail-optimized scale-out fabric to sibling pods;
-- Its own mechanical distribution (CDU, manifolds, pumps, PDUs);
-- Frequently, its own DCIM subsystem and firmware baseline.
+# Part IX — Money and the future
 
-Job schedulers (Slurm, Kubernetes with device plugins, MOSAIC, MAST) place training jobs at pod granularity. A 4,096-GPU job runs on four sibling pods. A 100,000-GPU frontier-model training run may span an entire building or multiple buildings.
+## Costs
 
-Real-world examples of pod-scale designs:
+Data center costs are usually quoted per megawatt of IT capacity. Approximate 2025–2026 US ranges for the building and its infrastructure:
 
-- **NVIDIA GB200 NVL72:** 72-GPU coherent domain per rack; 9 racks form a "SuperPod" (~600 GPUs); customer builds cluster SuperPods into buildings of 20–100k GPUs.
-- **Google TPU v5p pod:** 8,960 TPUs in a 3D torus with optical circuit switches for reconfiguration.
-- **AMD MI300X node with Infinity Fabric.**
-- **Trainium 2 (AWS)** pods with NeuronLink.
+| Facility type | Build cost per MW of IT |
+|---|---|
+| Enterprise, Tier III | $8–12 million |
+| Hyperscale, air-cooled | $9–12 million |
+| AI-ready, liquid-cooled | $11–15 million |
+| Highly redundant AI or Tier IV | $15–25 million |
 
-## Chapter 23 · Power Synchrony and Transient Loads
+Table: Approximate construction cost per megawatt, excluding IT equipment.
 
-Perhaps the most surprising property of an AI factory is the shape of its electrical load.
+The building is the smaller part of the bill for AI. **The IT equipment usually costs two to four times as much as the building.** An NVL72 rack sells for roughly $3–4 million, so 100 MW of them costs on the order of $2.5–3 billion, compared with about $1.1–1.5 billion for the facility.
 
-A conventional cloud building has a **smooth, predictable power curve** — the aggregate of tens of thousands of unrelated workloads averages to a slowly varying baseline.
+Annual operating costs for a 100 MW site:
 
-An AI training cluster has a **jagged, coherent curve**. Every GPU in the cluster:
+- **Electricity**: the largest cost. At $0.06/kWh and a PUE of 1.2, about $55–65 million a year.
+- **Staff and maintenance**: about $10–20 million.
+- **Property tax and insurance**: highly variable, $2–15 million.
+- **Water and treatment**: $0.5–3 million.
 
-- Draws maximum power during dense matrix multiplication phases;
-- Drops to near-idle during all-reduce network phases;
-- Repeats this pattern at multi-Hz frequencies through the training run.
+**Revenue models.** Wholesale colocation is priced per kW per month (roughly $120–200 for large hyperscale leases in major US markets). Retail colocation is priced per cabinet. GPU clouds charge per GPU-hour, roughly $2–6 for current-generation GPUs depending on model and contract length.
 
-At 100,000 GPUs of ~1 kW each, this is a **100 MW load oscillating tens of MW every few hundred milliseconds**. Utilities have described the effect as "like a steel-mill arc furnace, but continuous."
+## Regulation and communities
 
-The engineering answer:
+Data centers used to be welcomed as quiet taxpayers. They are now examined as heavy users of power, water and land.
 
-- **BESS on the site bus**, providing spinning reserve and transient smoothing;
-- **Programmatic load shaping** in the training software (deliberate all-reduce jitter);
-- **Grid-forming inverters** at the substation;
-- **Utility coordination** — some sites now have real-time SCADA links so the utility can pre-position reactive power.
+- **Grid rules.** Utilities and regulators are creating special tariffs for very large loads, often requiring long contracts, minimum payments or customer-funded grid upgrades so other customers do not carry the cost. Texas, Ohio, Virginia and Georgia have all acted.
+- **Pauses and limits.** Ireland's grid operator restricted new connections around Dublin; Amsterdam and Frankfurt have zoning limits.
+- **Community agreements**: local hiring, road improvements and payments to schools and services.
+- **Noise rules**, which affect generator testing schedules and cooling fan choices.
+- **Water permits** with drought conditions attached.
+- **Air permits** limiting generator hours.
+- **Disclosure.** The EU's Energy Efficiency Directive requires large data centers to report energy, water and heat-reuse figures each year.
 
-Failure to manage this can trip breakers, injure the local grid, or cause the utility to refuse further capacity.
+## Sustainability
 
-## Chapter 24 · Training vs Inference Halls
+The IEA estimates that data centers used about 415 TWh in 2024, roughly 1.5% of global electricity, and projects about 945 TWh by 2030, driven mostly by AI. Lawrence Berkeley National Laboratory estimated US data centers used 4.4% of US electricity in 2023, rising to between 6.7% and 12% by 2028.
 
-Not all AI compute is created equal.
+The industry's responses:
 
-**Training halls** are the "backend" — dense GPU clusters running long-duration, tightly coupled workloads. Optimized for **peak FLOPs per watt**, extreme scale-up density, and pod-level coherence. Latency-insensitive to end users; throughput-obsessed.
+- **Efficiency.** New builds at PUE 1.1–1.2, warm-water cooling, more efficient chips per unit of computation.
+- **Clean-energy contracts.** Long-term power purchase agreements (PPAs) for wind, solar and storage.
+- **24/7 carbon-free energy.** Google and Microsoft aim to match their use with clean energy every hour, not just on an annual total. That pushes demand for always-available sources such as nuclear, geothermal and long-duration storage.
+- **Heat reuse** where a heat customer is nearby.
+- **Water.** Closed-loop and dry cooling, recycled or non-drinking water for evaporative systems, and published WUE figures.
+- **Embodied carbon.** Lower-carbon concrete and steel, and longer equipment lifetimes.
 
-**Inference halls** are the "front end" — many smaller GPU or accelerator servers serving user queries. Optimized for **throughput per dollar and low tail-latency** to the user. Often distributed near population centers (metros) rather than concentrated at a single mega-site. Rack densities lower (30–80 kW) than training halls. Network is more like conventional cloud than like a supercomputer.
+## What comes next
 
-The distinction is not sharp — the same building can host both, and many hyperscalers use **fungible fleets** that can dispatch to either mode. But the trend is toward **specialization**: gigawatt training campuses in the middle of nowhere; smaller metro-adjacent inference clusters near the users.
+Five trends will shape the next five years:
 
-## Chapter 25 · Notable Real-World Examples
+1. **Bring-your-own power.** On-site gas plants and large batteries are already common at AI campuses. Nuclear restarts and uprates are coming online, and small modular reactors are planned for the 2030s. This separates AI growth from grid connection queues, at a cost in emissions, money or time.
+2. **Megawatt racks and 800 V DC.** Rack power is heading toward 1 MW. Power will be converted outside the rack and distributed at 800 V DC to cut copper and losses.
+3. **Light instead of copper.** Co-packaged optics put lasers next to switch chips, and optical interconnects will extend scale-up domains beyond one rack.
+4. **Optical circuit switching.** Mirrors that redirect light, used by Google, may take over parts of the network from electronic switches.
+5. **Flexible demand.** Data centers that can briefly slow down or shift work when the grid is stressed can connect sooner. Several utilities now offer faster connections in exchange for this flexibility.
 
-A short tour of the current frontier (as of 2026):
+The data center, a plain industrial building in a field, has become one of the most strategically important kinds of infrastructure in the world.
 
-- **xAI Colossus (Memphis, TN).** Went from empty warehouse to ~100k H100 GPUs in ~19 weeks in 2024, expanded through 200k+ in 2025, now targeting 1M+ GPUs at build-out with on-site gas turbines and Tesla Megapacks.
-- **Meta Hyperion (LA campus) and Prometheus** (multiple sites). Multi-gigawatt build-outs across Louisiana, Ohio, and elsewhere.
-- **Microsoft–OpenAI Stargate.** A publicly announced $100B+ program building multi-gigawatt AI campuses across the U.S., with the first Abilene, TX site under construction.
-- **Amazon–Anthropic "Rainier"** (New Carlisle, IN). Trainium2-based, gigawatt scale.
-- **Google Council Bluffs and TPU campuses.** Optical circuit switching, custom TPU pods.
-- **Nvidia + Foxconn "AI Factory" in Taiwan.**
-- **CoreWeave, Nebius, Crusoe, Lambda.** Neocloud operators building purpose-built AI colo in secondary markets with cheaper power.
+# Worked example: a 100 MW AI hall {#worked-example}
 
-Common features across all of them:
-- Hundreds of megawatts to multiple gigawatts of contracted power;
-- On-site generation or dedicated substations;
-- Warm-water liquid cooling at 30–45 °C supply;
-- Rail-optimized fabrics with 400/800/1600G optics;
-- Faster build cycles than the industry ever did before (12–18 months shell-to-first-load).
+This chapter puts the guide's numbers together for one hypothetical 100 MW (IT) training hall built with NVL72-class racks. Every figure is rounded and meant to show the scale, not to serve as a design.
 
----
+### Compute
+- 100 MW ÷ ~132 kW per rack ≈ **750 racks**
+- 750 racks × 72 GPUs ≈ **54,000 GPUs**
+- ≈ 94 scalable units of 8 racks
 
-# Part VIII — Safety, Security, Operations
+### Electricity
+- PUE of 1.2 → **120 MW** at the meter
+- At an average 85% load: 120 MW × 0.85 × 8,760 h ≈ **0.9 TWh a year**, about as much as 85,000 US homes
+- At $0.06/kWh ≈ **$54 million a year**
 
-## Chapter 26 · Physical Security
+### Cooling
+- About 85 MW leaves in liquid. With a 10 K temperature rise: flow = 85,000 kW ÷ (4.19 kJ/kg·K × 10 K) ≈ **2,000 litres per second** (about 32,000 US gallons per minute), or roughly 2.7 L/s per rack
+- About 15 MW leaves in air. With a 12 K air temperature rise: 15,000 kW ÷ (1.2 kg/m³ × 1.005 kJ/kg·K × 12 K) ≈ **1,000 m³/s** of air (about 2.2 million cubic feet per minute)
+- With dry coolers, water use is close to zero except during adiabatic hours in heat waves
 
-A modern hyperscale data center is a hard target by design. The security posture is layered:
+### Electrical plant
+- **Batteries:** 5 minutes at 100 MW ≈ 8.3 MWh usable, per path
+- **Generators:** about 120 MW ÷ 3 MW ≈ 40, plus spares → **45–50 units**, or none if the site relies on on-site gas generation instead
+- **Unit-substation transformers:** about 40 × 3 MVA per path
 
-- **Perimeter** — fence, ballistic vehicle bollards, blast standoff, K-rated gates, CCTV, LiDAR/radar intrusion detection.
-- **Site** — guardhouse with 24/7 staffing, license-plate recognition, mantrap vehicle inspection for trucks.
-- **Building envelope** — no windows in data halls, hardened concrete or CMU walls, badge-controlled doors, biometric mantraps.
-- **Interior zones** — every door is a security boundary; corridors have separate badging; data halls require dual authentication (badge + biometric).
-- **Cages and cabinets** — for colocation, individual customer cages, some cage-in-cage, with locked cabinets and camera coverage.
-- **SOC (Security Operations Center)** — 24/7 monitoring, on-site guards, drone surveillance in some campuses.
+### Space
+- About 750 racks at 2.5–3.5 m² of white space each (including aisles and in-row CDUs) ≈ **2,000–2,600 m²** of white space
+- Electrical and mechanical rooms usually need two to three times that again
 
-Insider threat is treated seriously. Two-person integrity rules apply to access to certain rooms (crypto, MMR, key management). Background checks are standard for all site personnel and contractors.
+### Money
+- **Building and infrastructure:** about $1.1–1.5 billion
+- **IT equipment:** about $2.5–3 billion for racks plus roughly 10–15% more for the network and storage
+- **Total:** on the order of **$4–5 billion**, with power costs of about $50–60 million a year
 
-## Chapter 27 · Fire Detection and Suppression
+### Weight
+- 750 racks × ~1.4 t ≈ **1,050 tonnes** of IT equipment, about as much as 700 cars, plus several hundred tonnes of water in the pipes
 
-Fire in a data center is uniquely hazardous: high-value equipment, high electrical energy, high air movement, and a workload that can't be evacuated. The industry has developed a defence-in-depth stack.
+# Glossary {.unnumbered}
 
-**Detection.**
-- **VESDA (Very Early Smoke Detection Apparatus).** Aspirating smoke detectors continuously sample air; can detect a smouldering resistor before flame. Multi-stage alarms (alert → action → pre-alarm → fire) allow graceful response.
-- **Spot detectors** as secondary.
-- **Linear heat detection** on cable trays.
-- **Battery-room hydrogen sensors** (VRLA).
-- **AI-based thermal video** for hotspot detection.
+2N
+:   Two complete, independent systems, each able to carry the whole load.
 
-**Suppression.**
-- **Pre-action sprinkler.** Dry pipe (no water in the pipes) that fills only after a detector alarm, and discharges only if a sprinkler head then fuses. Two-stage safety against accidental discharge.
-- **Clean agent (Novec 1230, FM-200, Inergen).** Gaseous suppressants that displace oxygen or absorb heat without wetting equipment. Used in high-value zones (MMR, tape libraries) but declining because of GWP or availability concerns.
-- **Mist systems.** Water in very fine droplets, less damaging than sprinkler discharge.
-- **Portable clean-agent** at the rack for first response.
+Adiabatic cooling
+:   Spraying water onto air or coils so evaporation lowers the temperature; used only on the hottest days in "adiabatic dry coolers".
 
-**Compartmentalization.** Every 25,000–50,000 ft² of hall is a fire compartment. Cable trays penetrating fire walls are firestopped.
+All-reduce
+:   A step in distributed training where every GPU combines its results with every other GPU's.
 
-**Battery-room special measures.** Li-ion UPS and BESS rooms require dedicated design — thermal runaway containment, ventilation, gas detection, deluge, and structural blast walls. Standards like NFPA 855 and UL 9540A govern this.
+ATS
+:   Automatic transfer switch: moves a load from one power source to another, for example from the utility to generators.
 
-## Chapter 28 · Operations
+BESS
+:   Battery energy storage system; container-sized batteries used for backup, smoothing and grid services.
 
-The building is only as good as its operations team.
+BMS
+:   Building management system: software that controls and monitors cooling, electrical and building equipment.
 
-**Network Operations Center (NOC).** 24/7 monitoring of network fabric, servers, and services. Escalation to on-call engineers via runbook.
+Busbar / busway
+:   A rigid metal conductor; busway runs above rows with plug-in tap boxes, and a busbar runs up the back of a rack.
 
-**Building Management System (BMS).** SCADA/BMS software (Siemens Designo, Schneider EBO, Honeywell EBI, Automated Logic WebCTRL) monitors and controls mechanical and electrical plant. Alarms feed the NOC.
+CDU
+:   Coolant distribution unit: a heat exchanger with pumps and filters that separates facility water from rack water.
 
-**DCIM (Data Center Infrastructure Management).** Software layer that inventories every asset, tracks power draw and thermal profile per rack, manages capacity, and increasingly uses ML for anomaly detection and predictive maintenance. Vendors: Nlyte, Sunbird, Vertiv Environet, Schneider EcoStruxure IT.
+Checkpoint
+:   A saved copy of a training job's progress, so it can restart after a failure.
 
-**CMMS (Computerized Maintenance Management System).** Work-order and preventative-maintenance tracking. Every generator is exercised weekly and load-bank-tested annually; every UPS is battery-tested; every chiller is quarterly-inspected.
+Clos / leaf-spine
+:   A network where every leaf switch connects to every spine switch, giving many equal paths.
 
-**Change control.** No physical or logical change happens without a written change order, peer review, and rollback plan. This is where most avoidable outages are lost.
+Cold plate
+:   A metal block with internal channels, fixed to a chip, through which coolant flows.
 
-**Staffing.** A 100 MW hyperscale might operate with ~30–60 people including security, mechanical, electrical, IT, and management. Neocloud AI-only operators run with lighter teams because there is less variety in the workload.
+Colocation
+:   A data center that rents space, power and cooling to customers who bring their own equipment.
 
-## Chapter 29 · Commissioning (L1 – L5)
+Containment
+:   Doors and panels that separate hot and cold air in a data hall.
 
-Before a data center enters service, it goes through a multi-level commissioning process:
+Co-packaged optics
+:   Optical engines mounted in the same package as a switch or network chip.
 
-- **L1 — Factory Acceptance Testing (FAT).** Each major piece of equipment tested at the vendor's factory.
-- **L2 — Site Acceptance Testing (SAT).** Same equipment, tested on site after delivery, before install.
-- **L3 — Component testing.** Individual systems (UPS, generator, chiller) tested in place with utilities but not integrated.
-- **L4 — Integrated systems testing (IST).** Every subsystem in coordinated failure and recovery scenarios. Utility loss → generator start → UPS ride-through → transfer back. Failure of one chiller → automatic failover to redundant. Simulated fire → suppression verification.
-- **L5 — Full-load testing.** Load banks simulate full IT draw, and the entire plant is exercised across worst-case scenarios. Real IT is only admitted after L5 sign-off.
+CRAC / CRAH
+:   Computer room air conditioner (with its own compressor) / air handler (using chilled water).
 
-Independent commissioning agents (CxAs) issue formal documentation used by insurance underwriters and enterprise tenants. Commissioning can consume 5–15% of project schedule and 2–4% of project cost, and is where most latent design defects are discovered.
+CUE
+:   Carbon usage effectiveness: kg of CO₂ per kWh of IT energy.
 
----
+DCI
+:   Data center interconnect: high-capacity fibre links between buildings or campuses.
 
-# Part IX — The Business and the Future
+DCIM
+:   Data center infrastructure management software: asset, power, cooling and capacity tracking.
 
-## Chapter 30 · Economics and TCO
+Dry cooler
+:   A large radiator with fans that rejects heat to outside air without using water.
 
-The financial model of a hyperscale data center revolves around **cost per MW of IT critical load** and **capex per MW built**.
+DWDM
+:   Dense wavelength-division multiplexing: many colours of light on one fibre.
 
-Ranges (2025 US dollars):
+GPU
+:   Graphics processing unit; the main chip used for AI training and inference.
 
-- **Enterprise Tier III retrofit:** $6–9 M / MW-IT.
-- **Hyperscale greenfield, air-cooled:** $8–12 M / MW-IT.
-- **Hyperscale greenfield, liquid-cooled AI-ready:** $12–18 M / MW-IT.
-- **Hyperscale Tier IV or highly redundant AI:** $15–25 M / MW-IT.
+Hot aisle / cold aisle
+:   The layout where racks face each other in pairs so all intakes share one aisle and all exhausts share another.
 
-These numbers **exclude the IT equipment itself**, which for AI is far more expensive than the building — a single 100 MW AI hall may house **$3–8 billion of GPUs**, dwarfing the ~$1.5B of infrastructure.
+Hyperscaler
+:   A company running cloud infrastructure at very large scale (Amazon, Microsoft, Google, Meta, Oracle, Alibaba and others).
 
-Ongoing costs, typical hyperscale:
+InfiniBand
+:   A low-latency, lossless network used in supercomputers and AI clusters; generations include HDR (200 Gb/s), NDR (400 Gb/s) and XDR (800 Gb/s).
 
-- **Electricity:** dominant. At $0.05–0.08/kWh industrial rate, a 100 MW facility runs $50–80 M / year in power.
-- **Maintenance and staffing:** $8–15 M / year for a 100 MW campus.
-- **Property tax, insurance:** varies wildly by jurisdiction, $2–10 M / year.
-- **Cooling water and chemicals:** $0.5–3 M / year.
+Inference
+:   Running a trained AI model to answer requests.
 
-**Revenue** in colocation is priced per **kW/month** (typical $150–400/kW/month for wholesale hyperscale) or per cabinet (retail). AI cloud (CoreWeave et al.) is priced per **GPU-hour** ($1.50 – $6.00 depending on GPU class and term).
+IT load
+:   The power used by the computing equipment itself, excluding cooling and other overhead.
 
-The bottleneck for new capacity, as noted, is not capital or land — it is **interconnection queues** at utilities that were sized for a slow-growth industry. The current queue in ERCOT for large loads exceeds 100 GW; PJM is similar. This is the single most important number in the industry.
+Kilowatt (kW), megawatt (MW), gigawatt (GW)
+:   Units of power: 1 MW = 1,000 kW; 1 GW = 1,000 MW.
 
-## Chapter 31 · Regulatory, Environmental, Community
+Mantrap
+:   A small two-door security booth that admits one person at a time.
 
-The industry's honeymoon with local governments is ending. Data centers used to be welcomed as tax base with minimal traffic; they are now scrutinized as heavy industrial users of power and water, often in tension with residential neighbors over noise (generator testing, cooling towers) and viewshed.
+MV / LV
+:   Medium voltage (roughly 1–35 kV) / low voltage (under 1 kV).
 
-Emerging patterns:
+N+1
+:   The number of units needed plus one spare.
 
-- **Moratoriums** in some jurisdictions (parts of NoVA, Ireland, Netherlands) pausing new permits.
-- **Community benefit agreements** — commitments to local hiring, apprenticeship, road improvements.
-- **Sound ordinances** driving generator enclosure design and cooling-tower fan selection.
-- **Water permits** with drought triggers.
-- **Air permits** with genset-hour caps.
-- **Transparency requirements** — utilities being asked to disclose the identity of large-load customers.
-- **Renewable-matching mandates** — in EU under the Corporate Sustainability Reporting Directive, and voluntarily via 24/7 CFE programs.
+Neocloud
+:   A cloud provider specialising in GPU computing (CoreWeave, Nebius, Crusoe, Lambda and others).
 
-Long-term, data centers will need to be *good neighbors*, not just quiet ones, and the buildings themselves will need to demonstrably contribute more than they take (heat reuse to district heating; renewable buildout that lifts all local ratepayers).
+NVLink
+:   NVIDIA's high-speed GPU-to-GPU link; an NVL72 rack joins 72 GPUs in one NVLink domain.
 
-## Chapter 32 · Sustainability and Heat Reuse
+OCP
+:   Open Compute Project: an industry group publishing open hardware designs, started by Facebook (now Meta).
 
-Data centers currently consume ~1.5–2% of global electricity, projected to reach 3–4% by 2030 primarily from AI. The industry response spans several axes:
+Optical circuit switch
+:   A switch that redirects light with tiny mirrors instead of processing packets electronically.
 
-- **Efficiency (PUE).** New builds routinely 1.10–1.15; some 1.05. Diminishing returns.
-- **Renewable procurement.** Long-term PPAs for solar and wind, on-site generation.
-- **24/7 carbon-free energy matching.** Google, Microsoft, and others have committed to hourly matching, requiring firm carbon-free sources — driving nuclear, geothermal, and long-duration storage investment.
-- **Heat reuse.** Nordic sites (Odense, Stockholm) already export waste heat to district networks. Meta and Equinix have similar programs. Reuse only makes sense where a heat customer sits within a few km.
-- **Refrigerants.** Move to low-GWP refrigerants (R-1234ze, R-513A) in remaining mechanical cooling.
-- **Water recycling.** Closed-loop dry coolers reduce WUE toward zero.
-- **Embodied carbon.** Increased attention to concrete, steel, and copper in construction.
+PDU
+:   Power distribution unit: equipment that distributes power to rows or racks.
 
-## Chapter 33 · The Frontier
+PPA
+:   Power purchase agreement: a long-term contract to buy electricity, often from a new wind or solar farm.
 
-Looking forward five years, five threads matter:
+Pre-action sprinkler
+:   A sprinkler system whose pipes stay dry until a detector alarms.
 
-1. **Primary on-site generation.** Behind-the-meter natural-gas turbines are here now; SMRs (NuScale, Kairos, Oklo) will begin AI-campus operations 2028–2032. Watch this space closely: it decouples AI from grid interconnection queues.
+PUE
+:   Power usage effectiveness: total facility energy divided by IT energy.
 
-2. **1 MW racks and 800 V DC distribution.** NVIDIA's post-Rubin roadmap, AMD's roadmap, and OCP working groups all converge on this. Every architectural assumption of the last 20 years is being renegotiated.
+Rail-optimized
+:   A GPU network design where same-numbered GPUs in every server share a leaf switch.
 
-3. **Co-packaged optics.** Moving lasers onto the switch and NIC ASIC packages eliminates pluggable transceivers, reduces cost and power, and enables the next generation of fabric speeds (3.2T, 6.4T).
+RoCE
+:   RDMA over Converged Ethernet: lets servers read each other's memory directly across Ethernet.
 
-4. **Optical circuit switching.** Google's OCS approach — using MEMS mirrors to reconfigure fibers directly — could displace electrical switches in some layers, reducing latency and power.
+Scalable unit (pod)
+:   A standard group of racks installed and operated together, for example 8 NVL72 racks.
 
-5. **Software-defined power and thermal.** DCIM systems that treat power and cooling as elastic resources, dynamically shifting workloads across zones and buildings in response to grid signals, weather, and workload phase.
+Scale-up / scale-out
+:   Making one machine bigger (more GPUs in one NVLink domain) / connecting more machines over a network.
 
-The economics, the physics, the regulatory environment, and the geopolitics of AI infrastructure are all in flux. What is clear is that the data center — an unglamorous industrial building in a field — has become one of the most strategically important pieces of infrastructure in the world.
+SMR
+:   Small modular reactor: a factory-built nuclear reactor of up to about 300 MW.
 
----
+Tier I–IV
+:   Uptime Institute's classification of data center redundancy.
 
-# Glossary
+ToR / leaf
+:   Top-of-rack or leaf switch: the first switch a server connects to.
 
-**2N.** Two independent, complete systems, each able to carry the full load alone.
-**Adiabatic cooling.** Evaporative pre-cooling of air before it passes through a dry cooler, effective in hot dry climates.
-**All-reduce.** A collective communication operation in distributed training where every node sums gradients with every other node.
-**ATS.** Automatic Transfer Switch — a device that switches load between two power sources on loss of primary.
-**BESS.** Battery Energy Storage System — utility-scale lithium (or other) batteries used for ride-through, grid services, or primary storage.
-**BMS.** Building Management System — SCADA software that monitors and controls mechanical and electrical plant.
-**Busway.** Metal-clad power distribution rail, plug-in tapped at each rack.
-**CAC / HAC.** Cold-aisle containment / hot-aisle containment.
-**CDU.** Coolant Distribution Unit — the heat exchanger and pump skid that couples facility water to IT water for liquid cooling.
-**CFE.** Carbon-Free Energy — matched hourly to a data center's consumption.
-**Clos.** A non-blocking multi-stage switch topology, of which leaf-spine is the two-stage form.
-**CMMS.** Computerized Maintenance Management System.
-**CoPacked Optics (CPO).** Integrating an optical engine into a switch or NIC ASIC package.
-**CRAC / CRAH.** Computer Room Air Conditioner (with compressor) / Air Handler (chilled-water only).
-**CUE.** Carbon Usage Effectiveness — kg CO₂ per IT kWh.
-**DCI.** Data Center Interconnect — high-capacity fiber between buildings/campuses.
-**DCIM.** Data Center Infrastructure Management software.
-**Dark fiber.** Unlit fiber pairs leased to a customer to run their own optics.
-**Dragonfly.** A high-radix network topology used in some HPC/AI supercomputers.
-**DTC / DLC.** Direct-to-chip / direct liquid cooling — cold plates on the processors.
-**DWDM.** Dense Wavelength-Division Multiplexing — many wavelengths per fiber.
-**ERE.** Energy Reuse Effectiveness — accounts for waste heat exported for reuse.
-**FAT / SAT.** Factory / Site Acceptance Testing.
-**Fiber MMR.** Meet-Me Room — the telecom room where all carriers and cross-connects terminate.
-**Free cooling.** Any cooling regime that does not require a mechanical chiller compressor.
-**GB200.** NVIDIA's Grace-Blackwell architecture; NVL72 is the 72-GPU rack-scale form.
-**Grid-forming inverter.** A power-electronics device that can create voltage and frequency reference rather than follow one.
-**HDX / NDX / XDR.** InfiniBand data-rate generations.
-**HPC.** High-Performance Computing.
-**Hyperscale.** Operator running at hundreds of megawatts to gigawatts across many buildings (AWS, Microsoft, Google, Meta, Oracle, Alibaba, Tencent, ByteDance).
-**IB.** InfiniBand.
-**InfiniBand.** A lossless, credit-based interconnect standard used in HPC and AI.
-**Immersion cooling.** Whole-server or whole-rack submersion in a dielectric fluid.
-**IT load / critical load.** Power delivered to computing equipment, not to cooling and other overhead.
-**LFP / NMC.** Lithium-iron-phosphate / nickel-manganese-cobalt battery chemistries.
-**MMR.** Meet-Me Room.
-**MV / LV.** Medium Voltage (~1–35 kV) / Low Voltage (<1 kV).
-**MTP / MPO.** High-density multi-fiber connectors.
-**N+1.** N required plus one spare.
-**Neocloud.** New generation of AI-only cloud operators (CoreWeave, Nebius, Crusoe, Lambda).
-**NVLink / NVSwitch.** NVIDIA's proprietary coherent GPU interconnect.
-**OCP.** Open Compute Project — open hardware specifications originated by Meta.
-**OCS.** Optical Circuit Switch — a MEMS mirror device that switches whole wavelengths rather than packets.
-**PDU.** Power Distribution Unit.
-**Pod.** The unit of AI compute: a coherent scale-up domain plus its scale-out fabric.
-**PPA.** Power Purchase Agreement — long-term contract with a renewable developer.
-**PUE.** Power Usage Effectiveness = total facility power ÷ IT power.
-**Rail-optimized.** A network topology grouping same-index NICs across many hosts onto dedicated ToRs.
-**RDHx.** Rear-Door Heat Exchanger.
-**RoCE.** RDMA over Converged Ethernet — RDMA over lossless Ethernet.
-**Scale-up / scale-out.** Making a single node bigger vs. adding more nodes.
-**SMR.** Small Modular Reactor.
-**Spine / leaf.** Layers of the modern Clos fabric.
-**STS.** Static Transfer Switch — sub-cycle power path switch.
-**Substation.** The utility interface: HV → MV transformer yard, protective relays, disconnects.
-**Tier I–IV.** Uptime Institute redundancy classification.
-**ToR.** Top-of-Rack switch.
-**Ultra Ethernet.** Consortium standardizing Ethernet extensions for AI/HPC.
-**UPS.** Uninterruptible Power Supply.
-**VESDA.** Very Early Smoke Detection Apparatus (aspirating smoke detection).
-**VFD.** Variable Frequency Drive — for speed control of pumps and fans.
-**VRM.** Voltage Regulator Module — on-motherboard step-down to chip voltage.
-**WUE.** Water Usage Effectiveness — liters of water per IT kWh.
-**White / grey space.** Rooms housing IT equipment / rooms housing supporting mechanical & electrical.
+UPS
+:   Uninterruptible power supply: batteries and electronics that carry the load through power disturbances.
 
----
+VESDA
+:   A brand of aspirating smoke detection, often used as a generic name.
 
-# Further Reading and Sources
+VRM
+:   Voltage regulator module: converts board power to the chip's operating voltage, right next to the chip.
 
-- Uptime Institute — *Tier Classification System* and annual *Global Data Center Survey*.
-- ASHRAE Technical Committee 9.9 — *Thermal Guidelines for Data Processing Environments*, latest edition.
-- Open Compute Project — specifications for OpenRack, ORV3, and OCP servers (opencompute.org).
-- NVIDIA — *GB200 NVL72 Reference Architecture* and *DGX SuperPOD Reference Architecture*.
-- Meta Engineering Blog — posts on Prineville, Odense, Hyperion.
-- Google Research — papers on Jupiter, B4, TPU pods, and 24/7 CFE.
-- Microsoft — *Datacenter Fabric* whitepapers, Project Natick.
-- The Uptime Institute Journal — case studies on outages and post-mortems.
-- SemiAnalysis newsletter — deep dives on AI datacenter builds, power, and networking.
-- LBNL — data-center energy studies and free-cooling analyses.
+White space / grey space
+:   Rooms holding IT equipment / rooms holding the electrical and mechanical equipment that supports it.
 
----
+WUE
+:   Water usage effectiveness: litres of water consumed per kWh of IT energy.
 
-*Prepared September 2026. Figures are original isometric SVG diagrams created for this document.*
+# Further reading {.unnumbered}
+
+- Uptime Institute, *Tier Classification System* and the annual *Global Data Center Survey* — uptimeinstitute.com
+- ASHRAE TC 9.9, *Thermal Guidelines for Data Processing Environments* — ashrae.org
+- Open Compute Project, Open Rack and advanced cooling specifications — opencompute.org
+- NVIDIA, *GB200 NVL72* product pages and *DGX SuperPOD* reference architectures — nvidia.com
+- International Energy Agency, *Energy and AI* (2025) — iea.org
+- Lawrence Berkeley National Laboratory, *2024 United States Data Center Energy Usage Report* — eta.lbl.gov
+- Google, papers on Jupiter networking, TPU pods and optical circuit switching — research.google
+- Meta Engineering blog, posts on AI cluster networks and data center design — engineering.fb.com
+- Microsoft, Fairwater AI datacenter announcements — blogs.microsoft.com
+- NFPA 75 (IT equipment protection) and NFPA 855 (energy storage systems)
+
+*Figures: 3-D renderings and schematics created for this guide from generic, publicly documented design patterns. They are illustrative and do not depict any specific operator's facility.*
