@@ -1909,8 +1909,9 @@ tryLoadDadView();
 renderAll();
 
 // Warm greeting on first open
-if(!DAD_VIEW && !localStorage.getItem(KEY+'.greeted')){
-  localStorage.setItem(KEY+'.greeted','1');
+let greeted = false;
+try{ greeted = !!localStorage.getItem(KEY+'.greeted'); localStorage.setItem(KEY+'.greeted','1'); }catch(e){}
+if(!DAD_VIEW && !greeted){
   setTimeout(()=>{
     showModal(`
       <div class="kicker">💌 A NOTE FROM DAD</div>
