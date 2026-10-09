@@ -80,7 +80,7 @@ KK.content = (() => {
   const SKILLS = [
     // ───────── Unit 1: Algebra ─────────
     {
-      id: 'lin', unit: 'alg', icon: '🎀', name: 'Linear equations', blurb: 'Solve for x, the #1 thing on the SAT.',
+      id: 'lin', story: true, unit: 'alg', icon: '🎀', name: 'Linear equations', blurb: 'Solve for x, the #1 thing on the SAT.',
       gen: {
         easy() {
           const it = pick(ITEMS), x = pick(it.p), k = rand(2, 5);
@@ -101,7 +101,6 @@ KK.content = (() => {
           });
         },
         medium() {
-          const it = pick(ITEMS);
           const a = rand(2, 7);
           let c = rand(-5, 6);
           while (c === a || c === 0) c = rand(-5, 6);
@@ -109,7 +108,7 @@ KK.content = (() => {
           return make({
             label: 'Solve for x',
             prompt: 'Find the value of <i>x</i>.',
-            visual: eq(`${lead(a, 'x')}${term(b)} = ${lead(c, 'x')}${term(d)}`) + think(`Think of each <b>x</b> as one ${it.e}`),
+            visual: eq(`${lead(a, 'x')}${term(b)} = ${lead(c, 'x')}${term(d)}`),
             answer: `x = ${n(x)}`, value: x,
             wrongs: near(x, [-3, -2, -1, 1, 2, 3], (v) => `x = ${n(v)}`),
             steps: [
@@ -153,7 +152,7 @@ KK.content = (() => {
       },
     },
     {
-      id: 'ineq', unit: 'alg', icon: '⚖️', name: 'Inequalities', blurb: 'Budgets, limits, and the sign-flip trap.',
+      id: 'ineq', story: true, unit: 'alg', icon: '⚖️', name: 'Inequalities', blurb: 'Budgets, limits, and the sign-flip trap.',
       gen: {
         easy() {
           const it = pick(ITEMS.filter((i) => i.p[0] <= 10)), p = pick(it.p);
@@ -281,7 +280,7 @@ KK.content = (() => {
       },
     },
     {
-      id: 'sys', unit: 'alg', icon: '👯', name: 'Systems of equations', blurb: 'Two unknowns, two clues.',
+      id: 'sys', story: true, unit: 'alg', icon: '👯', name: 'Systems of equations', blurb: 'Two unknowns, two clues.',
       gen: {
         easy() {
           const [A, B] = twoItems(false);
@@ -402,7 +401,7 @@ KK.content = (() => {
       },
     },
     {
-      id: 'quad', unit: 'adv', icon: '💄', name: 'Quadratics', blurb: 'Factor, solve, and the discriminant.',
+      id: 'quad', story: true, unit: 'adv', icon: '💄', name: 'Quadratics', blurb: 'Factor, solve, and the discriminant.',
       gen: {
         easy() {
           let r, s;
@@ -552,7 +551,7 @@ KK.content = (() => {
       },
     },
     {
-      id: 'poly', unit: 'adv', icon: '🧩', name: 'Polynomials', blurb: 'Combine, distribute, FOIL.',
+      id: 'poly', story: true, unit: 'adv', icon: '🧩', name: 'Polynomials', blurb: 'Combine, distribute, FOIL.',
       gen: {
         easy() {
           const A = [rand(-4, 5) || 1, rand(-6, 6), rand(-9, 9)], B = [rand(-4, 5) || 2, rand(-6, 6), rand(-9, 9)];
@@ -725,7 +724,7 @@ KK.content = (() => {
       },
     },
     {
-      id: 'rat', unit: 'adv', icon: '🍰', name: 'Rational expressions', blurb: 'Fractions with x in them.',
+      id: 'rat', story: true, unit: 'adv', icon: '🍰', name: 'Rational expressions', blurb: 'Fractions with x in them.',
       gen: {
         easy() {
           let g, p, q;
@@ -1205,13 +1204,262 @@ KK.content = (() => {
         },
       },
     },
+
+    // ───────── Unit 5: Test Strategies (Princeton Review-style) ─────────
+    {
+      id: 'backsolve', unit: 'str', icon: '🔙', name: 'Backsolving', blurb: 'Try the answer choices instead of solving.',
+      gen: {
+        easy() {
+          const it = pick(ITEMS.filter((i) => i.p[0] <= 10)), p = pick(it.p), k = rand(3, 9), L = rand(2, 9), B = p * k + L;
+          const ch = [k - 2, k - 1, k, k + 1].filter((v) => v > 0);
+          while (ch.length < 4) ch.push(ch[ch.length - 1] + 1);
+          const sorted = ch.sort((a, b) => a - b), mid = sorted[1];
+          return {
+            label: 'Backsolve it', strategy: true,
+            prompt: `You had ${money(B)}, bought some ${it.many} ${it.e} at ${money(p)} each, and have ${money(L)} left. How many did you buy?`,
+            choices: sorted.map(String), correct: sorted.indexOf(k), value: k, answer: String(k),
+            steps: [
+              `<b>Don’t set up an equation.</b> The answer is one of the four choices, so test them.`,
+              `Start in the middle. Try ${mid}: ${mid} × ${money(p)} = ${money(p * mid)}, leaving ${money(B - p * mid)}. ${mid === k ? 'That matches!' : B - p * mid > L ? `Too much left, so you need <b>more</b> ${it.many}.` : `Not enough left, so you need <b>fewer</b> ${it.many}.`}`,
+              `Try ${k}: ${k} × ${money(p)} = ${money(p * k)}, leaving ${money(L)}. ✓ Answer: <b>${k}</b>`,
+            ],
+            hint: 'Pick a middle choice and plug it into the story. Too big or too small tells you which way to go.',
+          };
+        },
+        medium() {
+          let a, r;
+          do { a = rand(2, 5); r = rand(1, 4); } while (a === r);
+          const p = rand(-5, 5) || 2, q = rand(-6, 6) || -3, x = rand(-5, 8), s = a * (x + p) + q - r * x;
+          const L = (v) => a * (v + p) + q, R = (v) => r * v + s;
+          const sorted = [x - 3, x - 1, x, x + 2].sort((u, v) => u - v), mid = sorted[1];
+          const dir = (L(mid) - R(mid)) * (a - r) < 0 ? 'bigger' : 'smaller';
+          return {
+            label: 'Backsolve it', strategy: true,
+            prompt: 'Which value of <i>x</i> makes this true? Try the choices instead of solving.',
+            visual: eq(`${a}(x${term(p)})${term(q)} = ${lead(r, 'x')}${term(s)}`),
+            choices: sorted.map((v) => `x = ${n(v)}`), correct: sorted.indexOf(x), value: x, answer: `x = ${n(x)}`,
+            steps: [
+              `Choices are in order, so start with the second one, x = ${n(mid)}.`,
+              `Left: ${a}(${paren(mid)}${term(p)})${term(q)} = ${n(L(mid))}. Right: ${lead(r, 'x')}${term(s)} = ${n(R(mid))}. ${mid === x ? 'Equal! ✓' : `Not equal, and the left side needs to be ${dir}, so move that way.`}`,
+              `x = ${n(x)}: Left = ${n(L(x))}, Right = ${n(R(x))}. Equal! ✓`,
+            ],
+            hint: 'Plug each choice into BOTH sides. The right answer makes them equal.',
+          };
+        },
+        hard() {
+          let r, s;
+          do { r = rand(-6, 6); s = rand(-6, 6); } while (!r || !s || r === s);
+          const b = -(r + s), c = r * s, big = Math.max(r, s);
+          const cand = new Set([big, big + 1, big + 2, big - 1, Math.min(r, s) + 1, -big]);
+          const sorted = [...cand].filter((v) => v !== Math.min(r, s)).slice(0, 4).sort((u, v) => u - v);
+          if (!sorted.includes(big)) sorted[3] = big;
+          sorted.sort((u, v) => u - v);
+          const f = (v) => v * v + b * v + c;
+          return {
+            label: 'Backsolve it', strategy: true,
+            prompt: 'What is the <b>largest</b> value of <i>x</i> that makes this true?',
+            visual: eq(`x²${term(b, 'x')}${term(c)} = 0`),
+            choices: sorted.map((v) => n(v)), correct: sorted.indexOf(big), value: big, answer: n(big),
+            steps: [
+              '“Largest” means start from the biggest choice and work down. The first one that works wins.',
+              ...sorted.slice().reverse().filter((v) => v >= big).map((v) => `x = ${n(v)}: (${n(v)})²${term(b, `(${n(v)})`)}${term(c)} = ${n(f(v))}${f(v) === 0 ? ' ✓' : ' ✗'}`),
+              `Largest solution: <b>${n(big)}</b> (the other is ${n(Math.min(r, s))}).`,
+            ],
+            hint: 'The question says “largest”, so test the biggest choice first.',
+          };
+        },
+      },
+    },
+    {
+      id: 'plugin', unit: 'str', icon: '🔢', name: 'Plug in a number', blurb: 'Variables in the answers? Make up a number.',
+      gen: {
+        easy() {
+          const k = pick([2, 3, 4, 5]), m = pick([2, 3, 4]), v = 1;
+          return make({
+            label: 'Plug in a number', strategy: true,
+            prompt: `If y = ${k}x and z = ${m}y, then z is how many times x?`,
+            answer: String(k * m), value: k * m,
+            wrongs: [String(k + m), String(k), String(m), String(k * m + 1)],
+            steps: [`Make up an easy number: let x = ${v}.`, `Then y = ${k} and z = ${m} × ${k} = ${k * m}.`, `z ÷ x = ${k * m} ÷ ${v} = <b>${k * m}</b> times`],
+            hint: 'Let x = 1 and follow the chain.',
+          });
+        },
+        medium() {
+          const a = rand(1, 6), b = rand(1, 6), x = 2, v = (c) => 2 * (x + a) - (x - b);
+          const ans = `x${term(2 * a + b)}`;
+          return make({
+            label: 'Plug in a number', strategy: true,
+            prompt: 'Which expression is equivalent? Try plugging in x = 2.',
+            visual: eq(`2(x + ${a}) − (x − ${b})`),
+            answer: ans, wrongs: [`x${term(2 * a - b)}`, `3x${term(2 * a + b)}`, `x${term(a + b)}`, `x${term(2 * a - 2 * b)}`],
+            steps: [
+              `Let x = 2. The original: 2(2 + ${a}) − (2 − ${b}) = ${2 * (2 + a)} − (${n(2 - b)}) = ${v()}.`,
+              `Now test the choices with x = 2. ${ans} → 2${term(2 * a + b)} = ${2 + 2 * a + b} ✓`,
+              `Only one choice gives ${v()}, so it’s <b>${ans}</b>.`,
+            ],
+            hint: 'Pick x = 2, get a number from the original, then see which choice gives the same number.',
+          });
+        },
+        hard() {
+          const base = pick([50, 20, 25, 200]), ans = { 50: 'x/2', 20: 'x/5', 25: 'x/4', 200: '2x' }[base];
+          return make({
+            label: 'Plug in a number', strategy: true,
+            prompt: `x% of ${base} is equal to which expression?`,
+            answer: ans, wrongs: ['x/2', 'x/5', 'x/4', '2x', `${base}x`, 'x/100'].filter((w) => w !== ans),
+            steps: [
+              'Percents? Plug in x = 10, it keeps the math easy.',
+              `10% of ${base} = ${base / 10}.`,
+              `Which choice equals ${base / 10} when x = 10? ${ans} → ${base / 10} ✓`,
+            ],
+            hint: 'For percent questions, plug in 10 or 100.',
+          });
+        },
+      },
+    },
+    {
+      id: 'ballpark', unit: 'str', icon: '🎯', name: 'Ballparking', blurb: 'Estimate first, then eliminate.',
+      gen: {
+        easy() {
+          const it = pick(ITEMS.filter((i) => i.p[0] >= 15));
+          const P = pick([47.99, 59.99, 79.99, 119.99, 149.99]), d = pick([20, 25, 30, 40, 50]);
+          const R = Math.round(P + 0.01), ans = Math.round((R * (100 - d)) / 100);
+          return make({
+            label: 'Ballpark it', strategy: true,
+            prompt: `A ${money(P)} ${it.one} ${it.e} is ${d}% off. <b>About</b> what will you pay?`,
+            answer: money(ans), value: ans, unit: '$',
+            wrongs: [money(Math.round((R * d) / 100)), money(R), money(ans + 20), money(Math.max(5, ans - 15))],
+            steps: [`Round first: ${money(P)} is basically ${money(R)}.`, `${d}% off means you pay ${100 - d}%. ${100 - d}% of ${money(R)} ≈ ${money(ans)}.`, `Only one choice is close: <b>${money(ans)}</b>`],
+            hint: 'Round the price to a friendly number before doing anything.',
+          });
+        },
+        medium() {
+          let N;
+          do { N = rand(20, 150); } while (Number.isInteger(Math.sqrt(N)));
+          const lo = Math.floor(Math.sqrt(N)), hi = lo + 1;
+          const closer = N - lo * lo < hi * hi - N ? lo : hi;
+          return make({
+            label: 'Ballpark it', strategy: true,
+            prompt: `√${N} is closest to which whole number?`,
+            answer: String(closer), value: closer,
+            wrongs: [String(closer === lo ? hi : lo), String(closer + 2), String(Math.max(1, closer - 2)), String(Math.round(N / 2))],
+            steps: [`Find the perfect squares around ${N}: ${lo}² = ${lo * lo} and ${hi}² = ${hi * hi}.`, `${N} is closer to ${closer * closer}, so √${N} ≈ <b>${closer}</b>`],
+            hint: 'Which perfect squares is it between?',
+          });
+        },
+        hard() {
+          const a = pick([198, 302, 497, 1004, 248]), b = pick([0.51, 0.24, 0.98, 0.33]);
+          const ra = Math.round(a / 100) * 100, rb = { 0.51: 0.5, 0.24: 0.25, 0.98: 1, 0.33: 1 / 3 }[b];
+          const ans = Math.round(ra * rb);
+          return make({
+            label: 'Ballpark it', strategy: true,
+            prompt: `Without a calculator: ${a} × ${b} is closest to?`,
+            answer: String(ans), value: ans,
+            wrongs: [String(ans * 2), String(Math.round(ans / 2)), String(ans * 4), String(ans + 70)],
+            steps: [`Round both: ${a} ≈ ${ra} and ${b} ≈ ${rb === 1 / 3 ? '⅓' : rb}.`, `${ra} × ${rb === 1 / 3 ? '⅓' : rb} = ${ans}.`, `Closest choice: <b>${ans}</b>. Cross out anything far from that.`],
+            hint: 'Round each number to something friendly, then multiply.',
+          });
+        },
+      },
+    },
+    {
+      id: 'mistake', unit: 'str', icon: '🕵️', name: 'Spot the mistake', blurb: 'Find the wrong step. Harder than it sounds.',
+      gen: {
+        easy() { return mistakeProblem('easy'); },
+        medium() { return mistakeProblem('medium'); },
+        hard() { return mistakeProblem('hard'); },
+      },
+    },
   ];
+
+  // Builds a worked solution with (usually) one wrong step. Later steps follow from the error, so only one step is at fault.
+  const workHTML = (lines) => `<ol class="work">${lines.map((l, i) => `<li><span>Step ${i + 1}</span>${l}</li>`).join('')}</ol>`;
+  function mistakeProblem(level) {
+    const none = chance(0.2);
+    let eqn, lines, bad, why, fix;
+    if (level === 'easy') {
+      const a = rand(2, 6), p = rand(1, 6), x = rand(1, 8), c = a * (x + p);
+      eqn = `${a}(x + ${p}) = ${c}`;
+      const kind = none ? 0 : rand(1, 3);
+      if (kind === 1) {
+        lines = [`${a}x + ${p} = ${c}`, `${a}x = ${c - p}`, `x = ${frac(c - p, a)}`];
+        why = `Step 1 only multiplied the x by ${a}. The ${a} has to multiply <b>both</b> things inside: ${a}x + ${a * p}.`;
+      } else if (kind === 2) {
+        lines = [`${a}x + ${a * p} = ${c}`, `${a}x = ${c + a * p}`, `x = ${frac(c + a * p, a)}`];
+        why = `Step 2 added ${a * p} instead of subtracting it. To undo “+ ${a * p}”, subtract: ${a}x = ${c - a * p}.`;
+      } else if (kind === 3) {
+        lines = [`${a}x + ${a * p} = ${c}`, `${a}x = ${c - a * p}`, `x = ${c - a * p - a}`];
+        why = `Step 3 subtracted ${a} instead of dividing by ${a}. ${c - a * p} ÷ ${a} = ${x}.`;
+      } else {
+        lines = [`${a}x + ${a * p} = ${c}`, `${a}x = ${c - a * p}`, `x = ${x}`];
+      }
+      bad = kind; fix = `x = ${x}`;
+    } else if (level === 'medium') {
+      const a = rand(4, 8), c = rand(2, a - 2), x = rand(-4, 7), b = rand(1, 9), d = (a - c) * x + b;
+      const m = a - c, L = (k, v) => lead(k, v);
+      eqn = `${a}x + ${b} = ${L(c, 'x')}${term(d)}`;
+      const kind = none ? 0 : rand(1, 3);
+      if (kind === 1) {
+        lines = [`${L(a + c, 'x')} + ${b}${term(0)} = ${n(d)}`, `${L(a + c, 'x')} = ${n(d - b)}`, `x = ${frac(d - b, a + c)}`];
+        why = `Step 1 moved ${L(c, 'x')} to the left but didn’t flip its sign. Subtracting ${L(c, 'x')} from both sides gives ${L(m, 'x')} + ${b} = ${n(d)}.`;
+      } else if (kind === 2) {
+        lines = [`${L(m, 'x')} + ${b} = ${n(d)}`, `${L(m, 'x')} = ${n(d + b)}`, `x = ${frac(d + b, m)}`];
+        why = `Step 2 added ${b} to the right side. To undo “+ ${b}” you subtract: ${L(m, 'x')} = ${n(d - b)}.`;
+      } else if (kind === 3) {
+        lines = [`${L(m, 'x')} + ${b} = ${n(d)}`, `${L(m, 'x')} = ${n(d - b)}`, `x = ${n(d - b - m)}`];
+        why = `Step 3 subtracted ${m} instead of dividing. ${n(d - b)} ÷ ${m} = ${n(x)}.`;
+      } else {
+        lines = [`${L(m, 'x')} + ${b} = ${n(d)}`, `${L(m, 'x')} = ${n(d - b)}`, `x = ${n(x)}`];
+      }
+      bad = kind; fix = `x = ${n(x)}`;
+    } else {
+      const a = rand(2, 5), k = rand(-4, 6), b = rand(1, 9), c = -a * k + b, s = pick(['<', '>']);
+      eqn = `${b} − ${a}x ${s} ${n(c)}`;
+      const kind = none ? 0 : rand(1, 3);
+      const flip = FLIP[s];
+      if (kind === 1) {
+        lines = [`−${a}x ${s} ${n(c + b)}`, `x ${flip} ${frac(c + b, -a)}`];
+        why = `Step 1 added ${b} instead of subtracting it. Undo “${b} −” by subtracting ${b}: −${a}x ${s} ${n(c - b)}.`;
+      } else if (kind === 2) {
+        lines = [`−${a}x ${s} ${n(c - b)}`, `x ${s} ${n(k)}`];
+        why = `Step 2 divided by −${a} but kept the sign. Dividing by a negative <b>flips</b> it: x ${flip} ${n(k)}.`;
+      } else if (kind === 3) {
+        lines = [`−${a}x ${s} ${n(c - b)}`, `x ${flip} ${n(-k)}`];
+        why = `Step 2 flipped the sign (good!) but dropped the negative when dividing. ${n(c - b)} ÷ (−${a}) = ${n(k)}.`;
+      } else {
+        lines = [`−${a}x ${s} ${n(c - b)}`, `x ${flip} ${n(k)}`];
+      }
+      bad = kind === 3 ? 2 : kind; fix = `x ${flip} ${n(k)}`;
+    }
+    const opts = lines.map((_, i) => `Step ${i + 1}`).concat('No mistake');
+    const answer = bad ? `Step ${bad}` : 'No mistake';
+    return {
+      label: 'Spot the mistake', strategy: true,
+      prompt: `Kiki solved <b>${eqn}</b>. Which step is the <b>first</b> mistake?`,
+      visual: workHTML(lines),
+      choices: opts, correct: opts.indexOf(answer), answer,
+      steps: bad ? [why, `Done right, the answer is <b>${fix}</b>.`] : ['Every step is correct.', `The answer really is <b>${fix}</b>. Nice eye.`],
+      hint: 'Check each step against the one before it. What operation did they do to both sides?',
+    };
+  }
+
+  // Real-Life mode: swap bare x and y for items. "5x + 6 = x + 14" → "5🎀 + 6 = 🎀 + 14"
+  function storyify(html, legend) {
+    if (!html) return html;
+    return String(html).split(/(<[^>]+>)/).map((seg) => (seg.startsWith('<') ? seg : seg
+      .replace(/(?<![A-Za-z])x(?![A-Za-z\-])/g, legend.x.e)
+      .replace(/(?<![A-Za-z])y(?![A-Za-z\-])/g, legend.y.e))).join('');
+  }
+  function legend() {
+    const [a, b] = shuffle(ITEMS.slice()).slice(0, 2);
+    return { x: a, y: b };
+  }
 
   const UNITS = [
     { id: 'alg', name: 'Algebra', sat: 'Algebra', blurb: 'Equations, inequalities, lines & systems', color: '#FF4B91', dark: '#D63375', tint: '#FFE4EF' },
     { id: 'adv', name: 'Advanced Math', sat: 'Advanced Math', blurb: 'Functions, quadratics, exponents & more', color: '#9B6BFF', dark: '#7A4BE0', tint: '#EFE7FF' },
     { id: 'psda', name: 'Data & Percents', sat: 'Problem-Solving & Data', blurb: 'Percents, rates, stats & probability', color: '#22C483', dark: '#169E68', tint: '#DDF8EC' },
     { id: 'geo', name: 'Geometry & Trig', sat: 'Geometry & Trig', blurb: 'Triangles, trig, circles, area & volume', color: '#1CB0F6', dark: '#1590CF', tint: '#DDF2FD' },
+    { id: 'str', name: 'Test Strategies', sat: 'Score boosters', blurb: 'Backsolve, plug in, ballpark, and catch mistakes', color: '#FF9640', dark: '#D9731F', tint: '#FFEBDD', strategy: true },
   ];
   const LEVELS = {
     easy: { name: 'Warm-Up', xp: 10, desc: 'Real-life stories with 🎀 and 👠' },
@@ -1227,5 +1475,5 @@ KK.content = (() => {
     return { ...s.gen[level](), skill: id, level, domain: s.unit };
   }
 
-  return { SKILLS, UNITS, LEVELS, MASTERY, skillById, unitById, problem, ITEMS };
+  return { SKILLS, UNITS, LEVELS, MASTERY, skillById, unitById, problem, ITEMS, storyify, legend };
 })();

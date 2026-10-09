@@ -18,7 +18,7 @@ KK.store = (() => {
     v: 1, onboarded: false, goal: 60, xp: 0, gems: 25,
     streak: 0, bestStreak: 0, lastDay: null, freezes: 0,
     days: {}, skills: {}, badges: {}, sat: [], claimed: {},
-    owned: [], wearing: null, sound: true, bestCombo: 0, created: today(),
+    owned: [], wearing: null, sound: true, story: true, bestCombo: 0, created: today(), unitTests: {},
   });
   let st = load();
   function load() {
@@ -37,7 +37,8 @@ KK.store = (() => {
   const blankDay = () => ({ xp: 0, lessons: 0, combo: 0, perfects: 0, sat: 0, gd: 0, goalHit: false });
   const day = (d = today()) => st.days[d] || (st.days[d] = blankDay());
   const peekDay = (d = today()) => st.days[d] || blankDay();
-  const skill = (id) => st.skills[id] || (st.skills[id] = { level: 0, correct: 0, total: 0 });
+  const skill = (id) => st.skills[id] || (st.skills[id] = { level: 0, correct: 0, total: 0, last: null });
+  const touch = (id) => { skill(id).last = today(); };
   const level = (id) => (st.skills[id] ? st.skills[id].level : 0);
 
   // ── Streaks (Duolingo rules: any finished lesson keeps it alive; freezes cover missed days) ──
@@ -126,6 +127,9 @@ KK.store = (() => {
     { id: 'sat1', icon: '📝', name: 'Test Day Ready', desc: 'Finish an SAT practice set', ok: () => st.sat.length > 0 },
     { id: 'sat600', icon: '🎯', name: '600 Club', desc: 'Estimate 600+ on a full module', ok: () => st.sat.some((r) => r.n >= 22 && r.score >= 600) },
     { id: 'xp1000', icon: '✨', name: '1K Club', desc: 'Earn 1,000 XP', ok: () => st.xp >= 1000 },
+    { id: 'unit', icon: '🏆', name: 'Unit Tested', desc: 'Pass a Unit Test (80%+)', ok: () => Object.values(st.unitTests).some((v) => v >= 80) },
+    { id: 'strat', icon: '🧠', name: 'Test Hacker', desc: 'Master all Test Strategies', ok: () => unitDone('str') },
+    { id: 'detective', icon: '🕵️', name: 'Detective', desc: 'Master Spot the Mistake', ok: () => level('mistake') >= 4 },
   ];
   function checkBadges() {
     const out = [];
@@ -133,6 +137,27 @@ KK.store = (() => {
       if (!st.badges[b.id] && b.ok()) { st.badges[b.id] = Date.now(); st.gems += 10; out.push(b); }
     }
     return out;
+  }
+
+  // ── Spaced review (Khan-style): practiced skills fade after a week ──
+  const REVIEW_DAYS = 7;
+  function daysSince(id) {
+    const k = st.skills[id];
+    return k && k.last ? daysBetween(k.last, today()) : null;
+  }
+  const reviewDue = () => SKILLS.filter((s) => level(s.id) >= 2 && (daysSince(s.id) ?? 0) >= REVIEW_DAYS).map((s) => s.id);
+  const unitReady = (unit) => SKILLS.filter((s) => s.unit === unit).every((s) => level(s.id) >= 1);
+  // Unit test: a skill levels up when every one of its questions was right on the first try.
+  function applyUnitTest(unit, perSkill, acc) {
+    const ups = [];
+    for (const [id, r] of Object.entries(perSkill)) {
+      const k = skill(id);
+      if (r.right === r.total && k.level < 4) { k.level++; ups.push({ id, level: k.level }); }
+      k.last = today();
+    }
+    const prev = st.unitTests[unit] || 0;
+    st.unitTests[unit] = Math.max(prev, Math.round(acc * 100));
+    return ups;
   }
 
   // ── XP and goal ──
@@ -197,6 +222,7 @@ KK.store = (() => {
     get s() { return st; },
     save, reset, today, addDays, daysBetween, day, peekDay, skill, level,
     liveStreak, extendStreak, week, quests, claimQuests, BADGES, checkBadges, mastered, addXP,
+    touch, daysSince, reviewDue, unitReady, applyUnitTest, REVIEW_DAYS,
     estimate, encodeReport, decodeReport, backup, restore, UNITS,
   };
 })();

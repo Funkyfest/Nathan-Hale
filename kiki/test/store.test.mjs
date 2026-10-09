@@ -107,3 +107,25 @@ test('SAT estimate is monotonic and bounded', () => {
   assert.equal(S.estimate(0), 200);
   assert.equal(S.estimate(1), 800);
 });
+
+test('spaced review flags practiced skills after a week', () => {
+  S.reset(); at(2026, 10, 1);
+  S.skill('lin').level = 3; S.touch('lin');
+  S.skill('sys').level = 1; S.touch('sys');
+  assert.deepEqual([...S.reviewDue()], []);
+  at(2026, 10, 9);
+  assert.deepEqual([...S.reviewDue()], ['lin'], 'level 1 skills are not nagged');
+  S.touch('lin');
+  assert.deepEqual([...S.reviewDue()], []);
+});
+
+test('unit test levels up only fully-correct skills', () => {
+  S.reset(); at(2026, 10, 1);
+  S.skill('lin').level = 2; S.skill('sys').level = 4; S.skill('ineq').level = 1;
+  const ups = S.applyUnitTest('alg', { lin: { right: 2, total: 2 }, sys: { right: 3, total: 3 }, ineq: { right: 1, total: 2 } }, 0.86);
+  assert.deepEqual([...ups].map((u) => `${u.id}:${u.level}`), ['lin:3']);
+  assert.equal(S.level('sys'), 4, 'mastered stays mastered');
+  assert.equal(S.level('ineq'), 1);
+  assert.equal(S.s.unitTests.alg, 86);
+  assert.ok(S.checkBadges().some((b) => b.id === 'unit'));
+});

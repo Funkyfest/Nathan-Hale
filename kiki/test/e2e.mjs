@@ -167,6 +167,82 @@ const overflow = await sp.evaluate(() => document.documentElement.scrollWidth - 
 check('no sideways scroll at 360px', overflow <= 0, `overflow ${overflow}px`);
 await sp.screenshot({ path: `${OUT}/22-learn-360.png` });
 
+// ── v2 features ──
+const p2 = await ctx.newPage();
+p2.on('pageerror', (e) => errors.push('v2: ' + e.message));
+p2.on('dialog', (d) => d.accept());
+await p2.goto(FILE);
+await p2.evaluate(() => { const S = KIKI_DEBUG.store; S.s.onboarded = true; S.skill('lin').level = 2; S.save(); });
+await p2.reload(); await p2.waitForTimeout(400);
+
+// Real-Life mode: a Full Face (level-2) linear lesson shows items instead of x, and the toggle flips it
+await p2.click('.node[data-id="lin"]'); await p2.waitForTimeout(250);
+await p2.click('[data-act="start"]'); await p2.waitForTimeout(250);
+for (let i = 0; i < 6; i++) {
+  const lvl = await p2.evaluate(() => KIKI_DEBUG.lesson.qs[KIKI_DEBUG.lesson.i].level);
+  if (lvl === 'medium') break;
+  await answer(p2, 'lesson', true); await p2.click('[data-act="check"]'); await p2.waitForTimeout(120); await p2.click('[data-act="continue"]'); await p2.waitForTimeout(120);
+}
+const legendOn = await p2.isVisible('.legend-x');
+const eqOn = await p2.textContent('.visual');
+await shot(p2, '23-real-life-mode');
+check('Real-Life mode shows legend and no plain x', legendOn && !/(^|[^a-z])x([^a-z]|$)/.test(eqOn.replace(/[^\x00-\x7F]/g, '')), eqOn);
+await p2.click('[data-act="story"]'); await p2.waitForTimeout(200);
+const eqOff = await p2.textContent('.visual');
+check('toggle shows plain x', /x/.test(eqOff) && !(await p2.isVisible('.legend-x')), eqOff);
+await shot(p2, '24-plain-x');
+await p2.click('[data-act="story"]'); await p2.waitForTimeout(150);
+// ON FIRE mode after 5 in a row (combo persists across questions)
+let fire = false;
+for (let i = 0; i < 9; i++) {
+  if (await p2.evaluate(() => !KIKI_DEBUG.lesson)) break;
+  await answer(p2, 'lesson', true); await p2.click('[data-act="check"]'); await p2.waitForTimeout(150);
+  if (await p2.evaluate(() => document.querySelector('.lesson.fire') !== null)) { fire = true; await shot(p2, '25-on-fire'); }
+  await p2.click('[data-act="continue"]'); await p2.waitForTimeout(120);
+}
+check('ON FIRE mode at a 5-combo', fire);
+await p2.waitForTimeout(900);
+await shot(p2, '26-level-up-ring');
+for (let i = 0; i < 6 && (await p2.isVisible('[data-act="flow-next"]')); i++) { await p2.click('[data-act="flow-next"]'); await p2.waitForTimeout(250); }
+await p2.waitForTimeout(700);
+check('path draws a trail', (await p2.$$('.path .trail path')).length >= 5);
+await shot(p2, '27-path-after-levelup');
+
+// Strategies: Spot the Mistake lesson renders worked steps
+await p2.evaluate(() => document.querySelector('.node[data-id="mistake"]').scrollIntoView());
+await p2.click('.node[data-id="mistake"]'); await p2.waitForTimeout(250);
+await p2.click('[data-act="start"]'); await p2.waitForTimeout(250);
+check('spot-the-mistake shows worked steps', (await p2.$$('.work li')).length >= 2 && (await p2.isVisible('.strat-tag')));
+await shot(p2, '28-spot-the-mistake');
+await p2.click('[data-act="quit"]'); await p2.waitForTimeout(150); await p2.click('[data-act="quit-leave"]'); await p2.waitForTimeout(250);
+
+// Spaced review: make a skill look a week old, expect the review card, run the touch-up
+await p2.evaluate(() => { const S = KIKI_DEBUG.store; S.skill('lin').level = 3; S.skill('lin').last = S.addDays(S.today(), -8); S.save(); });
+await p2.reload(); await p2.waitForTimeout(400);
+check('review card appears for a fading skill', await p2.isVisible('.review-card') && (await p2.$$('.node.fading')).length === 1);
+await shot(p2, '29-review-card');
+await p2.click('[data-act="review"]'); await p2.waitForTimeout(250);
+check('touch-up lesson starts', (await p2.textContent('.lesson-kind')).includes('Touch-up'));
+await p2.click('[data-act="quit"]'); await p2.waitForTimeout(150); await p2.click('[data-act="quit-leave"]'); await p2.waitForTimeout(250);
+
+// Unit test: locked until every skill is started, then levels up fully-correct skills
+check('unit test locked at first', (await p2.$$('.node.trophy.locked')).length >= 1);
+await p2.evaluate(() => { const S = KIKI_DEBUG.store; for (const id of ['lin', 'ineq', 'linfn', 'sys']) { S.skill(id).level = Math.max(1, S.level(id)); } S.save(); });
+await p2.reload(); await p2.waitForTimeout(400);
+await p2.click('.node.trophy[data-unit="alg"]'); await p2.waitForTimeout(250);
+await shot(p2, '30-unit-test-sheet');
+await p2.click('[data-act="start-unit"]'); await p2.waitForTimeout(250);
+for (let i = 0; i < 10; i++) { await answer(p2, 'lesson', true); await p2.click('[data-act="check"]'); await p2.waitForTimeout(100); await p2.click('[data-act="continue"]'); await p2.waitForTimeout(100); }
+await p2.waitForTimeout(900);
+const unitFlow = await p2.evaluate(() => KIKI_DEBUG.flow && KIKI_DEBUG.flow.steps[0]);
+check('unit test passed with level-ups', unitFlow && unitFlow.type === 'unit' && unitFlow.passed && unitFlow.ups.length >= 1, JSON.stringify(unitFlow && { passed: unitFlow.passed, ups: unitFlow.ups }));
+await shot(p2, '31-unit-test-passed', true);
+for (let i = 0; i < 6 && (await p2.isVisible('[data-act="flow-next"]')); i++) { await p2.click('[data-act="flow-next"]'); await p2.waitForTimeout(250); }
+check('trophy shows best score', (await p2.textContent('.node-row:has(.trophy[data-unit="alg"]) .node-label')).includes('100%'));
+await p2.click('.tab[data-tab="sat"]'); await p2.waitForTimeout(300);
+check('SAT tab lists work-on-next skills', (await p2.$$('.next-item')).length >= 1);
+await shot(p2, '32-sat-work-on-next');
+
 check('no page errors', errors.length === 0, errors.join(' | '));
 await browser.close();
 

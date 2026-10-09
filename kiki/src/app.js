@@ -8,14 +8,14 @@ KK.app = (() => {
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  let tab = 'learn', sheet = null, lesson = null, test = null, flow = null, onboardStep = 0, testTimer = 0;
-  let dadMode = false, dad = null, scrolledToCurrent = false;
+  let tab = 'learn', lastTab = 'learn', sheet = null, lesson = null, test = null, flow = null, onboardStep = 0, testTimer = 0;
+  let dadMode = false, dad = null, scrolledToCurrent = false, justLeveled = null;
 
   // ── Kiki's voice ──
   const LINES = {
     correct: ['Pop pop! 🌼', 'Ate that. 💅', 'Slay! ✨', 'Okay genius!', 'Main character energy 🌸', 'Bloomed! 🌷', 'Chef’s kiss 💋', 'That’s a 10/10.'],
     combo3: ['3 in a row! You’re on fire 🔥', 'Hat trick! 🔥'],
-    combo5: ['FIVE in a row?! Unreal 🤯', 'Combo queen behavior 👑'],
+    combo5: ['FIVE in a row?! Unreal 🤯', 'Combo queen behavior 👑', 'ON FIRE MODE 🔥🔥'],
     combo8: ['Is this even legal?? 🔥🔥🔥', 'Somebody stop her 😭'],
     wrong: ['Oop, so close! Check the steps 👀', 'Not quite, bestie. Next one’s yours.', 'Mistakes = growing season 🌱', 'Almost! Here’s the trick 👇'],
     done: ['Another one bloomed 🌷', 'Look at you go! 🌸', 'Your brain is glowing ✨'],
@@ -30,9 +30,9 @@ KK.app = (() => {
   const asDate = (d) => new Date(`${d}T12:00`);
   const fmtDate = (d) => (d ? asDate(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—');
   const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-  function ring(frac, size, color, width = 4) {
+  function ring(frac, size, color, width = 4, animate = false) {
     const r = (size - width) / 2, c = 2 * Math.PI * r, h = size / 2;
-    const arc = frac > 0 ? `<circle cx="${h}" cy="${h}" r="${r}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - Math.min(1, frac))}" transform="rotate(-90 ${h} ${h})"/>` : '';
+    const arc = frac > 0 ? `<circle class="${animate ? 'arc-in' : ''}" style="--cc:${c}" cx="${h}" cy="${h}" r="${r}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - Math.min(1, frac))}" transform="rotate(-90 ${h} ${h})"/>` : '';
     return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${h}" cy="${h}" r="${r}" fill="none" stroke="#F3E6EE" stroke-width="${width}"/>${arc}</svg>`;
   }
   function weekDots(w) {
@@ -69,8 +69,9 @@ KK.app = (() => {
     clearTimeout(toast.t);
     toast.t = setTimeout(() => t.classList.remove('on'), 2400);
   }
+  const unitVars = (u) => `--c:${u.color};--cd:${u.dark};--ct:${u.tint}`;
   const masteryLabel = (k) => (k.level === 0 && k.total > 0 ? 'Practiced' : MASTERY[k.level]);
-  function unitVars(u) { return `--c:${u.color};--cd:${u.dark};--ct:${u.tint}`; }
+  const skillRec = (id) => S.s.skills[id] || { level: 0, correct: 0, total: 0, last: null };
 
   // ═════════════ Tabs ═════════════
   const TABS = [['learn', '🌸', 'Learn'], ['sat', '📝', 'SAT'], ['quests', '🎯', 'Quests'], ['shop', '💎', 'Shop'], ['me', '👤', 'Me']];
@@ -79,9 +80,9 @@ KK.app = (() => {
     return `<header class="topbar">
       <button class="brand" data-act="tab" data-tab="learn" aria-label="Kiki home">${me('happy', 34)}<span>kiki</span></button>
       <div class="chips">
-        <button class="chip chip-streak ${streak ? '' : 'cold'}" data-act="tab" data-tab="quests" aria-label="${streak} day streak"><span class="flame">🔥</span><b>${streak}</b></button>
+        <button class="chip chip-streak ${streak ? '' : 'cold'} ${streak >= 7 ? 'glow' : ''}" style="--fs:${Math.min(1.5, 1 + streak * 0.035)}" data-act="tab" data-tab="quests" aria-label="${streak} day streak"><span class="flame">🔥</span><b>${streak}</b></button>
         <button class="chip chip-gems" data-act="tab" data-tab="shop" aria-label="${s.gems} gems"><span>💎</span><b>${s.gems}</b></button>
-        <button class="chip chip-goal" data-act="tab" data-tab="quests" aria-label="${d.xp} of ${s.goal} XP today">${ring(d.xp / s.goal, 22, '#FFC53D')}<b>${d.xp}</b></button>
+        <button class="chip chip-goal" data-act="tab" data-tab="quests" aria-label="${d.xp} of ${s.goal} XP today">${ring(d.xp / s.goal, 22, '#FFC53D', 4, true)}<b>${d.xp}</b></button>
         <button class="chip chip-sound" data-act="sound" aria-label="Sound is ${s.sound ? 'on' : 'off'}">${s.sound ? '🔊' : '🔇'}</button>
       </div>
     </header>`;
@@ -97,43 +98,77 @@ KK.app = (() => {
     if (!s.lastDay) return `Hiii ${NAME}! Tap <b>START</b> and let’s go 🌸`;
     if (d.xp >= s.goal) return 'Daily goal done! 🎉 Extra practice = extra glow.';
     if (streak && s.lastDay !== S.today()) return `Your 🔥 <b>${streak}-day streak</b> is waiting. One lesson keeps it alive!`;
-    const opts = [`${h < 12 ? 'Good morning' : h < 18 ? 'Hey' : 'Evening'}, ${NAME}! Ready to bloom? 🌸`, 'Let’s get those x’s 💅', `<b>${s.goal - d.xp} XP</b> to your daily goal. Easy.`];
+    const opts = [`${h < 12 ? 'Good morning' : h < 18 ? 'Hey' : 'Evening'}, ${NAME}! Ready to bloom? 🌸`, 'Let’s get those 🎀’s (that’s x’s) 💅', `<b>${s.goal - d.xp} XP</b> to your daily goal. Easy.`];
     return opts[new Date().getDate() % opts.length];
   }
-  function ringNode(lv) {
+  function ringNode(lv, animateSeg = 0, gold = lv >= 4) {
     const R = 46, Cc = 2 * Math.PI * R, seg = Cc / 4, gap = 7;
     let out = '';
     for (let i = 0; i < 4; i++) {
-      const col = i < lv ? (lv >= 4 ? 'var(--gold)' : 'var(--c)') : '#EADFE5';
-      out += `<circle cx="50" cy="50" r="${R}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${seg - gap} ${Cc - seg + gap}" stroke-dashoffset="${-(i * seg + gap / 2)}" transform="rotate(-90 50 50)"/>`;
+      const col = i < lv ? (gold ? 'var(--gold)' : 'var(--c)') : '#EADFE5';
+      const anim = animateSeg && i === animateSeg - 1;
+      out += `<circle class="${anim ? 'seg-new' : ''}" style="--cc:${Cc}" cx="50" cy="50" r="${R}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${seg - gap} ${Cc - seg + gap}" stroke-dashoffset="${-(i * seg + gap / 2)}" transform="rotate(-90 50 50)"/>`;
     }
     return `<svg class="node-ring" viewBox="0 0 100 100" aria-hidden="true">${out}</svg>`;
   }
   function node(s, x, isCur) {
-    const lv = S.level(s.id);
+    const lv = S.level(s.id), k = skillRec(s.id), fading = S.reviewDue().includes(s.id);
+    const anim = justLeveled && justLeveled.id === s.id ? justLeveled.level : 0;
     return `<div class="node-row" style="--x:${x}px">
       ${isCur ? '<div class="start-tip">START</div>' : ''}
-      <button class="node lv${lv} ${isCur ? 'current' : ''}" data-act="skill" data-id="${s.id}" aria-label="${s.name}: ${masteryLabel(S.s.skills[s.id] || { level: 0, total: 0 })}">
-        ${ringNode(lv)}<span class="node-face">${lv >= 4 ? '👑' : s.icon}</span>
+      <button class="node lv${lv} ${isCur ? 'current' : ''} ${fading ? 'fading' : ''} ${anim ? 'leveled' : ''}" data-act="skill" data-id="${s.id}" aria-label="${s.name}: ${masteryLabel(k)}${fading ? ', needs review' : ''}">
+        ${ringNode(lv, anim)}<span class="node-face">${lv >= 4 ? '👑' : s.icon}</span>${fading ? '<span class="fade-tag" aria-hidden="true">🔁</span>' : ''}
       </button>
       <div class="node-label">${s.name}${s.sat === false ? '<small>Algebra 2 only</small>' : ''}</div>
       ${isCur ? `<div class="node-kiki ${x > 0 ? 'left' : 'right'}">${me('happy', 62, 'idle')}</div>` : ''}
     </div>`;
   }
+  function trophyNode(u, x) {
+    const ready = S.unitReady(u.id), best = S.s.unitTests[u.id];
+    const passed = best >= 80;
+    return `<div class="node-row" style="--x:${x}px">
+      <button class="node trophy ${ready ? '' : 'locked'} ${passed ? 'passed' : ''}" data-act="unit-test" data-unit="${u.id}" aria-label="${u.name} unit test${ready ? '' : ', locked until every skill is started'}${best ? `, best ${best}%` : ''}">
+        <span class="node-face">${ready ? '🏆' : '🔒'}</span>
+      </button>
+      <div class="node-label">Unit Test${best ? `<small>Best ${best}%${passed ? ' · passed' : ''}</small>` : ready ? '<small>+150 XP</small>' : '<small>Start every skill to unlock</small>'}</div>
+    </div>`;
+  }
   function viewLearn() {
-    const cur = currentSkill();
+    const cur = currentSkill(), due = S.reviewDue();
     let gi = 0;
+    const review = due.length ? `<div class="review-card">
+        <div class="rc-ic">🔁</div>
+        <div class="rc-main"><b>${due.length} skill${due.length > 1 ? 's are' : ' is'} fading</b><p>${due.slice(0, 3).map((id) => skillById[id].name).join(', ')}${due.length > 3 ? '…' : ''}. A 3-minute touch-up keeps ${due.length > 1 ? 'them' : 'it'} sharp.</p></div>
+        <button class="btn btn-purple sm" data-act="review">Touch up</button></div>` : '';
     const units = UNITS.map((u, ui) => {
       const skills = SKILLS.filter((s) => s.unit === u.id);
       const done = skills.filter((s) => S.level(s.id) >= 4).length;
+      const nodes = skills.map((s) => node(s, OFFS[gi++ % OFFS.length], s.id === cur.id)).join('') + trophyNode(u, OFFS[gi++ % OFFS.length]);
       return `<section class="unit" style="${unitVars(u)}">
-        <div class="unit-banner"><div><div class="unit-kick">Unit ${ui + 1} · SAT: ${u.sat}</div><h2>${u.name}</h2><p>${u.blurb}</p></div>
+        <div class="unit-banner"><div><div class="unit-kick">Unit ${ui + 1} · ${u.strategy ? 'Princeton Review–style' : `SAT: ${u.sat}`}</div><h2>${u.name}</h2><p>${u.blurb}</p></div>
           <div class="unit-count"><b>${done}/${skills.length}</b><span>👑</span></div></div>
-        <div class="path">${skills.map((s) => node(s, OFFS[gi++ % OFFS.length], s.id === cur.id)).join('')}</div>
+        <div class="path">${nodes}</div>
       </section>`;
     }).join('');
-    return `<div class="hello">${me(S.liveStreak() || !S.s.lastDay ? 'happy' : 'wow', 64, 'idle')}<div class="speech">${greetLine()}</div></div>${units}
+    return `<div class="hello">${me(S.liveStreak() || !S.s.lastDay ? 'happy' : 'wow', 64, 'idle')}<div class="speech">${greetLine()}</div></div>${review}${units}
       <p class="foot-note">Made for ${NAME} with 💖 by Dad</p>`;
+  }
+  // Draws a dashed trail through the nodes of each path (after layout, so it follows the real positions).
+  function drawTrails() {
+    $$('.path').forEach((path) => {
+      const pr = path.getBoundingClientRect();
+      const pts = $$('.node', path).map((n) => { const r = n.getBoundingClientRect(); return [r.left + r.width / 2 - pr.left, r.top + r.height / 2 - pr.top]; });
+      if (pts.length < 2) return;
+      let d = `M ${pts[0][0]} ${pts[0][1]}`;
+      for (let i = 1; i < pts.length; i++) {
+        const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], my = (y0 + y1) / 2;
+        d += ` C ${x0} ${my}, ${x1} ${my}, ${x1} ${y1}`;
+      }
+      let svg = $('.trail', path);
+      if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'trail'); svg.setAttribute('aria-hidden', 'true'); path.prepend(svg); }
+      svg.setAttribute('viewBox', `0 0 ${pr.width} ${pr.height}`);
+      svg.innerHTML = `<path d="${d}" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-dasharray="1 16"/>`;
+    });
   }
   function lessonPlan(lv) {
     if (lv <= 1) return { label: LEVELS.easy.name, desc: LEVELS.easy.desc, xp: 70, mix: ['easy', 'easy', 'easy', 'easy', 'medium', 'medium'] };
@@ -142,35 +177,54 @@ KK.app = (() => {
     return { label: 'Touch-Up', desc: 'Mixed review to keep it fresh', xp: 100, mix: M.shuffle(['easy', 'medium', 'medium', 'hard', 'hard', 'hard']) };
   }
   function skillSheet(id) {
-    const s = skillById[id], u = unitById[s.unit], sk = S.s.skills[id] || { level: 0, correct: 0, total: 0 }, lv = sk.level;
+    const s = skillById[id], u = unitById[s.unit], sk = skillRec(id), lv = sk.level;
     const plan = lessonPlan(lv), acc = sk.total ? Math.round((100 * sk.correct) / sk.total) : null;
+    const ago = S.daysSince(id);
     return `<div class="sheet-bg" data-act="close-sheet"></div>
     <div class="sheet" role="dialog" aria-modal="true" aria-label="${s.name}" style="${unitVars(u)}">
       <div class="sheet-grip"></div>
-      <div class="sheet-head"><span class="sheet-icon">${s.icon}</span><div><div class="sheet-kick">${u.name} · ${s.sat === false ? 'Algebra 2 only' : 'On the SAT'}</div><h3>${s.name}</h3></div></div>
+      <div class="sheet-head"><span class="sheet-icon">${s.icon}</span><div><div class="sheet-kick">${u.name} · ${s.sat === false ? 'Algebra 2 only' : u.strategy ? 'Score booster' : 'On the SAT'}</div><h3>${s.name}</h3></div></div>
       <p class="sheet-blurb">${s.blurb}</p>
       <div class="mastery-bar" aria-hidden="true">${[1, 2, 3, 4].map((i) => `<span class="${i <= lv ? 'on' : ''}"></span>`).join('')}</div>
-      <div class="mastery-row"><b>${masteryLabel(sk)}</b><span>${acc !== null ? `${acc}% correct · ${sk.total} answered` : 'New skill'}</span></div>
+      <div class="mastery-row"><b>${masteryLabel(sk)}</b><span>${acc !== null ? `${acc}% correct · ${sk.total} answered${ago !== null ? ` · ${ago === 0 ? 'today' : `${ago}d ago`}` : ''}` : 'New skill'}</span></div>
       <div class="next-lesson"><span class="nl-tag">${plan.label}</span>${plan.desc}</div>
       <button class="btn btn-unit big block" data-act="start" data-id="${id}">${lv === 0 ? 'Start' : lv >= 4 ? 'Practice' : 'Continue'} · +${plan.xp} XP</button>
+    </div>`;
+  }
+  function unitSheet(uid) {
+    const u = unitById[uid], ready = S.unitReady(uid), best = S.s.unitTests[uid];
+    return `<div class="sheet-bg" data-act="close-sheet"></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="${u.name} unit test" style="${unitVars(u)}">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head"><span class="sheet-icon">🏆</span><div><div class="sheet-kick">${u.name} · Khan-style</div><h3>Unit Test</h3></div></div>
+      <p class="sheet-blurb">10 mixed questions from every skill in ${u.name}. Get all of a skill’s questions right and it <b>levels up</b>, even by more than one lesson’s worth. No redos, so take your time.</p>
+      ${best ? `<div class="next-lesson"><span class="nl-tag">Best</span>${best}%${best >= 80 ? ' · Passed 🎉' : ' · 80% to pass'}</div>` : '<div class="next-lesson"><span class="nl-tag">Goal</span>80% to pass · +150 XP</div>'}
+      ${ready ? `<button class="btn btn-unit big block" data-act="start-unit" data-unit="${uid}">Start Unit Test</button>` : '<button class="btn btn-ghost big block" disabled>Start every skill in this unit first</button>'}
     </div>`;
   }
 
   // ── SAT tab ──
   const TIPS = [
     ['🎯 No penalty for guessing', 'Wrong answers don’t cost points on the SAT. Never leave a question blank, even with 10 seconds left.'],
+    ['🔙 Backsolve', 'When the answer choices are numbers, plug them into the problem instead of solving. Start with the middle one. Practice it in the <b>Test Strategies</b> unit.'],
+    ['🔢 Plug in your own number', 'When the answer choices have variables, make up an easy number (2, 10, or 100 for percents), get a result, and test each choice.'],
     ['🧮 Desmos is built in', 'The digital SAT has the Desmos graphing calculator on every math question. Graph both sides of an equation and look where they cross. <a href="https://www.desmos.com/calculator" target="_blank" rel="noopener">Practice with Desmos</a>.'],
     ['✍️ Typing your own answer', 'About 1 in 4 math questions has no choices. Fractions (7/2) and decimals (3.5) are fine, and so are negatives. Mixed numbers like 3 1/2 are <b>not</b>.'],
-    ['🔙 Plug in the choices', 'Stuck? Try each answer choice in the original equation. One of them works.'],
     ['⏱ About 1½ minutes each', 'Each math module is 22 questions in 35 minutes. Skip a hard one, mark it, and come back.'],
     ['📈 It adapts to you', 'Do well on the first math module and the second one gets harder, which unlocks higher scores. Early accuracy matters most.'],
   ];
+  function weakest(n = 3) {
+    return SKILLS.filter((s) => s.sat !== false && !unitById[s.unit].strategy && skillRec(s.id).total > 0 && S.level(s.id) < 4)
+      .map((s) => { const k = skillRec(s.id); return { s, acc: k.correct / k.total, lv: k.level }; })
+      .sort((a, b) => a.lv - b.lv || a.acc - b.acc).slice(0, n);
+  }
   function viewSat() {
     const runs = S.s.sat, last = runs[runs.length - 1], best = runs.reduce((m, r) => Math.max(m, r.score), 0);
-    const dom = UNITS.map((u) => {
+    const dom = UNITS.filter((u) => !u.strategy).map((u) => {
       const sks = SKILLS.filter((s) => s.unit === u.id && s.sat !== false);
       return { u, pct: Math.round((100 * sks.reduce((t, s) => t + S.level(s.id), 0)) / (sks.length * 4)) };
     });
+    const weak = weakest();
     return `<div class="sat-hero">
         <div class="sat-hero-top"><div><div class="kick light">SAT Math estimate</div>
           <div class="sat-score">${last ? `<b data-count="${last.score}" data-from="200">${last.score}</b>` : '<b>—</b>'}</div>
@@ -183,6 +237,8 @@ KK.app = (() => {
         <button class="btn btn-pink big block stack" data-act="test" data-n="10"><span>⚡ Quick Sprint</span><small>10 questions · 15 min</small></button>
         <button class="btn btn-purple big block stack" data-act="test" data-n="22"><span>📝 Full Module</span><small>22 questions · 35 min, just like test day</small></button>
       </div>
+      ${weak.length ? `<h3 class="sec-h">Work on next</h3><div class="next-list">${weak.map(({ s, acc, lv }) => `
+        <button class="next-item" data-act="skill" data-id="${s.id}" style="${unitVars(unitById[s.unit])}"><span class="ni-ic">${s.icon}</span><div><b>${s.name}</b><small>${MASTERY[lv]} · ${Math.round(acc * 100)}% correct</small></div><span class="ni-go">›</span></button>`).join('')}</div>` : ''}
       <h3 class="sec-h">Readiness by section</h3>
       <div class="card">${dom.map(({ u, pct }) => `<div class="dom-row"><span>${u.sat}</span><div class="dom-bar"><i style="width:${pct}%;background:${u.color}"></i></div><b>${pct}%</b></div>`).join('')}
         <p class="muted small">Based on your mastery in each unit on the Learn path.</p></div>
@@ -195,7 +251,7 @@ KK.app = (() => {
   // ── Quests tab ──
   function viewQuests() {
     const s = S.s, d = S.peekDay(), qs = S.quests(), streak = S.liveStreak();
-    return `<div class="goal-card">${ring(d.xp / s.goal, 92, '#FFC53D', 10)}<div class="goal-in"><div class="kick">Daily goal</div><h2>${d.xp} / ${s.goal} XP</h2>
+    return `<div class="goal-card">${ring(d.xp / s.goal, 92, '#FFC53D', 10, true)}<div class="goal-in"><div class="kick">Daily goal</div><h2>${d.xp} / ${s.goal} XP</h2>
         <p>${d.xp >= s.goal ? 'Done for today! 🎉' : `${s.goal - d.xp} XP to go. About ${Math.ceil((s.goal - d.xp) / 80)} lesson${Math.ceil((s.goal - d.xp) / 80) > 1 ? 's' : ''}.`}</p></div></div>
       <h3 class="sec-h">Daily quests</h3>
       <div class="card">${qs.map((q) => `
@@ -250,6 +306,7 @@ KK.app = (() => {
       <h3 class="sec-h">Settings</h3>
       <div class="card settings">
         <div class="set-row"><span>Sound effects</span><button class="toggle ${s.sound ? 'on' : ''}" data-act="sound" role="switch" aria-checked="${s.sound}" aria-label="Sound effects"><i></i></button></div>
+        <div class="set-row"><span>🎀 Real-Life mode <small class="muted">x’s shown as bows, heels…</small></span><button class="toggle ${s.story ? 'on' : ''}" data-act="story-setting" role="switch" aria-checked="${s.story}" aria-label="Real-Life mode"><i></i></button></div>
         <div class="set-row col"><span>Daily goal</span><div class="seg">${GOALS.map(([g, lbl]) => `<button class="${s.goal === g ? 'on' : ''}" data-act="goal" data-g="${g}">${lbl}<small>${g} XP</small></button>`).join('')}</div></div>
         <div class="set-row"><span>Moving to a new phone?</span><button class="btn btn-ghost sm" data-act="backup">Copy backup</button></div>
         <div class="set-row"><span>Restore from backup</span><button class="btn btn-ghost sm" data-act="restore">Paste</button></div>
@@ -259,37 +316,61 @@ KK.app = (() => {
 
   function renderTabs() {
     const VIEWS = { learn: viewLearn, sat: viewSat, quests: viewQuests, shop: viewShop, me: viewMe };
+    const dir = TABS.findIndex((t) => t[0] === tab) >= TABS.findIndex((t) => t[0] === lastTab) ? 'slide-l' : 'slide-r';
     root().className = 'screen-tabs';
-    root().innerHTML = `${topbar()}<main class="view view-${tab}" id="view">${VIEWS[tab]()}</main>${tabbar()}${sheet ? skillSheet(sheet) : ''}`;
+    root().innerHTML = `${topbar()}<main class="view view-${tab} ${lastTab !== tab ? dir : ''}" id="view">${VIEWS[tab]()}</main>${tabbar()}${sheet ? (sheet.unit ? unitSheet(sheet.unit) : skillSheet(sheet)) : ''}`;
+    lastTab = tab;
     countUp(root());
-    if (tab === 'learn' && !scrolledToCurrent) {
-      scrolledToCurrent = true;
-      const cur = $('.node.current');
-      if (cur && S.s.lastDay) cur.scrollIntoView({ block: 'center' });
+    if (tab === 'learn') {
+      requestAnimationFrame(drawTrails);
+      if (!scrolledToCurrent) {
+        scrolledToCurrent = true;
+        const cur = $('.node.current');
+        if (cur && S.s.lastDay) cur.scrollIntoView({ block: 'center' });
+      }
+      if (justLeveled) { const n = $('.node.leveled'); if (n) { n.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' }); setTimeout(() => { snd.coin(); fx.burstFrom(n, 22); }, 450); } justLeveled = null; }
     }
   }
 
   // ═════════════ Lesson ═════════════
   function prep(p, gridChance) {
-    p.type = Number.isFinite(p.value) && Math.random() < gridChance ? 'grid' : 'mc';
+    p.type = !p.strategy && Number.isFinite(p.value) && Math.random() < gridChance ? 'grid' : 'mc';
     return p;
   }
-  function startLesson(id) {
-    const s = skillById[id], lv = S.level(id), plan = lessonPlan(lv);
-    const qs = plan.mix.map((L) => prep(C.problem(id, L), L === 'easy' ? 0 : 0.3));
-    lesson = { id, unit: s.unit, qs, i: 0, phase: 'answer', sel: null, input: '', hint: 0, usedHint: false,
-      combo: 0, maxCombo: 0, xp: 0, firstTry: 0, wrongs: 0, hints: 0, redos: 0, base: qs.length, start: Date.now() };
+  function newLesson(base) {
+    const n = base.qs.length;
+    lesson = { i: 0, phase: 'answer', sel: null, input: '', hint: 0, usedHint: false, combo: 0, maxCombo: 0, xp: 0, firstTry: 0, wrongs: 0, hints: 0,
+      redos: 0, base: n, start: Date.now(), answered: new Array(n).fill(null), legend: C.legend(), ...base };
     sheet = null;
     fx.clear();
     snd.unlock();
     render();
   }
+  function startLesson(id) {
+    const s = skillById[id], lv = S.level(id), plan = lessonPlan(lv);
+    const qs = plan.mix.map((L) => prep(C.problem(id, L), L === 'easy' ? 0 : 0.3));
+    newLesson({ kind: 'skill', id, ids: [id], unit: s.unit, title: s.name, qs, allowRedo: true });
+  }
+  function startReview() {
+    const ids = S.reviewDue();
+    if (!ids.length) return;
+    const qs = Array.from({ length: 6 }, (_, i) => { const id = ids[i % ids.length]; return prep(C.problem(id, S.level(id) >= 4 ? 'hard' : 'medium'), 0.3); });
+    newLesson({ kind: 'review', id: null, ids, unit: skillById[ids[0]].unit, title: 'Touch-up', qs: M.shuffle(qs), allowRedo: true });
+  }
+  function startUnitTest(uid) {
+    const ids = SKILLS.filter((s) => s.unit === uid).map((s) => s.id);
+    const order = [];
+    while (order.length < 10) order.push(...M.shuffle(ids.slice()));
+    const qs = order.slice(0, 10).map((id) => prep(C.problem(id, M.pick(['medium', 'hard'])), 0.25));
+    newLesson({ kind: 'unit', id: uid, ids, unit: uid, title: `${unitById[uid].name} Unit Test`, qs, allowRedo: false });
+  }
+  const useStory = (p) => !!(S.s.story && skillById[p.skill].story && p.level !== 'hard' && !p.strategy && lesson && lesson.kind !== 'unit');
   const hintItems = (p) => [p.hint, ...p.steps.slice(0, -1)].filter(Boolean);
-  const hintHTML = (p, k) => (k ? `<ul>${hintItems(p).slice(0, k).map((h) => `<li>💡 ${h}</li>`).join('')}</ul>` : '');
-  function choicesHTML(p, sel, numbered) {
+  function hintHTML(p, k, show) { return k ? `<ul>${hintItems(p).slice(0, k).map((h) => `<li>💡 ${show(h)}</li>`).join('')}</ul>` : ''; }
+  function choicesHTML(p, sel, numbered, show = (h) => h) {
     const short = p.choices.every((c) => c.replace(/<[^>]+>/g, '').length <= 13);
     return `<div class="choices ${short ? 'two' : ''}" role="radiogroup" aria-label="Answer choices">${p.choices.map((c, i) => `
-      <button class="choice ${sel === i ? 'sel' : ''}" role="radio" aria-checked="${sel === i}" data-act="pick" data-i="${i}"><kbd>${numbered ? i + 1 : 'ABCD'[i]}</kbd><span>${c}</span></button>`).join('')}</div>`;
+      <button class="choice ${sel === i ? 'sel' : ''}" role="radio" aria-checked="${sel === i}" data-act="pick" data-i="${i}"><kbd>${numbered ? i + 1 : 'ABCD'[i]}</kbd><span>${show(c)}</span></button>`).join('')}</div>`;
   }
   const KEYS = ['7', '8', '9', '⌫', '4', '5', '6', '/', '1', '2', '3', '−', '0', '.'];
   function gridHTML(p, input) {
@@ -300,14 +381,23 @@ KK.app = (() => {
       <div class="keypad">${KEYS.map((k) => `<button class="key ${k === '0' ? 'wide' : ''} ${/[⌫/−.]/.test(k) ? 'fn' : ''}" data-act="key" data-k="${k}" aria-label="${k === '⌫' ? 'Delete' : k === '−' ? 'Negative' : k}">${k}</button>`).join('')}</div>
     </div>`;
   }
+  function legendHTML(p, L) {
+    const txt = [p.prompt, p.visual, ...p.choices].join(' ');
+    const parts = [];
+    if (/(?<![A-Za-z])x(?![A-Za-z\-])/.test(txt)) parts.push(`${L.x.e} = one ${L.x.one} <i>(that’s x)</i>`);
+    if (/(?<![A-Za-z])y(?![A-Za-z\-])/.test(txt)) parts.push(`${L.y.e} = one ${L.y.one} <i>(that’s y)</i>`);
+    return parts.length ? `<div class="legend-x">${parts.join(' · ')}</div>` : '';
+  }
   function questionHTML(p, state, inLesson) {
-    const label = `${p.redo ? '<span class="redo-tag">🔁 Redo</span>' : ''}${p.label || 'Choose the answer'}`;
+    const story = inLesson && useStory(p);
+    const show = story ? (h) => C.storyify(h, state.legend) : (h) => h;
+    const label = `${p.redo ? '<span class="redo-tag">🔁 Redo</span>' : ''}${p.strategy ? '<span class="strat-tag">🧠 Strategy</span>' : ''}${p.label || 'Choose the answer'}`;
     const prompt = inLesson
-      ? `<div class="q-row"><div class="q-kiki" id="qkiki">${me('think', 72)}</div><div class="bubble">${p.prompt}</div></div>`
+      ? `<div class="q-row"><div class="q-kiki" id="qkiki">${me('think', 72)}</div><div class="bubble">${show(p.prompt)}</div></div>`
       : `<div class="q-prompt">${p.prompt}</div>`;
-    return `<div class="q-label">${label}</div>${prompt}${p.visual ? `<div class="visual">${p.visual}</div>` : ''}
-      ${p.type === 'grid' ? gridHTML(p, state.input) : choicesHTML(p, state.sel, inLesson)}
-      ${inLesson ? `<div class="hint-box" id="hints">${hintHTML(p, state.hint)}</div>` : ''}`;
+    return `<div class="q-label">${label}</div>${prompt}${p.visual ? `<div class="visual">${show(p.visual)}</div>` : ''}${story ? legendHTML(p, state.legend) : ''}
+      ${p.type === 'grid' ? gridHTML(p, state.input) : choicesHTML(p, state.sel, inLesson, show)}
+      ${inLesson ? `<div class="hint-box" id="hints">${hintHTML(p, state.hint, show)}</div>` : ''}`;
   }
   function footAnswer() {
     const L = lesson, p = L.qs[L.i];
@@ -316,25 +406,33 @@ KK.app = (() => {
       <button class="btn btn-green big grow" data-act="check" ${ready ? '' : 'disabled'}>Check</button></div>`;
   }
   function footFeedback(ok, p, line, gained) {
-    const right = p.type === 'grid' ? p.answer : p.choices[p.correct];
+    const show = useStory(p) ? (h) => C.storyify(h, lesson.legend) : (h) => h;
+    const right = p.type === 'grid' ? p.answer : show(p.choices[p.correct]);
     return `<div class="fb">
       <div class="fb-head"><span class="fb-icon">${ok ? '✓' : '✕'}</span><div><div class="fb-title">${ok ? M.pick(['Nailed it!', 'Correct!', 'Yesss!', 'Perfect!']) : 'Not quite'}${ok && gained ? ` <span class="fb-xp">+${gained} XP</span>` : ''}</div>
         <div class="fb-line">${line}</div></div></div>
       ${ok ? '' : `<div class="fb-answer">Answer: <b>${right}</b></div>`}
-      <details class="fb-steps" ${ok ? '' : 'open'}><summary>${ok ? 'See how' : 'How to get it'}</summary><ol>${p.steps.map((s) => `<li>${s}</li>`).join('')}</ol></details>
-      ${p.bridge ? `<div class="bridge"><span>🌉</span><div>${p.bridge}</div></div>` : ''}
+      <details class="fb-steps" ${ok ? '' : 'open'}><summary>${ok ? 'See how' : 'How to get it'}</summary><ol>${p.steps.map((s) => `<li>${show(s)}</li>`).join('')}</ol></details>
+      ${p.bridge ? `<div class="bridge"><span>🌉</span><div>${p.bridge}</div></div>` : useStory(p) ? `<div class="bridge"><span>🌉</span><div>In plain algebra: ${p.visual ? p.visual.replace(/<[^>]+>/g, ' ').trim() : p.prompt.replace(/<[^>]+>/g, '')}</div></div>` : ''}
       <button class="btn ${ok ? 'btn-green' : 'btn-red'} big block" data-act="continue">Continue</button>
     </div>`;
+  }
+  function storyBtn() {
+    const L = lesson, p = L.qs[L.i], can = skillById[p.skill].story && p.level !== 'hard' && !p.strategy && L.kind !== 'unit';
+    if (!can) return `<span class="story-btn off" title="Plain x, like the SAT" aria-label="Plain x, like the SAT">x</span>`;
+    return `<button class="story-btn ${S.s.story ? 'on' : ''}" data-act="story" aria-pressed="${S.s.story}" aria-label="Real-Life mode ${S.s.story ? 'on' : 'off'}">${S.s.story ? L.legend.x.e : 'x'}</button>`;
   }
   function renderLesson() {
     const L = lesson, p = L.qs[L.i], u = unitById[L.unit];
     root().className = 'screen-lesson';
-    root().innerHTML = `<div class="lesson" style="${unitVars(u)}">
+    root().innerHTML = `<div class="lesson ${L.combo >= 5 ? 'fire' : ''}" style="${unitVars(u)}">
       <div class="lesson-top">
         <button class="icon-btn" data-act="quit" aria-label="Quit lesson">✕</button>
-        <div class="bar" role="progressbar" aria-label="Lesson progress" aria-valuemin="0" aria-valuemax="${L.qs.length}" aria-valuenow="${L.i}"><div class="bar-fill" style="width:${(100 * L.i) / L.qs.length}%"></div></div>
+        <div class="bar" role="progressbar" aria-label="${L.title} progress" aria-valuemin="0" aria-valuemax="${L.qs.length}" aria-valuenow="${L.i}"><div class="bar-fill" style="width:${(100 * L.i) / L.qs.length}%"></div></div>
+        ${storyBtn()}
         <div class="combo ${L.combo >= 2 ? 'on' : ''}" aria-label="${L.combo} in a row">🔥<b>${L.combo}</b></div>
       </div>
+      ${L.kind !== 'skill' ? `<div class="lesson-kind">${L.kind === 'unit' ? '🏆' : '🔁'} ${L.title}</div>` : ''}
       <main class="lesson-body" id="lbody">${questionHTML(p, L, true)}</main>
       <footer class="lesson-foot" id="foot" aria-live="polite">${footAnswer()}</footer>
     </div>`;
@@ -365,7 +463,7 @@ KK.app = (() => {
     if (L.phase !== 'answer' || L.hint >= hintItems(p).length) return;
     if (!L.usedHint) L.hints++;
     L.hint++; L.usedHint = true;
-    $('#hints').innerHTML = hintHTML(p, L.hint);
+    $('#hints').innerHTML = hintHTML(p, L.hint, useStory(p) ? (h) => C.storyify(h, L.legend) : (h) => h);
     $('#foot').innerHTML = footAnswer();
     snd.tap();
   }
@@ -376,7 +474,8 @@ KK.app = (() => {
     if (!ready) return;
     const ok = p.type === 'grid' ? M.gridOk(L.input, p.value) : L.sel === p.correct;
     L.phase = 'feedback';
-    const sk = S.skill(L.id);
+    L.answered[L.i] = ok;
+    const sk = S.skill(p.skill);
     sk.total++;
     let gained = 0, line;
     if (ok) {
@@ -392,10 +491,10 @@ KK.app = (() => {
     } else {
       L.combo = 0; L.wrongs++;
       line = say('wrong');
-      if (!p.redo && L.redos < 2) {
-        const np = prep(C.problem(L.id, p.level), p.type === 'grid' ? 1 : 0);
+      if (L.allowRedo && !p.redo && L.redos < 2) {
+        const np = prep(C.problem(p.skill, p.level), p.type === 'grid' ? 1 : 0);
         np.redo = true;
-        L.qs.push(np); L.redos++;
+        L.qs.push(np); L.answered.push(null); L.redos++;
         line += ' You’ll get a redo at the end 🔁';
       }
     }
@@ -410,13 +509,15 @@ KK.app = (() => {
     const combo = $('.combo');
     combo.className = `combo ${L.combo >= 2 ? 'on' : ''} ${ok && L.combo >= 2 ? 'bump' : ''}`;
     combo.querySelector('b').textContent = L.combo;
+    $('.lesson').classList.toggle('fire', L.combo >= 5);
     $('.bar-fill').style.width = `${(100 * (L.i + 1)) / L.qs.length}%`;
     const foot = $('#foot');
     foot.className = `lesson-foot ${ok ? 'ok' : 'no'}`;
     foot.innerHTML = footFeedback(ok, p, line, gained);
     if (ok) {
       snd.correct(L.combo);
-      fx.burstFrom(p.type === 'mc' ? $$('.choice')[p.correct] : $('#gdisp'), 10 + Math.min(L.combo, 8) * 3, { speed: 6 });
+      fx.burstFrom(p.type === 'mc' ? $$('.choice')[p.correct] : $('#gdisp'), 10 + Math.min(L.combo, 8) * 3, { speed: 6 + Math.min(L.combo, 8) * 0.4 });
+      if (L.combo === 5) fx.shower(30);
     } else {
       snd.wrong();
     }
@@ -431,26 +532,44 @@ KK.app = (() => {
     renderLesson();
   }
   function finishLesson() {
-    const L = lesson, sk = S.skill(L.id), before = sk.level;
+    const L = lesson;
     const acc = L.firstTry / L.base, perfect = L.wrongs === 0 && L.hints === 0;
-    const xp = L.xp + (perfect ? 10 : 0);
-    let after = before;
-    if (before === 0) after = acc >= 0.8 ? 2 : 1;
-    else if (acc >= 0.8 && before < 4) after = before + 1;
-    sk.level = after;
+    let xp = L.xp + (perfect ? 10 : 0), gems = perfect ? 10 : 5;
+    const steps = [];
+    const common = { acc, secs: Math.round((Date.now() - L.start) / 1000), perfect };
+    if (L.kind === 'skill') {
+      const sk = S.skill(L.id), before = sk.level;
+      let after = before;
+      if (before === 0) after = acc >= 0.8 ? 2 : 1;
+      else if (acc >= 0.8 && before < 4) after = before + 1;
+      sk.level = after;
+      S.touch(L.id);
+      if (after > before) justLeveled = { id: L.id, level: after };
+      steps.push({ type: 'lesson', xp, gems, before, after, skill: L.id, title: perfect ? 'Perfect lesson!' : 'Lesson complete!', ...common });
+    } else if (L.kind === 'review') {
+      xp += 20;
+      L.ids.forEach((id) => S.touch(id));
+      steps.push({ type: 'lesson', xp, gems, before: 0, after: 0, skill: L.ids[0], title: 'Touch-up done!', sub: `${L.ids.length} skill${L.ids.length > 1 ? 's' : ''} back to sharp ✨`, ...common });
+    } else {
+      const per = {};
+      L.qs.forEach((p, i) => { const r = per[p.skill] || (per[p.skill] = { right: 0, total: 0 }); r.total++; if (L.answered[i]) r.right++; });
+      const ups = S.applyUnitTest(L.id, per, acc);
+      const passed = acc >= 0.8;
+      xp += passed ? 150 : 50; gems += passed ? 20 : 0;
+      if (ups.length) justLeveled = { id: ups[0].id, level: ups[0].level };
+      steps.push({ type: 'unit', xp, gems, unit: L.id, ups, passed, per, ...common });
+    }
     const d = S.day();
     d.lessons++;
     d.combo = Math.max(d.combo, L.maxCombo);
     if (perfect) d.perfects++;
     if (L.unit === 'psda' || L.unit === 'geo') d.gd++;
     S.s.bestCombo = Math.max(S.s.bestCombo, L.maxCombo);
-    const gems = perfect ? 10 : 5;
     S.s.gems += gems;
     const goalHit = S.addXP(xp);
     const streak = S.extendStreak();
     const quests = S.claimQuests(), badges = S.checkBadges();
     S.save();
-    const steps = [{ type: 'lesson', xp, acc, secs: Math.round((Date.now() - L.start) / 1000), perfect, before, after, skill: L.id, gems }];
     if (streak.extended) steps.push({ type: 'streak', used: streak.used });
     if (goalHit || quests.length) steps.push({ type: 'quests', goalHit, quests });
     badges.forEach((b) => steps.push({ type: 'badge', b }));
@@ -557,19 +676,30 @@ KK.app = (() => {
       <div class="rv-body"><div class="q-prompt">${p.prompt}</div>${p.visual ? `<div class="visual">${p.visual}</div>` : ''}
         <p>Your answer: <b>${yours}</b>${r.ok ? '' : `<br>Correct: <b>${right}</b>`}</p><ol>${p.steps.map((s) => `<li>${s}</li>`).join('')}</ol></div></details>`;
   }
+  const tiles = (r) => `<div class="stat-tiles">
+    <div class="tile t-xp"><div class="t-h">Total XP</div><div class="t-v">⚡<b data-count="${r.xp}">0</b></div></div>
+    <div class="tile t-acc"><div class="t-h">${r.acc >= 0.9 ? 'Amazing' : r.acc >= 0.7 ? 'Good' : 'Accuracy'}</div><div class="t-v">🎯<b data-count="${Math.round(r.acc * 100)}" data-suffix="%">0</b></div></div>
+    <div class="tile t-time"><div class="t-h">Time</div><div class="t-v">⏱<b>${fmtTime(r.secs)}</b></div></div></div>`;
   const FLOW = {
     lesson(r) {
-      const s = skillById[r.skill], up = r.after > r.before;
+      const s = skillById[r.skill], u = unitById[s.unit], up = r.after > r.before;
       return `<div class="flow-main">${me('cheer', 150, 'bounce')}
-        <h1 class="flow-title">${r.perfect ? 'Perfect lesson!' : 'Lesson complete!'}</h1>
-        <p class="flow-sub">${r.perfect ? say('perfect') : say('done')}</p>
-        <div class="stat-tiles">
-          <div class="tile t-xp"><div class="t-h">Total XP</div><div class="t-v">⚡<b data-count="${r.xp}">0</b></div></div>
-          <div class="tile t-acc"><div class="t-h">${r.acc >= 0.9 ? 'Amazing' : r.acc >= 0.7 ? 'Good' : 'Accuracy'}</div><div class="t-v">🎯<b data-count="${Math.round(r.acc * 100)}" data-suffix="%">0</b></div></div>
-          <div class="tile t-time"><div class="t-h">Time</div><div class="t-v">⏱<b>${fmtTime(r.secs)}</b></div></div>
-        </div>
-        ${up ? `<div class="level-up">${s.icon} <span><b>${s.name}</b> is now <b>${MASTERY[r.after]}</b>${r.after === 4 ? ' 👑' : ''}</span></div>`
+        <h1 class="flow-title">${r.title}</h1>
+        <p class="flow-sub">${r.sub || (r.perfect ? say('perfect') : say('done'))}</p>
+        ${tiles(r)}
+        ${up ? `<div class="level-up" style="${unitVars(u)}"><div class="lu-ring">${ringNode(r.after, r.after)}<span>${r.after >= 4 ? '👑' : s.icon}</span></div><div><b>${s.name}</b> is now<br><b class="lu-lvl">${MASTERY[r.after]}</b>${r.after === 4 ? ' 👑 Mastered!' : ''}</div></div>`
           : r.before > 0 && r.before < 4 ? `<div class="level-hint">Get 5 of 6 right on the first try to level up <b>${s.name}</b>.</div>` : ''}
+        <div class="gem-earn">+${r.gems} 💎</div></div>`;
+    },
+    unit(r) {
+      const u = unitById[r.unit];
+      return `<div class="flow-main scroll">${r.passed ? '<div class="badge-big">🏆</div>' : me('think', 120, 'wiggle')}
+        <div class="kick">${u.name} Unit Test</div>
+        <h1 class="flow-title">${r.passed ? 'Passed!' : `${Math.round(r.acc * 100)}%`}</h1>
+        <p class="flow-sub">${r.passed ? `${Math.round(r.acc * 100)}% · ${M.pick(['Certified. 📜', 'That’s a whole unit. 🤯', 'Academic weapon 🗡️'])}` : 'Not yet. 80% passes, and every skill you touched got practice.'}</p>
+        ${tiles(r)}
+        <div class="card left" style="${unitVars(u)}">${r.ups.length ? r.ups.map((x) => `<div class="up-row"><span>${skillById[x.id].icon}</span><div><b>${skillById[x.id].name}</b> leveled up to <b>${MASTERY[x.level]}</b></div><i>▲</i></div>`).join('')
+          : '<p class="muted" style="margin:0">No level-ups this time. A skill levels up when you get <b>all</b> of its questions right.</p>'}</div>
         <div class="gem-earn">+${r.gems} 💎</div></div>`;
     },
     test(r) {
@@ -585,7 +715,7 @@ KK.app = (() => {
     },
     streak(r) {
       const n = S.s.streak;
-      return `<div class="flow-main"><div class="big-flame">🔥</div><div class="streak-num" data-count="${n}" data-from="${Math.max(0, n - 1)}">${n}</div>
+      return `<div class="flow-main"><div class="big-flame" style="--fs:${Math.min(1.6, 1 + n * 0.03)}">🔥</div><div class="streak-num" data-count="${n}" data-from="${Math.max(0, n - 1)}">${n}</div>
         <h1 class="flow-title">day streak!</h1>
         <p class="flow-sub">${r.used ? '🧊 A streak freeze saved you! ' : ''}${n === 1 ? 'Day one. Come back tomorrow to keep it going!' : say('streak')}</p>
         ${weekDots(S.week())}</div>`;
@@ -606,14 +736,15 @@ KK.app = (() => {
     root().innerHTML = `<div class="flow flow-${st.type}">${FLOW[st.type](st)}<div class="flow-foot"><button class="btn btn-green big block" data-act="flow-next">Continue</button></div></div>`;
     countUp(root());
     $('[data-act="flow-next"]').focus({ preventScroll: true });
-    if (st.type === 'lesson' || st.type === 'test') { snd.fanfare(); fx.shower(st.perfect ? 90 : 55); }
+    if (st.type === 'lesson' || st.type === 'test') { snd.fanfare(); fx.shower(st.perfect ? 90 : 55); if (st.after > st.before) setTimeout(() => snd.coin(), 700); }
+    else if (st.type === 'unit') { if (st.passed) { snd.fanfare(); fx.shower(90); } else snd.pop(); }
     else if (st.type === 'streak') { snd.fanfare(); fx.burstFrom($('.big-flame'), 30, { speed: 7 }); }
     else if (st.type === 'quests') { snd.coin(); fx.burstFrom($('.quest-pay'), 20); }
     else if (st.type === 'badge') { snd.fanfare(); fx.burstFrom($('.badge-big'), 36, { speed: 8 }); }
   }
   function flowNext() {
     flow.i++;
-    if (flow.i >= flow.steps.length) { tab = flow.back; flow = null; render(); window.scrollTo(0, 0); }
+    if (flow.i >= flow.steps.length) { tab = flow.back; lastTab = tab; flow = null; render(); if (!justLeveled) window.scrollTo(0, 0); }
     else renderFlow();
   }
 
@@ -627,8 +758,9 @@ KK.app = (() => {
         <button class="btn btn-pink big block" data-act="ob-next">Continue</button>`,
       () => `${me('happy', 104, 'idle')}<h1>Here’s the deal</h1>
         <ul class="how"><li><span>🌸</span>Tap a flower on your path for a 3-minute lesson.</li>
-        <li><span>🎀</span>Warm-Ups use real stuff (bows, heels, Birdies), then switch to x’s.</li>
+        <li><span>🎀</span><b>Real-Life mode:</b> x’s show up as bows, heels, and smoothies. Tap 🎀 in a lesson to switch.</li>
         <li><span>🔁</span>Miss one? You get a redo at the end. No stress.</li>
+        <li><span>🧠</span>The Test Strategies unit teaches the tricks tutors charge for.</li>
         <li><span>📝</span>The SAT tab has timed practice with a score estimate.</li>
         <li><span>🔥</span>One lesson a day keeps your streak alive.</li></ul>
         <button class="btn btn-pink big block" data-act="ob-done">Let’s bloom</button>`,
@@ -696,16 +828,26 @@ KK.app = (() => {
     tab(el) { tab = el.dataset.tab; sheet = null; render(); window.scrollTo(0, 0); },
     sound() { S.s.sound = !S.s.sound; snd.enabled = S.s.sound; S.save(); if (S.s.sound) snd.pop(); render(); },
     skill(el) { sheet = el.dataset.id; snd.tap(); render(); },
+    'unit-test'(el) { if (el.classList.contains('locked')) { toast('Start every skill in this unit to unlock 🔒'); return; } sheet = { unit: el.dataset.unit }; snd.tap(); render(); },
     'close-sheet'() { sheet = null; render(); },
     start(el) { startLesson(el.dataset.id); },
+    'start-unit'(el) { startUnitTest(el.dataset.unit); },
+    review: startReview,
+    story() {
+      if (!lesson || lesson.phase !== 'answer') return;
+      S.s.story = !S.s.story; S.save(); snd.pop();
+      renderLesson();
+      toast(S.s.story ? `🎀 Real-Life mode on` : 'Plain x, like the SAT');
+    },
+    'story-setting'() { S.s.story = !S.s.story; S.save(); snd.tap(); render(); },
     pick(el) { pick(+el.dataset.i); },
     key(el) { key(el.dataset.k); },
     hint, check,
     continue: next,
     quit() {
       openLayer(`<div class="sheet-bg" data-act="quit-stay"></div><div class="sheet center" role="dialog" aria-modal="true" aria-label="Leave lesson?">
-        ${me('oops', 88)}<h3>Wait, don’t go! 🥺</h3><p class="muted">You’ll lose your progress in this lesson.</p>
-        <button class="btn btn-pink big block" data-act="quit-stay">Keep learning</button><button class="btn btn-text block" data-act="quit-leave">End lesson</button></div>`);
+        ${me('oops', 88)}<h3>Wait, don’t go! 🥺</h3><p class="muted">You’ll lose your progress in this ${lesson && lesson.kind === 'unit' ? 'unit test' : 'lesson'}.</p>
+        <button class="btn btn-pink big block" data-act="quit-stay">Keep learning</button><button class="btn btn-text block" data-act="quit-leave">End ${lesson && lesson.kind === 'unit' ? 'test' : 'lesson'}</button></div>`);
     },
     'quit-stay': closeLayer,
     'quit-leave'() { lesson = null; render(); },
@@ -780,7 +922,7 @@ KK.app = (() => {
     if (lesson) {
       const p = lesson.qs[lesson.i];
       if (lesson.phase === 'answer') {
-        if (p.type === 'mc' && /^[1-4]$/.test(e.key) && +e.key <= p.choices.length) { pick(+e.key - 1); return; }
+        if (p.type === 'mc' && /^[1-5]$/.test(e.key) && +e.key <= p.choices.length) { pick(+e.key - 1); return; }
         if (p.type === 'grid' && /^([\d./-]|Backspace)$/.test(e.key)) { e.preventDefault(); key(e.key === '-' ? '−' : e.key === 'Backspace' ? '⌫' : e.key); return; }
         if (e.key === 'Enter') { e.preventDefault(); check(); }
       } else if (e.key === 'Enter') { e.preventDefault(); next(); }
@@ -813,8 +955,9 @@ KK.app = (() => {
     document.addEventListener('keydown', onKey);
     document.addEventListener('pointerdown', () => snd.unlock(), { once: true });
     document.addEventListener('visibilitychange', () => { if (!document.hidden && test) tickTest(); });
+    window.addEventListener('resize', () => { if (tab === 'learn' && !lesson && !test && !flow) drawTrails(); });
     render();
-    window.KIKI_DEBUG = { get lesson() { return lesson; }, get test() { return test; }, get flow() { return flow; }, store: S };
+    window.KIKI_DEBUG = { get lesson() { return lesson; }, get test() { return test; }, get flow() { return flow; }, store: S, startReview, startUnitTest };
   }
 
   return { boot };
