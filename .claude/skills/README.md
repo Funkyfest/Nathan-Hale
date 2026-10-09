@@ -7,7 +7,7 @@ Maintained by the `skill-harvest` skill. Edit only through an approved harvest.
 
 | Skill | Purpose | Added | Last changed | Improvements |
 |---|---|---|---|---|
-| skill-harvest | Decide whether successful work should become a skill; run the improvement loop | 2026-10-09 | 2026-10-09 | 0 |
+| skill-harvest | Decide whether successful work should become a skill; run the improvement loop | 2026-10-09 | 2026-10-09 | 1 |
 
 ## Candidates
 

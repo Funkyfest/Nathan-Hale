@@ -21,6 +21,25 @@ Do NOT run for: one-line facts, lookups, trivial edits, or work that was already
 authorized and raised no new decision. When unsure, run it once and let Nathan say
 "skip these for X" so the rule can be narrowed below.
 
+## Step 0: Investigate before you score
+
+Never quiz on a candidate you have not verified. Before Step 1:
+
+- Read the actual artifact, not the commit messages or file names. Commit messages can
+  be wrong (a commit labeled "fix encoding" may change one word).
+- Diff every commit that touched it. Note empty or mislabeled commits.
+- Run or render it and confirm it works (tests, headless render, screenshots). Record what
+  was checked and what was not.
+- Look for evidence of recurrence in the places Nathan actually works: this repo's
+  history, his other repos (metadata only unless in scope), Drive file names. Count
+  occurrences. One occurrence is not "recurs".
+- Note anything exposed in the artifact that Nathan may not want public (names, comp,
+  client details) and raise it in the report.
+
+State the facts found before the recommendation. Do not present a recommendation below
+80 percent confidence; if the evidence only supports 60 to 70, the honest recommendation
+is "Note only" or "Skip" with the reason, and say what evidence would change it.
+
 ## Step 1: Score the candidate
 
 Answer each in one line. A candidate is worth proposing when at least three are yes.
@@ -108,4 +127,9 @@ which keep needing fixes.
 
 ## Improvement log
 
-- 2026-10-09: Created. Not yet exercised on a real candidate.
+- 2026-10-09: Created.
+- 2026-10-09: First run quizzed on a candidate ("client follow-up deck, fixed for encoding")
+  without reading the artifact. Both claims were wrong: the deck is a personal interview
+  follow-up for an Avison Young Market Leader role, and the "encoding fix" commit changed
+  one word. Nathan rejected a 70 percent recommendation. Added Step 0 (investigate before
+  scoring) and an 80 percent floor on recommendations.
