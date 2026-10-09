@@ -1,0 +1,214 @@
+<div id="stage" aria-hidden="true">
+  <img class="poster" src="__POSTER__" alt="">
+  <div id="labels"><svg></svg></div>
+  <div id="dimmer"></div>
+  <div id="veil"></div>
+</div>
+<div class="progress" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">Inside the <b>AI Factory</b></div>
+  <div class="top-actions">
+    <button class="chip" id="present" type="button" aria-pressed="false" title="Present mode">Present <kbd>P</kbd></button>
+    <button class="chip" id="labelsBtn" type="button" aria-pressed="true" title="Show labels">Labels <kbd>L</kbd></button>
+    <button class="chip" id="help" type="button" title="Keyboard shortcuts"><kbd>?</kbd></button>
+  </div>
+</header>
+<nav class="acts" aria-label="Chapters"></nav>
+
+<main>
+  <section class="hero" id="top" data-scene="campus" data-cam="560,430,760" data-target="-15,0,10" data-orbit="1" data-labels="" data-title="Start">
+    <div class="eyebrow">A guided tour · October 2026</div>
+    <h1>Inside the AI&nbsp;Factory</h1>
+    <p class="lede">A data center turns electricity into computation, and then into heat. Scroll to fly through one, from the 230,000-volt substation down to a chip running on less than one volt.</p>
+    <div class="ticker"><span><b>≈130 kW</b> per AI rack</span><span><b>2,000 L/s</b> of coolant per 100 MW</span><span><b>0.8 V</b> at the chip</span><span><b>54,000</b> GPUs in one hall</span></div>
+    <div class="cue"><i></i>Scroll, or press → to step through. Press ▶ below to listen along.</div>
+  </section>
+
+  <!-- ACT 1 · campus -->
+  <section class="act" id="act-campus" data-title="The campus">
+    <div class="act-head" data-scene="campus" data-cam="470,420,700" data-target="-15,0,10" data-labels="Data Hall"><div><div class="num">01 · The campus</div><h2>A building that eats a city's worth of power</h2></div></div>
+    <div class="beat" data-scene="campus" data-cam="470,420,700" data-target="-15,0,10" data-labels="Data Hall|Central utility">
+      <div class="card"><h3>Three halls, one industrial yard</h3><p>This campus runs 144 MW of computers: three halls of 48 MW each. Everything else you see exists to feed them power and take their heat away.</p>
+      <dl class="k"><dt>White space</dt><dd>rooms full of racks</dd><dt>Grey space</dt><dd>electrical and cooling rooms, often as big as the white space</dd><dt>Yard</dt><dd>generators, transformers, tanks, batteries</dd></dl></div></div>
+    <div class="beat right" data-scene="campus" data-cam="-120,120,70" data-target="-265,5,-85" data-labels="230 kV|Battery">
+      <div class="card"><h3>Power is the bottleneck</h3><p>Electricity arrives at 230,000 volts from two separate lines. Getting a grid connection this large can take years, so time to power now decides where AI campuses are built.</p><p>The batteries beside the substation smooth the power swings that AI training creates.</p></div></div>
+    <div class="beat" data-scene="campus" data-cam="170,46,215" data-target="20,6,100" data-labels="Generator|Unit-substation">
+      <div class="card"><h3>A generator for every few megawatts</h3><p>Thirteen 3 MW diesel generators line each hall, one more than needed (N+1). If the grid fails, batteries carry the load for the 10 seconds it takes them to start.</p></div></div>
+    <div class="beat right" data-scene="campus" data-cam="150,70,30" data-target="30,16,-25" data-labels="Dry coolers">
+      <div class="card"><h3>The roof is a radiator</h3><p>Every watt that goes in comes out as heat. Rows of dry coolers on the roof, giant radiators with fans, push that heat into the outside air. Watch the fans turn.</p></div></div>
+  </section>
+
+  <!-- ACT 2 · cutaway -->
+  <section class="act" id="act-hall" data-title="The building">
+    <div class="act-head" data-scene="cutaway" data-cam="120,40,135" data-target="0,6,0" data-lift="0" data-labels=""><div><div class="num">02 · The building</div><h2>Lift the roof</h2></div></div>
+    <div class="beat" data-scene="cutaway" data-cam="100,44,122" data-target="0,6,0" data-lift="0" data-labels="Standby">
+      <div class="card"><h3>A windowless box</h3><p>96 by 44 metres, 11 metres tall. Generators outside, two fibre entrances at opposite ends, and power that arrives by two routes that never share a trench.</p></div></div>
+    <div class="beat right" data-scene="cutaway" data-cam="110,64,130" data-target="0,9,0" data-lift="16" data-labels="Roof|Electrical|Mechanical">
+      <div class="card"><h3>Electrical, mechanical, white space</h3><p>Switchgear and batteries fill one end. A gallery of pumps and coolant distribution units runs along the back wall. The middle is rows of racks, with power and fibre overhead.</p></div></div>
+    <div class="beat" data-scene="cutaway" data-cam="34,17,38" data-target="-6,2,-2" data-lift="16" data-labels="Hot-aisle|Data hall|Overhead">
+      <div class="card"><h3>Rows in pairs</h3><p>Racks stand back to back. Their hot exhaust is trapped in a contained aisle and ducted up and away, so it never mixes with the cool air the racks breathe in.</p></div></div>
+  </section>
+
+  <!-- ACT 3 · power -->
+  <section class="act" id="act-power" data-title="Power">
+    <div class="panel" data-scene="cutaway" data-cam="-6,13,40" data-target="-40,1,4" data-lift="16" data-labels="Electrical" data-dim="1">
+      <div class="panel-inner">
+        <div><div class="eyebrow">03 · Power</div><h2>From 230,000 volts to 0.8</h2></div>
+        <p class="intro">Each step down in voltage needs more current to deliver the same power. To carry one megawatt at chip voltage you would need over a million amps, which is why the final conversion happens millimetres from the silicon.</p>
+        <div class="surface ladder" id="ladder"></div>
+        <div class="legend"><span>voltage (log scale)</span><span class="a">current needed to deliver 1 MW</span></div>
+        <div class="surface split" style="align-items:center">
+          <div><h3 style="font:700 20px/1.2 var(--f-display);margin:0 0 6px">Two paths, never shared</h3><p style="margin:0;color:var(--muted)">Path A and path B each carry 100% of the load: separate transformers, switchgear, UPS and busway. They meet only at the rack, which has two power cords. That is "2N" redundancy.</p></div>
+          <div class="facts"><div class="fact"><b>~5</b><span>minutes of battery</span><small>enough for generators to start and sync</small></div><div class="fact"><b>10–15%</b><span>lost on the way down</span><small>transformers, UPS, power supplies, regulators</small></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT 4 · cooling -->
+  <section class="act" id="act-cooling" data-title="Cooling">
+    <div class="act-head" data-scene="hall" data-cam="9,6,22" data-target="1.6,1.4,-2" data-labels=""><div><div class="num">04 · Cooling</div><h2>Warm water, on the chip</h2></div></div>
+    <div class="beat" data-scene="hall" data-cam="6.2,4.4,16.5" data-target="1.6,1.4,-2" data-labels="Cold aisle|Contained">
+      <div class="card"><h3>Stand in the cold aisle</h3><p>Racks breathe room air in through their fronts (blue arrows) and blow it out the back into a sealed hot aisle. The person is to scale: each rack is 2.3 m tall.</p></div></div>
+    <div class="beat right" data-scene="hall" data-cam="-0.7,7.2,9" data-target="-0.7,2.4,-3" data-labels="Supply|Fibre" data-flow="1">
+      <div class="card"><h3>Pipes to every rack</h3><p>Above the hot aisle run two headers: blue supply and red return. A branch drops into every rack and feeds cold plates bolted onto each GPU. About 85% of the heat leaves in this water.</p></div></div>
+    <div class="beat" data-scene="hall" data-cam="12.5,5.2,-17.5" data-target="6,1.2,-10" data-labels="CDU|Chimney" data-flow="1">
+      <div class="card"><h3>The CDU keeps two waters apart</h3><p>The coolant distribution unit at the end of each row is a heat exchanger with pumps. Clean rack water on one side, facility water on the other, so a leak in one can never drain the other.</p></div></div>
+    <div class="panel" data-scene="hall" data-cam="12,9,20" data-target="2,1,-3" data-labels="" data-dim="1" data-flow="1">
+      <div class="panel-inner">
+        <div><div class="eyebrow">The loop</div><h2>Why the water can be warm</h2></div>
+        <div class="split">
+          <div class="surface loop" id="loop"></div>
+          <div class="facts surface">
+            <div class="fact"><b>35°C</b><span>water into the cold plates</span><small>hotter than outside air most of the year</small></div>
+            <div class="fact"><b>~0</b><span>compressors running</span><small>dry coolers alone reject the heat</small></div>
+            <div class="fact"><b>3,500×</b><span>more heat per litre than air</span><small>why liquid wins above ~40 kW per rack</small></div>
+            <div class="fact"><b>1.1–1.2</b><span>PUE</span><small>only 10–20% overhead on top of the computers</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT 5 · rack -->
+  <section class="act" id="act-rack" data-title="The rack">
+    <div class="act-head" data-scene="rack" data-cam="4.4,3.2,5.6" data-target="0,1.1,0.2" data-pull="0" data-labels=""><div><div class="num">05 · The rack</div><h2>72 GPUs that act as one</h2></div></div>
+    <div class="beat" data-scene="rack" data-cam="3.3,2.9,4.2" data-target="0,1.1,0.2" data-pull="0" data-labels="18 compute|9 NVLink|Power shelves|~120">
+      <div class="card"><h3>An NVL72-class rack</h3><p>18 compute trays hold 72 GPUs and 36 CPUs. Nine switch trays in the middle join every GPU to every other at 1.8 TB/s each. It draws about 130 kW and weighs about 1.4 tonnes.</p></div></div>
+    <div class="beat right" data-scene="rack" data-cam="1.5,2.15,2.7" data-target="0,1.45,0.75" data-pull="0.75" data-labels="Pulled-out|Copper">
+      <div class="card"><h3>Pull out a tray</h3><p>Each tray holds two superchips: four GPUs and two CPUs. Copper cold plates sit on every chip, with blue and red tubes running back to quick-disconnect couplings.</p></div></div>
+    <div class="beat" data-scene="rack" data-cam="2.1,1.8,-2.9" data-target="0,1.15,-0.45" data-pull="0.75" data-labels="Rear manifolds|NVLink spine">
+      <div class="card"><h3>The back of the rack</h3><p>Water manifolds run up one side and a copper power busbar up the middle. The NVLink spine, about 5,000 copper cables, is what turns 72 GPUs into one machine.</p></div></div>
+  </section>
+
+  <!-- ACT 6 · pod + network -->
+  <section class="act" id="act-pod" data-title="The network">
+    <div class="act-head" data-scene="pod" data-cam="8,4.6,12" data-target="0,1.4,-1.2" data-labels=""><div><div class="num">06 · The network</div><h2>Racks become a supercomputer</h2></div></div>
+    <div class="beat" data-scene="pod" data-cam="5.4,3.6,8.2" data-target="0,1.4,-1.2" data-labels="NVL72 rack|8 racks|In-row" data-flow="1">
+      <div class="card"><h3>The scalable unit</h3><p>Eight NVL72 racks, 576 GPUs and about 1 MW of IT load, installed and tested as one block. A cluster is this row, repeated: 16 of them is about 9,000 GPUs.</p></div></div>
+    <div class="beat right" data-scene="pod" data-cam="4.8,6.4,3.6" data-target="0,3.1,-3.6" data-labels="Fibre to spine|Network racks" data-flow="1">
+      <div class="card"><h3>Light between racks</h3><p>Copper links GPUs inside a rack. Between racks it is fibre, at 400–800 Gb/s per GPU, running overhead to a row of spine switches. Watch the pulses.</p></div></div>
+    <div class="panel" data-scene="pod" data-cam="9,6,13" data-target="0,1.6,-2" data-labels="" data-dim="1" data-flow="1">
+      <div class="panel-inner">
+        <div><div class="eyebrow">Try it</div><h2>Why "rail-optimized" networks exist</h2></div>
+        <p class="intro">During training, GPU 0 in every server mostly talks to GPU 0 in the others. Tap any GPU to see where its traffic goes, then switch layouts.</p>
+        <div class="surface rails">
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="seg" role="group" aria-label="Network layout"><button type="button" data-mode="rail" aria-pressed="true">Rail-optimized</button><button type="button" data-mode="plain" aria-pressed="false">Conventional</button></div>
+            <div class="readout" id="railOut" aria-live="polite"></div>
+          </div>
+          <div id="rails"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT 7 · density -->
+  <section class="act" id="act-density" data-title="AI is different">
+    <div class="panel" data-scene="pod" data-cam="10,5,13" data-target="0,1.4,-1" data-labels="" data-dim="1">
+      <div class="panel-inner">
+        <div><div class="eyebrow">07 · Why AI is different</div><h2>Ten times the power in the same footprint</h2></div>
+        <p class="intro">Cloud racks roughly tripled in eight years. AI racks went up about tenfold and straight through the limit of air cooling. And because thousands of GPUs compute and pause together, the whole building's power draw can swing by tens of megawatts in under a second.</p>
+        <div class="surface chart" id="chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT 8 · operations -->
+  <section class="act" id="act-ops" data-title="Safety">
+    <div class="panel" data-scene="campus" data-cam="-40,260,420" data-target="-15,0,0" data-labels="" data-dim="1" data-orbit="1">
+      <div class="panel-inner">
+        <div><div class="eyebrow">08 · Safety and operations</div><h2>Defence in layers</h2></div>
+        <div class="split">
+          <div class="surface rings"><div><span>Perimeter</span><small>fence, crash-rated gates, cameras, radar</small>
+            <div><span>Site entry</span><small>staffed guardhouse, vehicle checks</small>
+              <div><span>Building</span><small>no windows, badge doors, mantraps</small>
+                <div><span>Data hall</span><small>badge + biometrics, cameras on every row</small>
+                  <div><span>Cage &amp; rack</span><small>locked cabinets; drives shredded on site</small></div></div></div></div></div></div>
+          <div class="facts surface">
+            <div class="fact"><b>2</b><span>things must fail before water flows</span><small>pre-action sprinklers stay dry until a detector alarms and a head opens from heat</small></div>
+            <div class="fact"><b>L5</b><span>integrated test before opening</span><small>load banks fake full load while engineers pull the utility, fail generators and pumps</small></div>
+            <div class="fact"><b>24/7</b><span>30–80 people per 100 MW</span><small>every change follows a written procedure with a rollback plan</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT 9 · calculator -->
+  <section class="act" id="act-calc" data-title="Size a hall">
+    <div class="panel" data-scene="campus" data-cam="300,180,420" data-target="20,0,0" data-labels="" data-dim="1" data-orbit="1">
+      <div class="panel-inner">
+        <div><div class="eyebrow">09 · Your turn</div><h2>Size your own AI hall</h2></div>
+        <p class="intro">Every figure updates as you move the sliders, using the same formulas as the worked example in the guide. Results are rounded estimates, not a design.</p>
+        <div class="calc">
+          <form class="surface controls" id="calc">
+            <div class="ctl"><label for="c-mw">IT load <output id="o-mw"></output></label><input id="c-mw" type="range" min="0" max="100" value="50"><small>computing power, excluding cooling</small></div>
+            <div class="ctl"><label for="c-rack">Rack type</label><select id="c-rack"><option value="132|72">NVL72-class · 132 kW · 72 GPUs</option><option value="41|32">H100-era air-cooled · 41 kW · 32 GPUs</option><option value="190|72">Next-gen estimate · 190 kW · 72 GPUs</option><option value="600|144">Announced 2027–28 target · 600 kW · 144 GPUs</option></select></div>
+            <div class="ctl"><label for="c-pue">PUE <output id="o-pue"></output></label><input id="c-pue" type="range" min="105" max="160" value="120"><small>1.10–1.20 is a good new build</small></div>
+            <div class="ctl"><label for="c-price">Electricity price <output id="o-price"></output></label><input id="c-price" type="range" min="3" max="15" value="6"><small>US cents per kWh</small></div>
+            <div class="ctl"><label for="c-dt">Coolant temperature rise <output id="o-dt"></output></label><input id="c-dt" type="range" min="5" max="15" value="10"><small>bigger rise, less flow</small></div>
+          </form>
+          <div class="outs" id="outs" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT 10 · future -->
+  <section class="act" id="act-future" data-title="What's next">
+    <div class="panel" data-scene="campus" data-cam="700,520,900" data-target="-15,0,10" data-labels="" data-dim="1" data-orbit="1">
+      <div class="panel-inner end">
+        <div><div class="eyebrow">10 · What comes next</div><h2>Five things to watch</h2></div>
+        <div class="trends">
+          <div class="trend"><h3>Bring your own power</h3><p>On-site gas, giant batteries, restarted nuclear plants, and small reactors in the 2030s.</p></div>
+          <div class="trend"><h3>Megawatt racks</h3><p>Racks heading toward 1 MW, fed at 800 V DC to cut copper and losses.</p></div>
+          <div class="trend"><h3>Light, not copper</h3><p>Co-packaged optics put lasers beside the switch chip and stretch GPU domains past one rack.</p></div>
+          <div class="trend"><h3>Mirrors in the network</h3><p>Optical circuit switches redirect light instead of processing packets.</p></div>
+          <div class="trend"><h3>Flexible demand</h3><p>Sites that can slow down when the grid is stressed get connected sooner.</p></div>
+        </div>
+        <p class="intro">The full guide goes deeper on every stop of this tour, with a glossary and the complete 100 MW worked example. The podcast below covers it all in about 27 minutes.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="fine">3-D scenes are procedural models of generic, publicly documented designs, built for this tour; they do not depict any specific operator's facility. Figures are rounded and illustrative. Podcast voices are synthetic (Kokoro TTS). Built with three.js.</footer>
+
+<div class="dock" id="dock">
+  <div class="dock-row">
+    <button class="play" id="play" type="button" aria-label="Play podcast"><svg viewBox="0 0 16 16"><path id="playIcon" d="M3 1.5v13l11-6.5z"/></svg></button>
+    <div class="now"><div class="t" id="nowT">Podcast · Inside the AI Factory</div><div class="c" id="nowC">two hosts walk through the whole guide · about 27 min</div>
+      <div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="Podcast position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"></div><div class="fill"></div></div></div>
+    <div class="dock-btns"><button type="button" id="follow" aria-pressed="true" class="wide" title="Scroll the tour to match the podcast">Follow</button><button type="button" id="speed" title="Playback speed">1×</button><button type="button" id="tx" aria-pressed="false">Transcript</button></div>
+  </div>
+  <div class="drawer"><div><div class="tx" id="txBody"></div></div></div>
+  <div class="err" id="audioErr" hidden></div>
+  <audio id="audio" preload="none"></audio>
+</div>
+
+<dialog id="keys"><h3>Keyboard</h3><dl>
+  <dt><kbd>→</kbd> <kbd>Space</kbd></dt><dd>next stop</dd><dt><kbd>←</kbd></dt><dd>previous stop</dd>
+  <dt><kbd>P</kbd></dt><dd>present mode</dd><dt><kbd>L</kbd></dt><dd>labels on / off</dd>
+  <dt><kbd>M</kbd></dt><dd>play / pause podcast</dd><dt><kbd>T</kbd></dt><dd>transcript</dd></dl>
+  <button type="button">Close</button></dialog>

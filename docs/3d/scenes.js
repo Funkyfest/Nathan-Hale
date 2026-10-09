@@ -122,6 +122,8 @@ function lights(scene, extent, sun = [1, 1.6, 0.8]) {
 }
 
 // ============================================================ CAMPUS
+function anim(s) { return (s.userData.anim ??= { fans: [], flows: [], lines: [] }); }
+
 function campus() {
   const s = new THREE.Scene();
   const L = [];
@@ -148,7 +150,7 @@ function campus() {
     for (const rz of [-12, 12]) for (let i = 0; i < 12; i++) {
       const cx = x0 - W / 2 + 14 + i * 12.6;
       box(g, 11, 2.6, 2.4, C.cooler, cx, H + 0.6, h.z + rz, { m: 0.3, r: 0.5 });
-      for (let f = 0; f < 5; f++) cyl(g, 0.85, 0.25, C.fan, cx - 4.4 + f * 2.2, H + 3.2, h.z + rz, { cast: false });
+      for (let f = 0; f < 5; f++) anim(s).fans.push(cyl(g, 0.85, 0.25, C.fan, cx - 4.4 + f * 2.2, H + 3.2, h.z + rz, { cast: false, seg: 6 }));
     }
     // generator row on north side (each 3.2 x 4.2 x 12)
     for (let i = 0; i < 13; i++) {
@@ -198,7 +200,8 @@ function campus() {
         const t = k / 20; const sag = Math.sin(Math.PI * t) * 4;
         arr.push(new THREE.Vector3(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - sag, a[2] + (b[2] - a[2]) * t + off));
       }
-      s.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(arr), lineM));
+      const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints(arr), lineM); s.add(ln);
+      anim(s).lines.push(arr);
     }
   }
   L.push({ t: "230 kV substation", s: "dual utility feeds · main transformers → 34.5 kV", p: [-265, 8, -85], o: [-40, -120] });
@@ -279,6 +282,8 @@ function cutaway() {
   }
   pipe(s, [-27, 5.0, -D / 2 + 3], [46, 5.0, -D / 2 + 3], 0.32, C.supply);
   pipe(s, [-27, 5.6, -D / 2 + 3], [46, 5.6, -D / 2 + 3], 0.32, C.ret);
+  anim(s).flows.push({ pts: [[46, 5.0, -D / 2 + 3], [-27, 5.0, -D / 2 + 3]], color: C.supply, r: 0.38, n: 40 },
+                     { pts: [[-27, 5.6, -D / 2 + 3], [46, 5.6, -D / 2 + 3]], color: C.ret, r: 0.38, n: 40 });
   L.push({ t: "Mechanical gallery", s: "CDUs · pumps · supply/return headers", p: [30, 5.6, -D / 2 + 3], o: [40, -150] });
 
   // --- data hall racks: 6 rows along x, pairs around contained hot aisles
@@ -311,19 +316,22 @@ function cutaway() {
   L.push({ t: "Standby generators", s: "outside the shell, N+1", p: [W / 2 + 10, 4, 16], o: [90, 60] });
 
   // exploded roof, lifted 9 m above walls, with dry coolers
-  const roofY = H + 16;
-  box(s, W, 0.5, D, C.roof, 0, roofY, 0, { opacity: 0.88, cast: false });
+  const LIFT = 16, roofY = H + LIFT;
+  const roofG = new THREE.Group(); s.add(roofG); roofG.position.y = LIFT;
+  box(roofG, W, 0.5, D, C.roof, 0, H, 0, { opacity: 0.88, cast: false });
   for (const rz of [-10, 0, 10]) for (let i = 0; i < 7; i++) {
     const cx = -36 + i * 12;
-    box(s, 10, 2.4, 2.3, C.cooler, cx, roofY + 0.5, rz, { cast: false, m: 0.3 });
-    for (let f = 0; f < 4; f++) cyl(s, 0.8, 0.2, C.fan, cx - 3.6 + f * 2.4, roofY + 2.9, rz, { cast: false });
+    box(roofG, 10, 2.4, 2.3, C.cooler, cx, H + 0.5, rz, { cast: false, m: 0.3 });
+    for (let f = 0; f < 4; f++) anim(s).fans.push(cyl(roofG, 0.8, 0.2, C.fan, cx - 3.6 + f * 2.4, H + 2.9, rz, { cast: false, seg: 6 }));
   }
-  // dashed lift guides
-  const dm = new THREE.LineDashedMaterial({ color: 0x6b7480, dashSize: 0.8, gapSize: 0.6 });
+  // dashed lift guides (a unit-height group scaled by the lift)
+  const guides = new THREE.Group(); guides.position.y = H; guides.scale.y = LIFT; s.add(guides);
+  const dm = new THREE.LineDashedMaterial({ color: 0x6b7480, dashSize: 0.05, gapSize: 0.04 });
   for (const [x, z] of [[-W / 2, -D / 2], [W / 2, -D / 2], [-W / 2, D / 2], [W / 2, D / 2]]) {
-    const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, H, z), new THREE.Vector3(x, roofY, z)]), dm);
-    l.computeLineDistances(); s.add(l);
+    const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, 0, z), new THREE.Vector3(x, 1, z)]), dm);
+    l.computeLineDistances(); guides.add(l);
   }
+  Object.assign(anim(s), { roof: roofG, guides, lift: LIFT });
   L.push({ t: "Roof — lifted to show the inside", s: "dry coolers reject the heat to outside air", p: [30, roofY + 2.6, -10], o: [110, -50] });
   person(s, 4, 4.2, 0.4);
   lights(s, 90, [0.8, 1.6, 1.0]);
@@ -336,7 +344,7 @@ function cutaway() {
 function hall() {
   const s = new THREE.Scene(); const L = [];
   box(s, 60, 0.1, 60, C.floor, 0, -0.1, 0, { cast: false, r: 0.9 });
-  const grid = new THREE.GridHelper(60, 100, 0xcfd3d7, 0xd3d7db); grid.position.y = 0.01; s.add(grid);
+  const grid = new THREE.GridHelper(60, 100, 0xcfd3d7, 0xd3d7db); grid.position.y = 0.01; grid.userData.grid = true; s.add(grid);
   const n = 30, len = n * 0.62, z0 = -len / 2;
   // two pairs of rows (along z). Pair 1: x=-2.0 (front faces -x) & x=0.6 (front faces +x) around hot aisle at -0.7
   const pairs = [{ a: -1.9, b: 0.5 }, { a: 5.3, b: 7.7 }];
@@ -355,6 +363,8 @@ function hall() {
     // supply / return headers above hot aisle, with drops into rack tops
     pipe(s, [hx - 0.25, 3.0, z0], [hx - 0.25, 3.0, -z0 + 1.5], 0.09, C.supply);
     pipe(s, [hx + 0.25, 3.15, z0], [hx + 0.25, 3.15, -z0 + 1.5], 0.09, C.ret);
+    anim(s).flows.push({ pts: [[hx - 0.25, 2.3, z0 - 1.2], [hx - 0.25, 3.0, z0 - 1.2], [hx - 0.25, 3.0, -z0 + 1.5]], color: C.supply, r: 0.11, n: 60 },
+                       { pts: [[hx + 0.25, 3.15, -z0 + 1.5], [hx + 0.25, 3.15, z0 - 1.2], [hx + 0.25, 2.3, z0 - 1.2]], color: C.ret, r: 0.11, n: 60 });
     for (let i = 0; i < n; i += 1) {
       const z = z0 + i * 0.62 + 0.31;
       pipe(s, [hx - 0.25, 3.0, z - 0.1], [P.a + 0.45, 3.0, z - 0.1], 0.018, C.supply);
@@ -390,6 +400,8 @@ function hall() {
   }
   arrow(s, [-0.7, 3.6, z0 + 9], [0, 1, 0], 1.4, 0xd6453d);
   arrow(s, [-0.7, 3.6, z0 + 3], [0, 1, 0], 1.4, 0xd6453d);
+  s.traverse(o => { if (o.type === "ArrowHelper") (anim(s).arrows ??= []).push({ o, base: o.position.clone(), dir: o.getWorldDirection ? null : null }); });
+  for (const a of anim(s).arrows) a.dir = new THREE.Vector3(0, 1, 0).applyQuaternion(a.o.quaternion);
   person(s, 2.9, 6.5, -0.6);
   L.push({ t: "Cold aisle", s: "you stand here · ~25 °C supply air", p: [2.9, 1.9, 7.5], o: [90, 40] });
   L.push({ t: "Contained hot aisle", s: "rack exhausts meet behind glass", p: [-0.7, 2.3, 4], o: [-200, -30] });
@@ -436,6 +448,7 @@ function rackScene() {
     } else {
       pulledY = y;
       const g = new THREE.Group(); s.add(g); g.position.set(0, y, zOff);
+      Object.assign(anim(s), { tray: g, pull: zOff });
       box(g, W - 0.06, 0.01, D - 0.12, 0, 0, 0, 0.02, { material: trayCompute }); // tray floor (lid off)
       box(g, W - 0.06, h, 0.012, 0, 0, 0, D / 2 - 0.04, { material: trayFace });
       // two superchip boards
@@ -468,7 +481,7 @@ function rackScene() {
     const m = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.55, 6), cab);
     m.position.set(x < 0.02 && x > -0.04 ? x - 0.06 : x, yy + 0.28, -D / 2 + 0.09); s.add(m);
   }
-  person(s, -1.1, -0.7, 0.6);
+  person(s, -1.25, 0.95, 0.5);
   const hU = 2 * U;
   L.push({ t: "Pulled-out compute tray", s: "2 superchips = 4 GPUs + 2 CPUs", p: [0, pulledY + 0.05, 1.2], o: [140, 60] });
   L.push({ t: "Copper cold plates", s: "warm water flows through micro-channels", p: [0.135, pulledY + 0.04, 0.95], o: [170, -70] });
@@ -488,7 +501,7 @@ function rackScene() {
 function pod() {
   const s = new THREE.Scene(); const L = [];
   box(s, 40, 0.1, 30, C.floor, 0, -0.1, 0, { cast: false });
-  const grid = new THREE.GridHelper(40, 66, 0xb9bec4, 0xcdd1d6); grid.position.y = 0.01; s.add(grid);
+  const grid = new THREE.GridHelper(40, 66, 0xb9bec4, 0xcdd1d6); grid.position.y = 0.01; grid.userData.grid = true; s.add(grid);
   // row along x: CDU, 4 NVL72, 2 network, 4 NVL72, CDU
   const items = ["cdu", "ai", "ai", "ai", "ai", "net", "net", "ai", "ai", "ai", "ai", "cdu"];
   let x = -items.length * 0.62 / 2;
@@ -509,6 +522,10 @@ function pod() {
   // fibre run to spine row
   box(s, 0.6, 0.06, 7, C.tray, 0.6, 3.5, -3.5, { m: 0.5 }); box(s, 0.45, 0.12, 7, C.fiber, 0.6, 3.56, -3.5, { cast: false });
   box(s, 6.6, 0.06, 0.6, C.tray, 0, 3.5, -7, { m: 0.5 }); box(s, 6.4, 0.12, 0.45, C.fiber, 0, 3.56, -7, { cast: false });
+  anim(s).flows.push({ pts: [[x0, 3.66, 0], [0.6, 3.66, 0], [0.6, 3.66, -7], [-3, 3.66, -7]], color: 0xffd34d, r: 0.05, n: 70, glow: true },
+                     { pts: [[x1, 3.66, 0.12], [0.75, 3.66, 0.12], [0.75, 3.66, -6.9], [3, 3.66, -6.9]], color: 0xffd34d, r: 0.05, n: 70, glow: true });
+  anim(s).flows.push({ pts: [[x0, 2.75, -0.25], [x1, 2.75, -0.25]], color: C.supply, r: 0.08, n: 40 },
+                     { pts: [[x1, 2.6, -0.4], [x0, 2.6, -0.4]], color: C.ret, r: 0.08, n: 40 });
   // liquid headers under ceiling to each AI rack
   pipe(s, [x0, 2.75, -0.25], [x1, 2.75, -0.25], 0.07, C.supply);
   pipe(s, [x0, 2.6, -0.4], [x1, 2.6, -0.4], 0.07, C.ret);
@@ -535,6 +552,7 @@ export function buildScene(three, name) {
   THREE = three;
   const fn = { campus, cutaway, hall, rack: rackScene, pod }[name];
   const r = fn();
+  r.anim = r.scene.userData.anim ?? { fans: [], flows: [], lines: [] };
   r.camera.lookAt(...r.target);
   return r;
 }

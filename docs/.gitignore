@@ -2,3 +2,5 @@ __pycache__/
 3d/node_modules
 .toc.tpl
 .reference.docx
+experience/dist/three
+podcast/.tmp
