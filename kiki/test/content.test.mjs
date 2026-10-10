@@ -35,7 +35,7 @@ test('numeric answers match their displayed choice', () => {
       for (let i = 0; i < RUNS; i++) {
         const p = problem(s.id, L);
         if (!Number.isFinite(p.value)) continue;
-        const shown = p.choices[p.correct].replace(/^(x = |Day )/, '').replace(/ (ft\/s|ft|s|cups|sq in|times)$/, '');
+        const shown = p.choices[p.correct].replace(/^(x = |Day )/, '').replace(/ (ft\/s|ft|s|cups|sq in|cubic in|times|hours)$/, '').replace(/%$/, '');
         assert.ok(gridOk(shown, p.value), `${s.id}.${L}: choice "${p.choices[p.correct]}" ≠ value ${p.value}`);
       }
     }
