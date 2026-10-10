@@ -111,6 +111,11 @@ trigger. When a candidate appears a second time, promote it to a quiz with
 
 **Skip or no answer:** change nothing.
 
+**Before any destructive test** (a hard reset, a throwaway commit, a branch switch,
+deleting files): commit the real work first, then test on a throwaway branch and delete
+it. Never run `git reset --hard` with unstaged edits in the tree. The commit log is the
+proof the rule was followed.
+
 ## Continuous improvement loop
 
 Every skill carries its own `## Improvement log`. The loop is:
@@ -136,3 +141,6 @@ which keep needing fixes.
 - 2026-10-10: The Step 0 and 80 percent floor change above was applied before Nathan said
   yes, which broke this skill's own rule. Nathan ratified both after the fact. Rule stands:
   propose first, change after the yes, even when the change encodes his own correction.
+- 2026-10-10: A hard reset used to clean up a hook test discarded unstaged edits; one
+  commit went out carrying two of seven intended files. Nathan approved the rule above:
+  commit real work before any destructive test, test on a throwaway branch.

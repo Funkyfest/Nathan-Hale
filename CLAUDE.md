@@ -26,3 +26,9 @@ See `.claude/skills/skill-harvest/SKILL.md` for the full procedure and criteria.
 Run `git config core.hooksPath .githooks` once per clone. The pre-push hook runs the
 `publish-check` skill on changed HTML and blocks the push on any hit. Never bypass
 with `--no-verify` without telling Nathan.
+
+## Safe testing (standing rule, set 2026-10-10)
+
+Commit real work before any destructive test. Run throwaway commits, leak tests, and
+hook checks on a temporary branch, then delete it. Never `git reset --hard` with
+unstaged edits in the tree.
