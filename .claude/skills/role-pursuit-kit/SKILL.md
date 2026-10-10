@@ -87,17 +87,14 @@ Build constraints, all verified on the reference:
 
 ## Verification
 
-Run the bundled script against the deck before showing it to Nathan:
+Run the `deck-verify` skill against the deck before showing it to Nathan:
 
 ```
-node .claude/skills/role-pursuit-kit/verify-deck.mjs path/to/deck.html
+node .claude/skills/deck-verify/verify-deck.mjs path/to/deck.html 5
 ```
 
-It renders at desktop (1440x900) and phone (390x844), steps through every slide,
-and reports page errors, slide count, per-slide overflow, and whether Next disables on
-the last slide. It writes screenshots to `shots/` next to the deck. A pass is zero errors
-and the expected slide count. Overflow on a phone is acceptable because slides scroll;
-overflow on desktop is not.
+A pass is `RESULT: PASS`. Then run the `publish-check` skill on the deck before it
+goes anywhere public.
 
 Also check by hand: no mojibake (search for `â€`), the credentials line is exact, every
 name is spelled as on the firm's site, and the date on slide 1 is the meeting month.
@@ -122,6 +119,8 @@ Stop and ask Nathan with the standing decision interface before any of these:
 
 ## Improvement log
 
+- 2026-10-10: Verifier moved to the standalone deck-verify skill; publish gate now
+  delegates to publish-check.
 - 2026-10-10: Scaffolded from one observed pursuit (Avison Young Dallas). Section
   structures are transcribed from the real artifacts. Nathan chose this over a
   deck-only skill. Open question: whether Stage 1 is worth keeping as a separate

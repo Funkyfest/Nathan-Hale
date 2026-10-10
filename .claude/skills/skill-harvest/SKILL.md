@@ -133,3 +133,6 @@ which keep needing fixes.
   follow-up for an Avison Young Market Leader role, and the "encoding fix" commit changed
   one word. Nathan rejected a 70 percent recommendation. Added Step 0 (investigate before
   scoring) and an 80 percent floor on recommendations.
+- 2026-10-10: The Step 0 and 80 percent floor change above was applied before Nathan said
+  yes, which broke this skill's own rule. Nathan ratified both after the fact. Rule stands:
+  propose first, change after the yes, even when the change encodes his own correction.
