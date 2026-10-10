@@ -9,6 +9,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Kiki">
 <title>Kiki · Algebra & SAT</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -949,6 +951,17 @@ KK.content = (() => {
           });
         },
         medium() {
+          if (chance(0.4)) {
+            const m = rand(-4, 4) || 2, px = rand(-5, 5) || 3, b = rand(-8, 8), py = m * px + b;
+            return make({
+              label: 'Find the y-intercept',
+              prompt: `A line with slope ${n(m)} passes through (${n(px)}, ${n(py)}). What is its y-intercept?`,
+              answer: n(b), value: b,
+              wrongs: [n(py), n(-b), n(m * px), ...near(b, [-2, 2, 3])],
+              steps: ['Use y = mx + b and plug in the point.', `${n(py)} = ${paren(m)}(${n(px)}) + b → ${n(py)} = ${n(m * px)} + b`, `b = ${n(py)} − ${paren(m * px)} = <b>${n(b)}</b>`],
+              hint: 'Plug the point into y = mx + b and solve for b.',
+            });
+          }
           const x1 = rand(-5, 4), y1 = rand(-6, 6);
           const dx = rand(1, 6) * pick([1, 1, -1]), dy = rand(-8, 8) || 3;
           const x2 = x1 + dx, y2 = y1 + dy, m = frac(dy, dx);
@@ -1064,6 +1077,17 @@ KK.content = (() => {
       id: 'fn', unit: 'adv', icon: '🪄', name: 'Function notation', blurb: 'f(x), plugging in, and compositions.',
       gen: {
         easy() {
+          if (chance(0.4)) {
+            const k = rand(1, 9), t = rand(2, 6), v = t * t - k;
+            return make({
+              label: 'Function notation',
+              prompt: `If g(x) = x² − ${k}, what is g(${t})?`,
+              answer: n(v), value: v,
+              wrongs: [n(2 * t - k), n(t * t + k), n(t - k), ...near(v, [-2, 2])],
+              steps: [`Put ${t} in for x: g(${t}) = ${t}² − ${k}`, `= ${t * t} − ${k} = <b>${n(v)}</b>`],
+              hint: 'Square the number first, then subtract.',
+            });
+          }
           const a = rand(2, 6), b = rand(-8, 8) || 3, k = rand(-5, 6), v = a * k + b;
           return make({
             label: 'Function notation',
@@ -1380,6 +1404,17 @@ KK.content = (() => {
           });
         },
         hard() {
+          if (chance(0.4)) {
+            const k = rand(2, 5), end = pick([25, 50, 100]), start = end * 2 ** k;
+            return make({
+              label: 'Battery life 🔋',
+              prompt: `Your phone shows ${start}% battery (it’s a weird phone). On TikTok it loses half its charge every hour: B(h) = ${start}·(½)<sup>h</sup>. After how many hours is it at ${end}%?`,
+              answer: `${k} hours`, value: k,
+              wrongs: near(k, [-2, -1, 1, 2], (v) => `${v} hours`, (v) => v > 0),
+              steps: [`Halve it until you hit ${end}: ${Array.from({ length: k + 1 }, (_, i) => start / 2 ** i).join(' → ')}`, `That’s <b>${k}</b> halvings, so ${k} hours.`],
+              hint: 'Keep cutting the number in half and count the steps.',
+            });
+          }
           const m = pick([2, 3]), k = m === 2 ? rand(3, 6) : rand(2, 4), start = pick([250, 500, 1000]);
           const target = start * m ** k, word = m === 2 ? 'double' : 'triple';
           return make({
@@ -1551,6 +1586,18 @@ KK.content = (() => {
           });
         },
         medium() {
+          if (chance(0.45)) {
+            const it = pick(ITEMS.filter((i) => i.p[0] >= 15));
+            const O = 10 * rand(2, 8), pc = pick([10, 20, 25, 50, 75, 100]), N = O + (O * pc) / 100;
+            return make({
+              label: 'Percent change',
+              prompt: `A ${it.one} ${it.e} went from ${money(O)} to ${money(N)}. What was the percent increase?`,
+              answer: `${pc}%`, value: pc,
+              wrongs: [`${Math.round((100 * (N - O)) / N)}%`, `${N - O}%`, `${pc + 10}%`, `${Math.max(5, pc - 10)}%`].filter((w) => w !== `${pc}%`),
+              steps: [`Change: ${money(N)} − ${money(O)} = ${money(N - O)}`, `Percent change = change ÷ <b>original</b> = ${N - O} ÷ ${O} = ${dec((N - O) / O)}`, `= <b>${pc}%</b>`],
+              hint: 'Divide the change by the ORIGINAL price, not the new one.',
+            });
+          }
           const it = pick(ITEMS.filter((i) => i.p[0] >= 15));
           const O = 20 * rand(2, 8), d = pick([10, 20, 25, 40, 50]), S = (O * (100 - d)) / 100;
           return make({
@@ -1637,6 +1684,17 @@ KK.content = (() => {
       id: 'stats', unit: 'psda', icon: '📊', name: 'Mean & median', blurb: 'Averages, middles, and outliers.',
       gen: {
         easy() {
+          if (chance(0.4)) {
+            const xs = shuffle(Array.from({ length: 12 }, (_, i) => i + 10)).slice(0, 5), s = [...xs].sort((a, b) => a - b);
+            return make({
+              label: 'Tip check 💸',
+              prompt: `Your Birdies tips on 5 nights: ${xs.map(money).join(', ')}. What’s the median?`,
+              answer: money(s[2]), value: s[2], unit: '$',
+              wrongs: [money(xs[2]), money(s[1]), money(s[3]), money(+(xs.reduce((t, v) => t + v, 0) / 5).toFixed(2))],
+              steps: [`Sort them: ${s.map(money).join(', ')}`, `Five numbers, so the median is the 3rd one: <b>${money(s[2])}</b>`],
+              hint: 'Put them in order first. The median is the middle number.',
+            });
+          }
           let xs, M;
           do {
             M = rand(6, 9);
@@ -1796,6 +1854,18 @@ KK.content = (() => {
           });
         },
         medium() {
+          if (chance(0.5)) {
+            const [a, b, c] = pick(TRIPLES), k = rand(2, 4), fn = pick(['sin', 'cos']);
+            const want = fn === 'sin' ? a * k : b * k, name = fn === 'sin' ? 'opposite' : 'adjacent';
+            return make({
+              label: 'Use the ratio',
+              prompt: `In a right triangle, ${fn} θ = ${frac(fn === 'sin' ? a : b, c)} and the hypotenuse is ${c * k}. How long is the side ${name} to θ?`,
+              answer: String(want), value: want,
+              wrongs: [String(fn === 'sin' ? b * k : a * k), String(c * k), String(want + k), String(fn === 'sin' ? a : b)],
+              steps: [`${fn === 'sin' ? 'SOH: sin = opposite ÷ hypotenuse' : 'CAH: cos = adjacent ÷ hypotenuse'}`, `${frac(fn === 'sin' ? a : b, c)} = ${name} ÷ ${c * k}`, `${name} = ${frac(fn === 'sin' ? a : b, c)} × ${c * k} = <b>${want}</b>`],
+              hint: 'Set the ratio equal to side ÷ hypotenuse and solve for the side.',
+            });
+          }
           const [p, q, r] = pick(TRIPLES);
           return make({
             label: 'SAT classic', prompt: `In a right triangle, sin(x°) = ${frac(p, r)}. What is cos((90 − x)°)?`,
@@ -1833,6 +1903,16 @@ KK.content = (() => {
       gen: {
         easy() {
           const r = rand(2, 9);
+          if (chance(0.5)) {
+            const byD = chance(0.5);
+            return make({
+              label: 'Circumference',
+              prompt: `A round cheer mat has a ${byD ? `diameter of ${2 * r}` : `radius of ${r}`} feet. What is the distance around it?`,
+              answer: `${2 * r}π ft`, wrongs: [`${r}π ft`, `${r * r}π ft`, `${4 * r}π ft`, `${2 * r} ft`],
+              steps: [byD ? `Radius = diameter ÷ 2 = ${r}` : `Radius is ${r}.`, `Circumference = 2πr = 2 × π × ${r} = <b>${2 * r}π</b> feet`],
+              hint: 'Circumference = 2 × π × radius.',
+            });
+          }
           return make({
             label: 'Area', prompt: `A round cheer mat has a radius of ${r} feet. What is its area?`,
             answer: `${r * r}π sq ft`, wrongs: [`${2 * r}π sq ft`, `${r}π sq ft`, `${4 * r * r}π sq ft`, `${r * r + 1}π sq ft`],
@@ -1894,6 +1974,17 @@ KK.content = (() => {
           });
         },
         medium() {
+          if (chance(0.5)) {
+            const l = rand(4, 12), w = rand(3, 9), h = rand(2, 8);
+            return make({
+              label: 'Shoe box 👟',
+              prompt: `A shoe box is ${l} in long, ${w} in wide, and ${h} in tall. What is its volume?`,
+              answer: `${l * w * h} cubic in`, value: l * w * h, unit: 'cubic in',
+              wrongs: [`${l * w} cubic in`, `${2 * (l * w + w * h + l * h)} cubic in`, `${l + w + h} cubic in`, `${l * w * h + l} cubic in`],
+              steps: ['Volume of a box = length × width × height', `${l} × ${w} × ${h} = <b>${l * w * h}</b> cubic inches`],
+              hint: 'Multiply all three measurements.',
+            });
+          }
           const r = rand(2, 4), h = rand(5, 9);
           return make({
             label: 'Smoothie cup 🥤', prompt: `A cylinder-shaped smoothie cup has a radius of ${r} inches and a height of ${h} inches. How much does it hold?`,
