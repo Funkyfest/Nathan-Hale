@@ -32,6 +32,25 @@ add to the allowlist, or custom. Do not publish until he answers.
 Names in lowercase, single-word names, client names that are not two capitalized words,
 and anything inside images. Read slides with people or clients on them yourself.
 
+## Approved lines
+
+`approved.txt` holds exact text Nathan has said yes to, one line each. A money or comp
+hit whose line contains an approved fragment is suppressed. Add a line only after his
+explicit yes for that specific text, and record it in the improvement log below.
+
+## Pre-push hook
+
+`.githooks/pre-push` runs this check on every HTML file that differs from the remote
+before a push and blocks the push on any hit. Markdown is skipped there because tool
+and product names read as people; run the check on Markdown by hand when it matters.
+Enable once per clone:
+
+```
+git config core.hooksPath .githooks
+```
+
+Bypass for a single push with `git push --no-verify`, and say so to Nathan.
+
 ## Allowlist
 
 `allowlist.txt`, one phrase per line, matched as a substring. Add Nathan's own name,
@@ -42,3 +61,11 @@ the target firm, and recurring headings. Never add a third party's name without 
 - 2026-10-10: Created after the Avison Young deck was found in a public repo naming a
   contact next to a compensation line. Tested against the pre-redaction deck (flags the
   name and the comp line) and the redacted deck (flags the comp word only).
+- 2026-10-10: Nathan allowed the slide 5 line "Total compensation and next touchpoint."
+  once; it is in approved.txt. The word still flags everywhere else. Added the pre-push
+  hook at his direction and the heading "The Talent" to the allowlist (false positive).
+- 2026-10-10: Bug on first hook run: the scanner marked every file as flagged because
+  the pipeline's exit status came from sed, not grep. Hits are now collected into a
+  variable and tested. Hook narrowed to HTML after Markdown produced false names like
+  "Claude Code". A hard reset during testing also discarded unstaged edits once;
+  commit ff6a582 only carried approved.txt and the hook, the rest is in this commit.

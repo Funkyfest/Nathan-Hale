@@ -20,3 +20,9 @@ Skip the quiz for simple facts, lookups, and work already authorized with no new
 decision. Never create or modify a skill without an explicit yes.
 
 See `.claude/skills/skill-harvest/SKILL.md` for the full procedure and criteria.
+
+## Publish gate (standing rule, set 2026-10-10)
+
+Run `git config core.hooksPath .githooks` once per clone. The pre-push hook runs the
+`publish-check` skill on changed HTML and blocks the push on any hit. Never bypass
+with `--no-verify` without telling Nathan.

@@ -1,25 +1,24 @@
 #!/usr/bin/env bash
-# Blocks a push when publish-check flags anything in changed HTML/Markdown files.
+# Blocks a push when publish-check flags anything in changed HTML files.
 # Enable: git config core.hooksPath .githooks   Bypass once: git push --no-verify
 set -u
 root="$(git rev-parse --show-toplevel)"
 check="$root/.claude/skills/publish-check/publish-check.sh"
 [ -x "$check" ] || exit 0
+zero=0000000000000000000000000000000000000000
 files=""
 while read -r local_ref local_sha remote_ref remote_sha; do
-  [ "$local_sha" = "0000000000000000000000000000000000000000" ] && continue
-  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
-    range="$local_sha"
-    changed=$(git ls-tree -r --name-only "$local_sha" | grep -Ei '\.(html|md)$' || true)
+  [ "$local_sha" = "$zero" ] && continue
+  if [ "$remote_sha" = "$zero" ]; then
+    changed=$(git ls-tree -r --name-only "$local_sha" | grep -Ei '\.html?$' || true)
   else
-    changed=$(git diff --name-only "$remote_sha" "$local_sha" -- '*.html' '*.md' '*.HTML' || true)
+    changed=$(git diff --name-only "$remote_sha" "$local_sha" | grep -Ei '\.html?$' || true)
   fi
   files="$files"$'\n'"$changed"
 done
 files=$(printf '%s\n' "$files" | sed '/^$/d' | sort -u)
 [ -z "$files" ] && exit 0
-echo "publish-check: scanning changed files before push"
-# shellcheck disable=SC2086
+echo "publish-check: scanning changed HTML before push"
 if ! (cd "$root" && printf '%s\n' "$files" | xargs "$check"); then
   echo "publish-check: push blocked. Get Nathan's yes, add the text to approved.txt, or push with --no-verify."
   exit 1

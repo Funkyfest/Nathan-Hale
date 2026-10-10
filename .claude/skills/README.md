@@ -10,7 +10,7 @@ Maintained by the `skill-harvest` skill. Edit only through an approved harvest.
 | skill-harvest | Decide whether successful work should become a skill; run the improvement loop | 2026-10-09 | 2026-10-10 | 2 |
 | role-pursuit-kit | Research sheet, firm analysis doc, and follow-up HTML deck for a senior-role pursuit | 2026-10-10 | 2026-10-10 | 1 |
 | deck-verify | Headless render check for any single-file HTML deck | 2026-10-10 | 2026-10-10 | 0 |
-| publish-check | Scan files for exposed names, comp figures, and contacts before anything goes public | 2026-10-10 | 2026-10-10 | 0 |
+| publish-check | Scan files for exposed names, comp figures, and contacts before anything goes public; pre-push hook | 2026-10-10 | 2026-10-10 | 1 |
 
 ## Candidates
 
