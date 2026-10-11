@@ -32,6 +32,19 @@ add to the allowlist, or custom. Do not publish until he answers.
 Names in lowercase, single-word names, client names that are not two capitalized words,
 and anything inside images. Read slides with people or clients on them yourself.
 
+## Tests
+
+Run before any change to the scanner, the hook, the allowlist, or approved.txt, and
+again after:
+
+```
+.claude/skills/publish-check/test.sh
+```
+
+Fixtures are generated at run time so no leaking text is committed. The hook test
+needs a clean tree and runs on a throwaway branch it deletes. All green is the only
+acceptable state before a push.
+
 ## Approved lines
 
 `approved.txt` holds exact text Nathan has said yes to, one line each. A money or comp
@@ -69,3 +82,6 @@ the target firm, and recurring headings. Never add a third party's name without 
   variable and tested. Hook narrowed to HTML after Markdown produced false names like
   "Claude Code". A hard reset during testing also discarded unstaged edits once;
   commit ff6a582 only carried approved.txt and the hook, the rest is in this commit.
+- 2026-10-11: Added test.sh after Nathan chose to commit the four manual checks as a
+  script. Six assertions: clean file, leak on every category, approved-line
+  suppression, index.html clean, hook blocks a leak, tree clean afterwards.
