@@ -32,3 +32,10 @@ with `--no-verify` without telling Nathan.
 Commit real work before any destructive test. Run throwaway commits, leak tests, and
 hook checks on a temporary branch, then delete it. Never `git reset --hard` with
 unstaged edits in the tree.
+
+## Specificity (standing rule, set 2026-10-16)
+
+Every question to Nathan carries the `specificity` card first: what, why, origin,
+duration, project, status, next action, decision, value, cost, time, outcome. Real
+names only. No labels coined during a session. See
+`.claude/skills/specificity/SKILL.md`.

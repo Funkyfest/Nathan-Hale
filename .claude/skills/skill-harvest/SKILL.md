@@ -67,7 +67,12 @@ Pick exactly one and give a calibrated confidence:
 
 ## Step 3: Quiz Nathan (standing decision interface)
 
-Use `AskUserQuestion` with real clickable options. Format:
+First write the `specificity` card (see `.claude/skills/specificity/SKILL.md`) in
+prose: what the thing is by its real name, why, where and when it started, how long,
+the project and artifact, status, next action, the decision that is Nathan's, value,
+cost, time, outcome. Never use a label coined this session as if Nathan knows it.
+
+Then use `AskUserQuestion` with real clickable options. Format:
 
 1. **Recommended**: the decision from Step 2, confidence as a percentage, and the concrete
    why in one or two sentences.
@@ -144,3 +149,6 @@ which keep needing fixes.
 - 2026-10-10: A hard reset used to clean up a hook test discarded unstaged edits; one
   commit went out carrying two of seven intended files. Nathan approved the rule above:
   commit real work before any destructive test, test on a throwaway branch.
+- 2026-10-16: Nathan interrupted a quiz because its subject was a session-coined
+  label with no context. Step 3 now requires the specificity card first. Added the
+  `specificity` skill.
