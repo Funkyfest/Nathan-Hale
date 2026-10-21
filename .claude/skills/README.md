@@ -17,6 +17,7 @@ Maintained by the `skill-harvest` skill. Edit only through an approved harvest.
 
 One line each: date, what happened, why it might be a skill. Promote on second occurrence.
 
+- 2026-10-21: Expose-and-redact (find a name or comp figure on a public page, redact, add a check). Covered by publish-check; no separate skill. Nathan confirmed. The October 9 quiz-after-every-success rule ends here at his direction.
 - 2026-10-11: Second test script for deck-verify. Dropped; deck-verify is itself a test.
 - 2026-10-11: PR body shape (Summary, Review notes, Test plan) worked on Funkyfest/Nathan-Hale#2. Note only; a PR template is the cheaper first step if it recurs.
 - 2026-10-11: Wiring a check as a tracked .githooks hook plus one hooksPath line. Note only; promote when a second check needs wiring.
