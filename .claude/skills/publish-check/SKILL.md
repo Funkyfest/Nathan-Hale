@@ -27,6 +27,28 @@ add to the allowlist, or custom. Do not publish until he answers.
   This over-flags on headings; that is deliberate. Add stable headings to the allowlist.
 - Email addresses and phone numbers.
 
+## After a redaction: check every copy
+
+A redaction in one repo does nothing for a copy served elsewhere. The Avison Young
+deck was fixed in Funkyfest/Nathan-Hale on October 10 while nathanhale.github.io kept
+serving the old build for another two weeks. After redacting anything public:
+
+1. List Nathan's other public repos, noting which have GitHub Pages on
+   (`has_pages` in the repo metadata; the `nathanhale.github.io` and GuildGame repos
+   had it on in October 2026).
+2. Clone each candidate read-only into the scratchpad, shallow:
+   `GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 <url> <scratch>/<name>`
+3. Search for the redacted text and for the file's build tag:
+   `grep -rnI --exclude-dir=.git '<redacted text>' <scratch>/<name>`
+4. Report every hit with repo, file, line, and build tag. A hit on a Pages-enabled
+   repo is live on the web.
+5. The fix in another repo needs Nathan's yes and, from a cloud session, write access
+   to that repo. If access is refused, give him the GitHub edit URL and the exact
+   line, which is what happened on October 24.
+
+Live pages themselves may not be reachable from a cloud session (DNS blocked by the
+proxy). The repo source is what Pages serves, so the repo check is the verification.
+
 ## What it does not catch
 
 Names in lowercase, single-word names, client names that are not two capitalized words,
@@ -85,3 +107,6 @@ the target firm, and recurring headings. Never add a third party's name without 
 - 2026-10-11: Added test.sh after Nathan chose to commit the four manual checks as a
   script. Six assertions: clean file, leak on every category, approved-line
   suppression, index.html clean, hook blocks a leak, tree clean afterwards.
+- 2026-10-24: Added "check every copy" after the live-site check found the name still
+  served from nathanhale.github.io ten days after the Nathan-Hale redaction. Nathan
+  chose to make it part of this skill.
