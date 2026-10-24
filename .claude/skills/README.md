@@ -7,7 +7,7 @@ Maintained by the `skill-harvest` skill. Edit only through an approved harvest.
 
 | Skill | Purpose | Added | Last changed | Improvements |
 |---|---|---|---|---|
-| skill-harvest | Decide whether successful work should become a skill; run the improvement loop | 2026-10-09 | 2026-10-16 | 4 |
+| skill-harvest | Decide whether successful work should become a skill; run the improvement loop | 2026-10-09 | 2026-10-24 | 5 |
 | role-pursuit-kit | Research sheet, firm analysis doc, and follow-up HTML deck for a senior-role pursuit | 2026-10-10 | 2026-10-10 | 1 |
 | deck-verify | Headless render check for any single-file HTML deck | 2026-10-10 | 2026-10-10 | 0 |
 | specificity | Fixed context card (what, why, origin, duration, project, status, next, decision, value, cost, time, outcome) before every question to Nathan | 2026-10-16 | 2026-10-16 | 0 |

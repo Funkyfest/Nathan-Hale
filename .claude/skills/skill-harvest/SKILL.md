@@ -10,12 +10,17 @@ This runs at the end of successful work, not in the middle of it.
 
 ## When to run
 
-Run when ANY of these is true:
+Once per task, at the end, when the thing Nathan asked for is finished and verified.
+One quiz covers every candidate from that task: new skills, improvements to skills
+that were used, and notes. Do not run after each commit, test pass, push, pull request,
+or merge inside the task; those are steps, not outcomes.
 
-- A task finished and the result was verified (tests pass, file renders, deliverable accepted).
-- A multi-step workflow was done by hand that Nathan is likely to want again.
-- An existing skill was invoked and the run needed manual correction, extra steps, or
-  produced output that had to be reworked. That is an improvement candidate, not a new skill.
+Candidates to include in the single quiz:
+
+- The task's result itself, if it is a workflow Nathan is likely to want again.
+- Any existing skill that was invoked and needed manual correction or extra steps.
+  That is an improvement candidate, not a new skill.
+- Anything done by hand that took more than about ten minutes or five tool calls.
 
 Do NOT run for: one-line facts, lookups, trivial edits, or work that was already
 authorized and raised no new decision. When unsure, run it once and let Nathan say
@@ -152,3 +157,6 @@ which keep needing fixes.
 - 2026-10-16: Nathan interrupted a quiz because its subject was a session-coined
   label with no context. Step 3 now requires the specificity card first. Added the
   `specificity` skill.
+- 2026-10-24: Narrowed from "after every successful outcome" to once per task. The
+  broad version produced about fifteen quizzes between October 9 and 24; Nathan said
+  twice that the quizzes were the problem. Improvement 5.

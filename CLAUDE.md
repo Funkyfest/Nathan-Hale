@@ -2,9 +2,11 @@
 
 ## Skill harvest (standing rule, set 2026-10-09)
 
-After every successful outcome in a session (a task finished and verified, a fix that
-worked, a workflow that produced a usable deliverable), run the `skill-harvest` skill
-before closing the turn:
+Once per task, when the task Nathan asked for is finished and verified, run the
+`skill-harvest` skill before closing. One quiz covers everything that worked in that
+task. Do not quiz after individual commits, test runs, pushes, pull requests, or
+merges inside the task. (Narrowed 2026-10-24 from "after every successful outcome",
+which produced about fifteen quizzes in one month.)
 
 1. Decide whether the thing that just worked should become a reusable skill, or whether
    an existing skill was used and should be improved.
