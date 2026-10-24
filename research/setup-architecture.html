@@ -208,6 +208,9 @@ header p { margin-top: 12px; color: var(--ink-2); max-width: 620px; font-size: .
 .opt.rec { color: var(--ink); border-color: var(--steel); background: var(--steel-dim); font-weight: 500; }
 .opt span { font-family: var(--mono); font-size: .62rem; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--steel); white-space: nowrap; }
 .why { font-size: .8rem; color: var(--ink-2); }
+.dec.done { border-color: var(--good); }
+.dec.done .opt.rec { border-color: var(--good); background: var(--good-dim); }
+.dec.done .opt.rec span { color: var(--good); }
 
 /* Gates */
 .gates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -274,7 +277,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
 <div class="wrap">
 
 <header>
-  <div class="eyebrow">Status as of October 7, 2026 · from Open Brain records</div>
+  <div class="eyebrow">Status as of October 24, 2026 · from Open Brain records</div>
   <h1>Nathan's <em>Command Center</em></h1>
   <p>Three devices, four cloud AIs, one memory layer. Big Nate's Decision Maker shipped, so this setup has a new job: keep the Mac mini healthy, give it room to work, and decide whether a Mac Studio earns the open seat.</p>
 
@@ -287,12 +290,12 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
     <div class="stat" role="listitem">
       <span class="pill good">Online</span>
       <h3>Mac mini</h3>
-      <p>Running, confirmed by you Oct 7. The Oct 5–6 "offline" flag was a carried report, not a live check.</p>
+      <p>Always on, your standing rule as of Oct 24. Reports no longer carry "offline" without a live check.</p>
     </div>
     <div class="stat" role="listitem">
       <span class="pill warn">Check due</span>
       <div class="num">37 <small>GB free / 512</small></div>
-      <p>Last reading, Sep 7. Under 10% free slows builds and agents. Re-check today.</p>
+      <p>Last reading, Sep 7. Still unchecked. Under 10% free slows builds and agents.</p>
     </div>
     <div class="stat" role="listitem">
       <span class="pill open">Open seat</span>
@@ -448,8 +451,8 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
     <li class="act">
       <input type="checkbox" id="a3">
       <label for="a3">
-        <span class="act-top"><b>Clear the "Mini offline" flag from the daily reports</b><span class="when">Today · 5 min</span></span>
-        <span class="act-how">Tell the closeout the mini is online as of Oct 7. Run <code>Verify Mac OB1.command</code> once; if it returns green, the flag is closed. If the Grok bot still can't reach the mini, that's a connection issue on the Grok side.</span>
+        <span class="act-top"><b>Retire the "Mini offline" flag</b><span class="when">Logged Oct 24</span></span>
+        <span class="act-how">Your rule "the Mac mini is always on" is saved in Open Brain, where the daily reports read it. Tick this once a closeout stops listing "Mini offline."</span>
       </label>
     </li>
     <li class="act">
@@ -469,17 +472,24 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
     <li class="act">
       <input type="checkbox" id="a6">
       <label for="a6">
-        <span class="act-top"><b>Pick one App Store listing change for Big Nate</b><span class="when">This week · 20 min</span></span>
-        <span class="act-how">Pull downloads and reviews from App Store Connect and change one thing they point to: screenshots, subtitle, or first-screen copy.</span>
+        <span class="act-top"><b>Open a Google Play developer account</b><span class="when">This week · 30 min</span></span>
+        <span class="act-how">play.google.com/console. One-time fee and an ID check, which can take a few days, so start it first. Android can't ship without it.</span>
+      </label>
+    </li>
+    <li class="act">
+      <input type="checkbox" id="a7">
+      <label for="a7">
+        <span class="act-top"><b>Line up testers for Google's closed test</b><span class="when">This week · 15 min</span></span>
+        <span class="act-how">New personal Play accounts must run a closed test before going public: about 12 testers for 14 days at last check. Confirm the current rule in the console, then ask family and Big Nate users now so the clock starts on day one.</span>
       </label>
     </li>
   </ul>
-  <p class="progress" id="prog" aria-live="polite">0 of 6 done</p>
+  <p class="progress" id="prog" aria-live="polite">0 of 7 done</p>
 </section>
 
 <section aria-labelledby="dec-h">
   <h2 id="dec-h">Decisions</h2>
-  <p class="lede">Choices only you can make. Each shows the options, my recommendation, and what to settle first.</p>
+  <p class="lede">Choices only you can make. Two are settled; two wait on a check.</p>
   <div class="decs">
     <article class="dec">
       <div class="dec-head">
@@ -507,29 +517,28 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
       </ul>
       <p class="why">Video and model files are too big and change too often for OneDrive sync. A USB-C SSD stays plugged into the always-on mini. Documents stay in OneDrive as they are now.</p>
     </article>
-    <article class="dec">
+    <article class="dec done">
       <div class="dec-head">
         <span class="dec-id">D3</span>
         <h3>How the daily reports handle the mini</h3>
-        <span class="pill open">Anytime</span>
+        <span class="pill good">Decided Oct 24</span>
       </div>
       <ul class="opts">
-        <li class="opt">Keep carrying flags forward as-is</li>
-        <li class="opt rec">Live-check before saying "offline"; otherwise say "unreachable from [host]" <span>Recommended</span></li>
+        <li class="opt rec">The Mac mini is always on <span>Your call</span></li>
       </ul>
-      <p class="why">This week a carried flag made a running machine look broken. One rule fixes it: a report states machine status only after a live check, and keeps that separate from "this bot couldn't reach it."</p>
+      <p class="why">Reports treat the mini as online. If a bot can't reach it, they say "unreachable from [that bot]" instead of "offline." Saved to Open Brain.</p>
     </article>
-    <article class="dec">
+    <article class="dec done">
       <div class="dec-head">
         <span class="dec-id">D4</span>
         <h3>Big Nate's next bet</h3>
-        <span class="pill good">Ongoing</span>
+        <span class="pill good">Decided Oct 24</span>
       </div>
       <ul class="opts">
-        <li class="opt rec">Listing → paid plan → Android, as set July 14 <span>Recommended</span></li>
-        <li class="opt">Android first to reach more people</li>
+        <li class="opt rec">Android first <span>Your call</span></li>
+        <li class="opt">Then the App Store listing and a paid plan</li>
       </ul>
-      <p class="why">A paid plan on the live iOS app tests whether people will pay before you build a second app. Android costs more effort and earns more once the paid plan works.</p>
+      <p class="why">One rule from the June 13 App Review: keep Google Play badges and links out of the iPhone app and its screenshots. Apple rejected build 1.0 (8) for them.</p>
     </article>
   </div>
 </section>
@@ -594,11 +603,12 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
     <li><time>Sep 21</time><div><b>Mac Studio returned</b> for ~$4,762 credit. Next aim: an M5 Studio.</div></li>
     <li><time>Oct 5–6</time><div><b>Harness reports flag "Mini offline,"</b> carried forward without a live check.</div></li>
     <li class="win"><time>Oct 7</time><div><b>Mini confirmed running</b> by you. The flag was a reporting problem, not an outage.</div></li>
+    <li><time>Oct 24</time><div><b>Two calls made:</b> the mini is always on, and Big Nate goes to Android next.</div></li>
   </ol>
 </section>
 
 <footer>
-  Built from Open Brain records dated May 26 through October 6, 2026. Mac mini specs and the 37 GB free figure come from the September 7 live inspection; the mini's online status is your Oct 7 confirmation; check current free space (A1) before deleting anything.
+  Built from Open Brain records dated May 26 through October 24, 2026. Mac mini specs and the 37 GB free figure come from the September 7 live inspection; the mini's online status is your Oct 7 confirmation; check current free space (A1) before deleting anything.
 </footer>
 
 </div>
