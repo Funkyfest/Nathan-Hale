@@ -53,5 +53,5 @@ names only. No labels coined during a session. See
   explicit approval.
 
 The Stop hook in `.claude/settings.json` (`.claude/hooks/handoff_check.js`) bounces a
-reply once if it contains em dashes or lettered text choices. `setup/install-handoff-rules.ps1`
-installs the same rules and hook for every project on a Windows PC.
+reply once if it contains em dashes or lettered text choices. Machine-wide rules belong in
+Nathan's master CLAUDE.md (OB1, October 16 migration plan), not a separate installer.
