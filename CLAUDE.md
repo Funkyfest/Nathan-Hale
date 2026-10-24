@@ -39,3 +39,19 @@ Every question to Nathan carries the `specificity` card first: what, why, origin
 duration, project, status, next action, decision, value, cost, time, outcome. Real
 names only. No labels coined during a session. See
 `.claude/skills/specificity/SKILL.md`.
+
+## Working with Nathan (standing rule, set 2026-10-09)
+
+- Before starting work, search Open Brain (OB1) for prior context on the topic. Do not
+  ask Nathan to repeat himself.
+- Every handoff or decision ends with: Recommendation A, why, a calibrated confidence %,
+  then AskUserQuestion with 2 to 4 options (recommended first). Lettered text choices
+  only if AskUserQuestion is unavailable.
+- Never use em dashes. Use commas, periods, or colons. Nathan's brand voice beats
+  generic AI conventions.
+- No sending, publishing, contacting anyone, or changing source-of-truth files without
+  explicit approval.
+
+The Stop hook in `.claude/settings.json` (`.claude/hooks/handoff_check.js`) bounces a
+reply once if it contains em dashes or lettered text choices. `setup/install-handoff-rules.ps1`
+installs the same rules and hook for every project on a Windows PC.
