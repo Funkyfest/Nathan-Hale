@@ -18,6 +18,7 @@ Maintained by the `skill-harvest` skill. Edit only through an approved harvest.
 
 One line each: date, what happened, why it might be a skill. Promote on second occurrence.
 
+- 2026-10-24: Night wrap (one page from git, sessions, artifacts, and scheduled tasks: done, needs you, clean-up, risks, copy-to-undo). First occurrence; Nathan chose candidate only. Promote on second.
 - 2026-10-24: Run the repo's checks before every push. Covered by deck-verify, publish-check, and the pre-push hook. Nathan confirmed.
 - 2026-10-24: Merge only after Nathan's explicit yes, then confirm main. Covered by his standing preferences. Nathan confirmed.
 - 2026-10-24: Hook wiring and PR shape. Nathan asked for a recommendation; recommendation was to keep both as notes (each observed once, under ten lines, hook setup already in publish-check). No change.
