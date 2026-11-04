@@ -1,0 +1,524 @@
+<title>Cash or Stay Invested?</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column (72ch) for prose, charts at full column width, stat tiles in a wrapping grid. Research-report register, not a dashboard. */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#141a24; --fg2:#4a5260; --muted:#7b8494;
+  --rule:#dfe3ea; --grid:#e6e9ef; --axis:#c4cad4; --accent:#1c5cab; --accent-soft:#e4edf9;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s1-light:#86b6ef; --neutral-mark:#9aa3b2;
+  --good:#006300; --warn:#8a5a00; --crit:#b32626; --warn-bg:#fff6e0; --crit-bg:#fdecec; --good-bg:#e8f5e8;
+  --display:"Newsreader",Georgia,"Times New Roman",serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --chart-sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1217; --surface:#171b22; --fg:#eef1f5; --fg2:#c0c6d0; --muted:#8c94a3;
+  --rule:#2a303a; --grid:#262c36; --axis:#3a414d; --accent:#6ea6ee; --accent-soft:#1d2a3d;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s1-light:#5598e7; --neutral-mark:#6b7382;
+  --good:#3ec43e; --warn:#f0b64a; --crit:#f07171; --warn-bg:#2d2410; --crit-bg:#361a1a; --good-bg:#15301a;
+  color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0f1217; --surface:#171b22; --fg:#eef1f5; --fg2:#c0c6d0; --muted:#8c94a3;
+  --rule:#2a303a; --grid:#262c36; --axis:#3a414d; --accent:#6ea6ee; --accent-soft:#1d2a3d;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s1-light:#5598e7; --neutral-mark:#6b7382;
+  --good:#3ec43e; --warn:#f0b64a; --crit:#f07171; --warn-bg:#2d2410; --crit-bg:#361a1a; --good-bg:#15301a;
+  color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-block:0 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,6vw,52px);letter-spacing:-.01em}
+h2{font-size:clamp(24px,3.6vw,30px);margin-top:56px;padding-top:20px;border-top:1px solid var(--rule)}
+h3{font-size:20px;margin-top:28px}
+p{max-width:72ch;margin:12px 0}
+.eyebrow{font-family:var(--body);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+header{padding-top:40px}
+header .meta{display:flex;flex-wrap:wrap;gap:8px 20px;color:var(--fg2);font-size:14px;margin-top:14px}
+.lede{font-size:19px;color:var(--fg2);max-width:66ch}
+.callout{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--accent);padding:18px 22px;margin:22px 0;border-radius:4px}
+.callout p{margin:8px 0}
+.callout .big{font-family:var(--display);font-size:22px;line-height:1.3}
+.conf{display:inline-block;font-family:var(--mono);font-size:13px;background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:3px;margin-left:6px;vertical-align:middle}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0}
+.tile{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:12px 14px;min-width:0}
+.tile .l{font-size:12px;color:var(--muted);letter-spacing:.02em}
+.tile .v{font-size:26px;font-weight:600;line-height:1.15;margin-top:4px}
+.tile .d{font-size:12.5px;color:var(--fg2);margin-top:4px}
+.tile .d.up{color:var(--good)} .tile .d.bad{color:var(--crit)}
+.chart{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:16px 16px 10px;margin:18px 0;position:relative;min-width:0}
+.chart h3{font-family:var(--body);font-size:15px;font-weight:600;margin:0}
+.chart .sub{font-size:13px;color:var(--fg2);margin:3px 0 8px;max-width:none}
+.chart svg{display:block;width:100%;height:auto;font-family:var(--chart-sans);overflow:visible}
+.chart .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--fg2);margin:8px 0 2px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.legend i.line{width:16px;height:2px;border-radius:1px;vertical-align:3px}
+.legend i.dotted{width:16px;height:0;border-top:2px dotted var(--muted);background:none;vertical-align:3px}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font-size:12.5px;padding:6px 9px;border-radius:3px;white-space:nowrap;transform:translate(-50%,calc(-100% - 10px));opacity:0;transition:opacity .12s;z-index:5;font-family:var(--chart-sans)}
+.tip.on{opacity:1}
+.chart .note{font-size:12px;color:var(--muted);margin:6px 0 0}
+details{margin:8px 0 0;font-size:13px}
+details summary{cursor:pointer;color:var(--accent);font-weight:500}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tablewrap{overflow-x:auto;min-width:0}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;letter-spacing:.02em;white-space:nowrap}
+.pill.base{background:var(--accent-soft);color:var(--accent)}
+.pill.bull{background:var(--good-bg);color:var(--good)}
+.pill.bear{background:var(--crit-bg);color:var(--crit)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:16px 0}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:16px 18px;min-width:0}
+.card h3{margin:0 0 6px;font-size:18px}
+.card .role{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.card p{font-size:14.5px;margin:8px 0}
+.card .verdict{font-weight:600;font-size:14.5px;margin-top:10px;padding-top:10px;border-top:1px solid var(--rule)}
+ol,ul{max-width:72ch;padding-left:22px}
+li{margin:6px 0}
+.scen{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0}
+.scen .card{border-top:4px solid var(--s1)}
+.scen .card.bull{border-top-color:var(--s3)} .scen .card.bear{border-top-color:var(--s2)}
+.scen .prob{font-size:30px;font-weight:600;line-height:1}
+.scen .prob small{font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:10px 0}
+.kv b{font-weight:600;white-space:nowrap}
+.courses .card.rec{border:2px solid var(--accent)}
+.sources ol{font-size:13.5px;padding-left:24px;max-width:none}
+.sources li{margin:4px 0;word-break:break-word}
+.sources a{color:var(--accent)}
+a{color:var(--accent)}
+.foot{font-size:13px;color:var(--muted);margin-top:40px;padding-top:16px;border-top:1px solid var(--rule)}
+.trip{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14.5px;margin:12px 0;max-width:72ch}
+.trip b{font-family:var(--mono);font-weight:500;font-size:13px;white-space:nowrap;padding-top:2px}
+@media (prefers-reduced-motion: reduce){ .tip{transition:none} }
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Market outlook · 12 / 24 / 36 months</div>
+  <h1>Cash or Stay Invested?</h1>
+  <p class="lede">A forecast and scenario plan for U.S. equities through late 2029, built around the four forces that will decide it: AI capital spending, interest rates, inflation, and the labor market. Prepared for Nathan Hale's advisory board.</p>
+  <div class="meta"><span>Data through the November 3, 2026 close</span><span>Published November 4, 2026</span><span>Not personalized investment advice</span></div>
+</header>
+
+<h2>Executive summary</h2>
+<div class="callout">
+  <p class="eyebrow">Recommendation A <span class="conf">confidence 70%</span></p>
+  <p class="big">Stay invested in the long-term core. Raise cash deliberately, not defensively: enough short-term Treasuries and money-market to cover 24 months of planned withdrawals plus a 10% reserve, funded by trimming the most AI-concentrated holdings, inside tax-advantaged accounts first.</p>
+  <p>The next twelve months look like a coin flip between stocks and cash. Our probability-weighted S&P 500 path lands near today's level a year out, while T-bills pay about 4%. Over 36 months the weighting still favors equities by roughly 10 percentage points cumulatively, and the historical odds of a positive three-year return sit near 84%. So the answer is sizing, not timing: cash covers the near-term need and the bear case, equities carry the long-term job.</p>
+</div>
+
+<h3>What the evidence says, in six lines</h3>
+<ol>
+  <li><b>Valuations are stretched but earnings are real.</b> Forward P/E of 18.7 is near its five-year average after a 36% earnings surge in 2026, yet the Shiller CAPE near 40 is second only to 1999, and the equity risk premium over the 10-year Treasury is under half a point.</li>
+  <li><b>The Fed has turned.</b> Chair Kevin Warsh's Fed hiked in September 2026, held at 3.75%–4.00% in October with two dissents for another hike, and markets price a December hike at roughly 80%. The dot plot shows no cuts in 2027.</li>
+  <li><b>Inflation re-accelerated on oil.</b> Headline CPI is 3.7% after the Iran war closed the Strait of Hormuz and pushed Brent above $100. Core is 2.6%. Peace talks are the swing factor.</li>
+  <li><b>Growth is strong but narrow.</b> Q3 GDP grew 3.4%, much of it AI equipment spending, while September payrolls rose only 29,000 and unemployment sits at 4.2%. Fidelity still calls the U.S. mid-cycle; the CNBC Fed Survey puts recession odds at 26%.</li>
+  <li><b>AI is the hinge.</b> Big Tech will spend about $735 billion on AI infrastructure in 2026 and analysts pencil in $0.9 to $1.3 trillion for 2027. Alphabet lost 12.6% in a day when it guided capex "significantly" higher. Credit, not chip demand, is showing strain first: neocloud bonds yield near 15%. Elon Musk says the bottleneck is now power, not chips, and expects neocloud consolidation and a 2027 slowdown in data-center investment.</li>
+  <li><b>Politics adds friction, not direction.</b> Democrats won the Senate and, per the networks, the House. Expect gridlock, debt-ceiling brinkmanship, and tech investigations. Goldman sees a possible trim to data-center tax incentives but no moratorium.</li>
+</ol>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Horizon</th><th>Probability-weighted S&P 500</th><th class="num">Price change</th><th class="num">Cash (T-bills)</th><th>Read</th></tr></thead>
+<tbody>
+<tr><td>12 months (Nov 2027)</td><td>About 7,570</td><td class="num">0%</td><td class="num">+4.0%</td><td>Cash wins on expectation; equities carry the dividend and the upside tail</td></tr>
+<tr><td>24 months (Nov 2028)</td><td>About 8,260</td><td class="num">+9%</td><td class="num">+7.8%</td><td>Roughly even after dividends</td></tr>
+<tr><td>36 months (Nov 2029)</td><td>About 9,020</td><td class="num">+19%</td><td class="num">+11.5%</td><td>Equities ahead by about 10 points including dividends</td></tr>
+</tbody></table></div>
+
+<h2>Where we stand</h2>
+<div class="tiles">
+  <div class="tile"><div class="l">S&P 500, Nov 3 close</div><div class="v">7,569</div><div class="d">3.2% below the Oct 6 record of 7,819 · +10.6% YTD</div></div>
+  <div class="tile"><div class="l">Fed funds target</div><div class="v">3.75–4.00%</div><div class="d bad">Hiked Sep 2026; ~80% odds of a Dec hike</div></div>
+  <div class="tile"><div class="l">CPI, Sep 2026</div><div class="v">3.7%</div><div class="d bad">Core 2.6% · up from 3.4% / 2.4% in Aug</div></div>
+  <div class="tile"><div class="l">Unemployment, Sep</div><div class="v">4.2%</div><div class="d">Payrolls +29k vs 84k expected</div></div>
+  <div class="tile"><div class="l">10-year Treasury</div><div class="v">4.9%</div><div class="d bad">Peaked 5.31% on Oct 5; real yield ~2.7%</div></div>
+  <div class="tile"><div class="l">Forward P/E (FactSet)</div><div class="v">18.7</div><div class="d">Shiller CAPE ~40, second only to 1999</div></div>
+  <div class="tile"><div class="l">Brent crude</div><div class="v">$104</div><div class="d bad">+62% year over year; Hormuz closed</div></div>
+  <div class="tile"><div class="l">Q3 2026 GDP</div><div class="v">3.4%</div><div class="d up">Consumer +3.8%; AI equipment led</div></div>
+</div>
+
+<div class="chart" id="c-path">
+  <h3>S&P 500 milestone closes, December 2025 to November 2026</h3>
+  <p class="sub">Dated closes at turning points, not a daily series. Three record highs this year, each followed by a pullback; the Nasdaq 100 entered a 10% correction on November 2.</p>
+  <div class="plot"></div>
+  <details><summary>Table view</summary><div class="tablewrap"><table><thead><tr><th>Date</th><th class="num">Close</th><th>Event</th></tr></thead><tbody>
+  <tr><td>Dec 31, 2025</td><td class="num">6,845.5</td><td>2025 ends +16% (about 18% total return)</td></tr>
+  <tr><td>Mar 6, 2026</td><td class="num">~6,230</td><td>Lowest close of 2026, about 9% below the start; Iran war oil shock</td></tr>
+  <tr><td>Jun 2, 2026</td><td class="num">7,609.8</td><td>Record close</td></tr>
+  <tr><td>Aug 13, 2026</td><td class="num">7,713</td><td>Record close after a 5% summer dip</td></tr>
+  <tr><td>Oct 6, 2026</td><td class="num">7,818.9</td><td>Record close, the day after the 10-year hit 5.31%</td></tr>
+  <tr><td>Nov 3, 2026</td><td class="num">7,568.9</td><td>Election day; AI selloff; VIX ~21</td></tr>
+  </tbody></table></div></details>
+</div>
+
+<h2>The four forces</h2>
+
+<h3>1. AI: the capex supercycle meets its financing test</h3>
+<p>The 2026 bull market is an earnings story first. S&P 500 profits are on track to grow about 36% this year, with 2027 consensus near 16%. The hyperscalers built that growth with cash flow, and that is now the problem: Alphabet spent $51 billion on capex against $42 billion of operating cash flow in Q3 and posted negative free cash flow. Nvidia is discussing a $250 billion backstop for OpenAI's Ohio campus. Five tech companies accounted for almost 10% of global investment-grade bond issuance in 2026. The IMF and the Bank of England both flag financing, not demand, as the weak link.</p>
+<p>The bull case is still intact on the demand side. Nvidia's July quarter revenue was $96 billion, up 106%, and it reports again on November 17. Oracle rallied 10.7% the day Alphabet fell, because enterprise cloud demand accelerated. Jason Furman notes U.S. productivity growth since 2022 has run about twice its pre-pandemic pace. Vanguard's framing is the one to hold: "economic upside, stock market downside," meaning AI can lift GDP while index returns disappoint because the price was paid up front.</p>
+
+<div class="chart" id="c-capex">
+  <h3>Big Tech AI infrastructure capital spending, billions of dollars</h3>
+  <p class="sub">Amazon, Microsoft, Alphabet, Meta (and Oracle where trackers include it). 2027 is sell-side consensus, not company guidance; the whisker spans the range of published estimates.</p>
+  <div class="plot"></div>
+  <details><summary>Table view</summary><div class="tablewrap"><table><thead><tr><th>Year</th><th class="num">Capex ($B)</th><th>Basis</th></tr></thead><tbody>
+  <tr><td>2024</td><td class="num">~230</td><td>Reported</td></tr><tr><td>2025</td><td class="num">~410</td><td>Reported</td></tr>
+  <tr><td>2026</td><td class="num">~735</td><td>Company guidance, Q3 2026 calls</td></tr><tr><td>2027</td><td class="num">~1,140 (935–1,300)</td><td>Goldman Sachs estimate; range across sell-side and Nvidia's own talk</td></tr>
+  </tbody></table></div></details>
+</div>
+
+<h3>2. Interest rates: higher for longer became higher again</h3>
+<p>The easing cycle that began in September 2025 ended at 3.50%–3.75% in December 2025. Kevin Warsh took the chair in May 2026 as an inflation hawk, and the September 2026 hike was the first since 2023. The dot plot's median sits at 4.1% for both end-2026 and end-2027, with 3.9% in 2028. The 10-year yield crossed 5% in October on the hawkish hold and heavy Treasury supply, and Ken Rogoff told Bloomberg in August that the fiscal problem will not be addressed until a shock forces it. For stocks the arithmetic is simple: an 18.7 forward multiple gives a 5.3% earnings yield against a 4.9% risk-free rate. Equities are priced for everything to go right.</p>
+
+<div class="chart" id="c-fed">
+  <h3>Fed funds target midpoint and the September 2026 dot plot</h3>
+  <p class="sub">Realized path at each change, then the median projection for year-ends 2026 through 2028.</p>
+  <div class="plot"></div>
+  <details><summary>Table view</summary><div class="tablewrap"><table><thead><tr><th>Date</th><th class="num">Midpoint</th><th>Note</th></tr></thead><tbody>
+  <tr><td>Dec 2023</td><td class="num">5.375%</td><td>Peak held</td></tr><tr><td>Sep 2024</td><td class="num">4.875%</td><td>50bp cut</td></tr><tr><td>Nov 2024</td><td class="num">4.625%</td><td></td></tr><tr><td>Dec 2024</td><td class="num">4.375%</td><td></td></tr>
+  <tr><td>Sep 2025</td><td class="num">4.125%</td><td></td></tr><tr><td>Oct 2025</td><td class="num">3.875%</td><td>QT ended Dec 1</td></tr><tr><td>Dec 2025</td><td class="num">3.625%</td><td>Last cut</td></tr>
+  <tr><td>Sep 2026</td><td class="num">3.875%</td><td>First hike since 2023; held Oct 28 (10–2)</td></tr>
+  <tr><td>Dec 2026 (dot)</td><td class="num">4.125%</td><td>Median projection</td></tr><tr><td>Dec 2027 (dot)</td><td class="num">4.125%</td><td>No cuts</td></tr><tr><td>Dec 2028 (dot)</td><td class="num">3.875%</td><td></td></tr>
+  </tbody></table></div></details>
+</div>
+
+<div class="chart" id="c-yield">
+  <h3>What each dollar earns today, annualized</h3>
+  <p class="sub">Equity earnings yield is the inverse of the forward P/E. The gap between it and the 10-year is the thinnest since 2002.</p>
+  <div class="plot"></div>
+  <details><summary>Table view</summary><div class="tablewrap"><table><thead><tr><th>Asset</th><th class="num">Yield</th><th>Source</th></tr></thead><tbody>
+  <tr><td>S&P 500 forward earnings yield</td><td class="num">5.3%</td><td>1 / 18.7 (FactSet)</td></tr><tr><td>10-year Treasury</td><td class="num">4.9%</td><td>Fed H.15, Nov 2–3</td></tr>
+  <tr><td>12-month T-bill</td><td class="num">4.4%</td><td>Forbes, Nov 2</td></tr><tr><td>3-month T-bill</td><td class="num">4.2%</td><td>Forbes, Nov 2</td></tr>
+  <tr><td>Government money market (typical)</td><td class="num">~3.9%</td><td>Fund 7-day yields range 3.5%–4.2%; check Vanguard and Fidelity pages</td></tr><tr><td>S&P 500 dividend yield</td><td class="num">1.2%</td><td>Approximate</td></tr>
+  </tbody></table></div></details>
+</div>
+
+<h3>3. Inflation: oil did what tariffs could not</h3>
+<p>The Supreme Court struck down the IEEPA tariffs in February 2026, and the New York Fed estimates tariff-driven goods inflation faded from about 3% to 2% by August. Then the Iran war closed Hormuz. Gasoline rose 9.1% in September alone and lifted headline CPI to 3.7%. Core at 2.6% says the underlying trend is tolerable; the Fed's own projection has core PCE at 2.5% in 2027. The October CPI prints on November 10. If Brent holds above $100 into 2027, the December hike becomes a sequence and the bear case gains weight. If a peace deal reopens the strait, headline inflation could drop a full point within two quarters and the Fed's hiking bias fades.</p>
+
+<h3>4. Unemployment and growth: strong GDP, weak hiring</h3>
+<p>This is the oddest pairing in the data. Output grew 3.4% in Q3 on AI equipment and a 3.8% rise in consumer spending, yet payroll growth has slowed to a crawl and job postings only turned up in September. Unemployment at 4.2% is below the 4.4% of a year ago, so the labor market is cooling without cracking. Fidelity's Q4 business cycle update describes "sturdy mid-cycle dynamics." Polymarket prices a 32% chance of recession by end-2027; the CNBC Fed Survey says 26% within a year. A recession is the minority case, but it is the case in which an AI capex pause and consumer fatigue arrive together.</p>
+
+<h2>Three scenarios, 36 months out</h2>
+<p>Probabilities are our own, informed by the surveys above and the strategist range. Each scenario names the trigger that would confirm it, so you can update as evidence arrives rather than at year-end.</p>
+
+<div class="scen">
+  <div class="card">
+    <span class="pill base">Base case</span>
+    <div class="prob" style="margin-top:8px">50%<small>probability</small></div>
+    <h3 style="margin-top:10px">Higher for longer, AI digests</h3>
+    <p>Fed holds near 4% through 2027. Oil drifts to $85–95 as talks succeed slowly. Earnings grow 11%–14% in 2027, below today's 16% consensus. Hyperscaler capex plateaus near $1 trillion rather than $1.3 trillion. Multiples compress toward 17–18 while earnings carry the index.</p>
+    <div class="kv"><b>12 mo</b><span>8,000 (+6%)</span><b>24 mo</b><span>8,500 (+12%)</span><b>36 mo</b><span>9,100 (+20%)</span><b>Max drawdown</b><span>10%–15% at some point</span><b>Confirms</b><span>Nvidia guides up on Nov 17 but capex guidance flattens; core CPI stays under 3%</span></div>
+  </div>
+  <div class="card bull">
+    <span class="pill bull">Bull case</span>
+    <div class="prob" style="margin-top:8px">20%<small>probability</small></div>
+    <h3 style="margin-top:10px">Productivity pays, inflation cools</h3>
+    <p>A Hormuz settlement takes Brent under $80, headline CPI falls toward 2.5%, and the Fed resumes cutting by mid-2027. AI revenue catches up with spending (Goldman's $300 billion a year threshold) and the earnings growth broadens beyond tech. This is Jefferies' 9,000 and Yardeni's 8,400 by mid-2027.</p>
+    <div class="kv"><b>12 mo</b><span>8,700 (+15%)</span><b>24 mo</b><span>9,700 (+28%)</span><b>36 mo</b><span>10,800 (+43%)</span><b>Max drawdown</b><span>Under 10%</span><b>Confirms</b><span>Peace deal signed; December hike skipped; 2027 EPS revisions turn positive</span></div>
+  </div>
+  <div class="card bear">
+    <span class="pill bear">Bear case</span>
+    <div class="prob" style="margin-top:8px">30%<small>probability</small></div>
+    <h3 style="margin-top:10px">AI capex bust meets stagflation</h3>
+    <p>Neocloud defaults spread to data-center leases, hyperscalers cut 2027 budgets, and Nvidia's order book shrinks. Oil stays above $100, the Fed hikes twice more, and the 10-year revisits 5.5%. Unemployment climbs past 5% as the AI equipment boom unwinds. The pattern is 2000–2002: index down 20%–30% from the peak, tech down more, but the economy avoids a deep recession.</p>
+    <div class="kv"><b>12 mo</b><span>6,100 (−19%)</span><b>24 mo</b><span>6,900 (−9%)</span><b>36 mo</b><span>7,700 (+2%)</span><b>Max drawdown</b><span>25%–35% peak to trough</span><b>Confirms</b><span>Nvidia misses or guides down; a hyperscaler cuts capex; credit spreads on AI debt widen past 500bp; 10-year above 5.25%</span></div>
+  </div>
+</div>
+
+<div class="chart" id="c-fan">
+  <h3>S&P 500 scenario paths from the November 3 close</h3>
+  <p class="sub">Price index, dividends excluded. The dotted line is the probability-weighted path.</p>
+  <div class="plot"></div>
+  <details><summary>Table view</summary><div class="tablewrap"><table><thead><tr><th>Horizon</th><th class="num">Bear (30%)</th><th class="num">Base (50%)</th><th class="num">Bull (20%)</th><th class="num">Weighted</th></tr></thead><tbody>
+  <tr><td>Now</td><td class="num">7,569</td><td class="num">7,569</td><td class="num">7,569</td><td class="num">7,569</td></tr>
+  <tr><td>12 months</td><td class="num">6,100</td><td class="num">8,000</td><td class="num">8,700</td><td class="num">7,570</td></tr>
+  <tr><td>24 months</td><td class="num">6,900</td><td class="num">8,500</td><td class="num">9,700</td><td class="num">8,260</td></tr>
+  <tr><td>36 months</td><td class="num">7,700</td><td class="num">9,100</td><td class="num">10,800</td><td class="num">9,020</td></tr>
+  </tbody></table></div></details>
+</div>
+
+<div class="chart" id="c-targets">
+  <h3>Where Wall Street puts the index</h3>
+  <p class="sub">Published year-end targets, most recent revision. Jefferies' whisker is its bear-to-bull range. The vertical line is the November 3 close.</p>
+  <div class="plot"></div>
+  <details><summary>Table view</summary><div class="tablewrap"><table><thead><tr><th>Source</th><th class="num">End-2026</th><th class="num">End-2027</th><th>Note</th></tr></thead><tbody>
+  <tr><td>Jefferies</td><td class="num">—</td><td class="num">9,000</td><td>Bear 6,900 / bull 10,500; $450 EPS, 20x</td></tr>
+  <tr><td>Goldman Sachs</td><td class="num">8,000</td><td class="num">8,700</td><td>EPS +36% 2026, +11% 2027</td></tr>
+  <tr><td>Ed Yardeni</td><td class="num">7,900</td><td class="num">8,400 (mid-2027)</td><td>Cut from 8,400 in October</td></tr>
+  <tr><td>CNBC Fed Survey (30 respondents)</td><td class="num">7,600</td><td class="num">8,033</td><td>Cut from 8,274; recession odds 26%</td></tr>
+  <tr><td>Bank of America</td><td class="num">7,100</td><td class="num">—</td><td>"Too many red flags" (earlier in 2026)</td></tr>
+  <tr><td>Panmure Liberum</td><td class="num">—</td><td class="num">5,000</td><td>Bearish outlier, AI bust thesis</td></tr>
+  <tr><td>Vanguard (10-year annualized)</td><td class="num" colspan="2">4.2%–6.2% a year</td><td>June 30, 2026 model run; favors value and ex-U.S.</td></tr>
+  </tbody></table></div></details>
+</div>
+
+<h2>The long-horizon argument for staying</h2>
+<p>Every bear case above is a 12-to-24-month story. The reason to keep the core invested is that the odds flip with time: since 1926 the S&P 500 has been positive in about three of every four single years, 84% of three-year spans, and 94% of ten-year spans, including the years that began at CAPE readings like today's. High starting valuations lower the expected return (Vanguard's 4%–6% a year is the honest number) but they do not make the return negative over a decade. Cash at 4% today is a real return of only about 0.3% after 3.7% inflation, and that yield falls the moment the Fed cuts, which is exactly what happens in the bear case.</p>
+
+<div class="chart" id="c-odds">
+  <h3>Historical odds of a positive S&P 500 total return by holding period, 1926–2025</h3>
+  <p class="sub">Rolling monthly start dates. The three-year bar is the one that matters for this plan.</p>
+  <div class="plot"></div>
+  <details><summary>Table view</summary><div class="tablewrap"><table><thead><tr><th>Holding period</th><th class="num">Share of periods positive</th></tr></thead><tbody>
+  <tr><td>1 year</td><td class="num">74%</td></tr><tr><td>3 years</td><td class="num">84%</td></tr><tr><td>5 years</td><td class="num">88%</td></tr><tr><td>10 years</td><td class="num">94%</td></tr><tr><td>15 years</td><td class="num">99%</td></tr><tr><td>20 years</td><td class="num">100%</td></tr>
+  </tbody></table></div></details>
+</div>
+
+<h2>The advisory board weighs in</h2>
+<p>Five seats, one question each. The lenses are the ones Nathan set in April 2026: himself as principal investor, his wife as the teacher, the kids as long-term shareholders, Drew on investments, Ian on tax.</p>
+<div class="grid2">
+  <div class="card"><h3>Nathan</h3><div class="role">Principal investor · CRE capital-markets lens</div>
+    <p>You have watched "extend and pretend" play out in commercial real estate since 2022, and the AI data-center build has the same shape: long leases, floating-rate construction debt, and tenants whose revenue has not yet arrived. The $1.65 trillion of off-balance-sheet lease obligations at five companies is the number a CRE underwriter would circle first.</p>
+    <div class="verdict">Verdict: treat AI exposure like a single-tenant asset. Cap it, do not exit it.</div></div>
+  <div class="card"><h3>The teacher</h3><div class="role">Household stability · the sleep-at-night test</div>
+    <p>The question she will ask is not "what is the S&P doing" but "can we cover the next two years without selling anything in a panic." A 24-month reserve in T-bills at 4% answers that regardless of which scenario arrives, and it removes the one decision that destroys returns, which is selling after a 20% drop.</p>
+    <div class="verdict">Verdict: fund the reserve now while yields are still above inflation.</div></div>
+  <div class="card"><h3>The kids</h3><div class="role">Long-term shareholders · 30-year horizon</div>
+    <p>Their accounts have no 36-month problem. A 94% ten-year hit rate and a 100% twenty-year hit rate say their money stays fully invested, ideally in a broad index that owns whatever replaces today's leaders. A 2027 drawdown is a buying opportunity for them, not a threat.</p>
+    <div class="verdict">Verdict: no change. Keep contributing, especially into a selloff.</div></div>
+  <div class="card"><h3>Drew</h3><div class="role">Investment advisor · allocation and rebalancing</div>
+    <p>The portfolio has drifted toward the Magnificent Seven simply by holding an index for three years. Rebalance back to target, add a value and dividend tilt (Vanguard's highest-ranked U.S. sleeve), and take the international weight up: emerging markets were up 23% through October against 14% for the S&P. Intermediate Treasuries at 4.5%–5% finally do their job as ballast again.</p>
+    <div class="verdict">Verdict: rebalance, diversify, and set rules so the next move is mechanical.</div></div>
+  <div class="card"><h3>Ian</h3><div class="role">Tax advisor · taxable vs. tax-advantaged</div>
+    <p>Trim concentrated positions inside the IRA and 401(k) first, where there is no tax bill. In taxable accounts, harvest losses in AI names that have fallen 20%–30% from their peaks to offset gains elsewhere, and sell only lots held over a year. Keep the T-bill reserve in taxable accounts, since Treasury interest is exempt from state tax, and keep the bond ballast in the IRA.</p>
+    <div class="verdict">Verdict: the recommendation costs almost nothing in tax if sequenced this way.</div></div>
+</div>
+
+<h2>Courses of action, with the odds attached</h2>
+<p>Four portfolios, three scenarios, 36 months. Returns include dividends and interest. Equity returns follow the scenario paths above; bonds assume intermediate Treasuries at 4.5% with a flight-to-safety gain in the bear case; cash assumes T-bills drifting from 4.2% toward 3.5% as the Fed eventually eases. These are illustrative mixes, not Nathan's actual holdings.</p>
+
+<div class="chart" id="c-courses">
+  <h3>Cumulative 36-month return by course of action and scenario</h3>
+  <p class="sub">The gray tick marks the probability-weighted expectation for each course.</p>
+  <div class="plot"></div>
+  <details><summary>Table view</summary><div class="tablewrap"><table><thead><tr><th>Course</th><th>Mix (stocks / bonds / cash)</th><th class="num">Bear</th><th class="num">Base</th><th class="num">Bull</th><th class="num">Weighted</th><th class="num">Worst 12-mo</th></tr></thead><tbody>
+  <tr><td>A · Stay fully invested</td><td>80 / 20 / 0</td><td class="num">+9%</td><td class="num">+22%</td><td class="num">+41%</td><td class="num">+22%</td><td class="num">−13%</td></tr>
+  <tr><td>B · Recommended</td><td>65 / 20 / 15</td><td class="num">+10%</td><td class="num">+20%</td><td class="num">+36%</td><td class="num">+20%</td><td class="num">−11%</td></tr>
+  <tr><td>C · Heavy cash</td><td>40 / 20 / 40</td><td class="num">+11%</td><td class="num">+17%</td><td class="num">+26%</td><td class="num">+17%</td><td class="num">−6%</td></tr>
+  <tr><td>D · All cash</td><td>0 / 0 / 100</td><td class="num">+11%</td><td class="num">+12%</td><td class="num">+10%</td><td class="num">+11%</td><td class="num">+3.5%</td></tr>
+  </tbody></table></div></details>
+</div>
+
+<div class="grid2 courses">
+  <div class="card rec"><span class="pill base">Recommended</span><h3 style="margin-top:8px">B · Raise cash to cover 24 months, stay 65% invested</h3>
+    <p><b>Expected 36-month return about 20%, worst 12-month stretch about −11%.</b> Costs roughly 2 points of expected return against staying fully invested, which is the price of never being a forced seller. Fund it from the most concentrated AI winners in tax-advantaged accounts first.</p>
+    <p>Probability this beats Course A over 36 months: about 35% (it wins in the bear case and most of the mixed outcomes). Probability it beats Course D: about 70%.</p></div>
+  <div class="card"><h3>A · Stay fully invested</h3>
+    <p><b>Expected about 22%, worst 12-month stretch about −13%.</b> The highest expected value and the right answer for the kids' accounts and any money with a ten-year horizon. The wrong answer for money needed before 2029, because the bear case forces sales at the bottom.</p>
+    <p>Probability of a positive 36-month outcome: about 85%.</p></div>
+  <div class="card"><h3>C · Heavy cash, 40% equities</h3>
+    <p><b>Expected about 17%, worst 12-month stretch about −6%.</b> Reasonable only if the bear case is your base case or spending needs exceed 24 months. Gives up 5 points of expected return and most of the bull case for a 5-point improvement in the worst year.</p>
+    <p>Probability this beats Course B: about 30%.</p></div>
+  <div class="card"><h3>D · Go to cash</h3>
+    <p><b>Expected about 11%, no equity drawdown, real return near zero.</b> Beats the others only in the bear case, and even then only in the first 12 months; by month 36 the bear-case equity path has recovered to roughly break-even plus dividends. Re-entry timing has historically cost more than the drawdown avoided.</p>
+    <p>Probability this beats Course B over 36 months: about 30%.</p></div>
+</div>
+
+<h3>Rules that make the next move mechanical</h3>
+<ul>
+  <li><b>Reserve first.</b> Move the 24-month withdrawal need plus a 10% reserve into a 3-to-12-month T-bill ladder and a government money-market fund over the next four weeks, one quarter each week, so a single day's price does not decide it.</li>
+  <li><b>Trim by rule, not by mood.</b> Any single stock above 8% of the portfolio or any sector above 35% gets trimmed back on the next rebalance date. The Magnificent Seven are near a third of the S&P 500 by weight.</li>
+  <li><b>Rebalance quarterly, or at a 5-point drift.</b> A 20% drawdown in the bear case automatically turns the reserve into a buyer at lower prices.</li>
+  <li><b>Buy the bear case in thirds.</b> If the index falls 15%, deploy a third of the 10% reserve; another third at 25%; the last third at 30% or when the Fed's first cut arrives, whichever is first.</li>
+  <li><b>Do nothing on headlines.</b> The midterm result, the Tesla and SpaceX merger talk, and the next Musk forecast are not triggers. Only the tripwires below are.</li>
+</ul>
+
+<h3>Tripwires, next 90 days</h3>
+<div class="trip">
+  <b>Nov 6</b><span>October jobs report. Payrolls under 25,000 or unemployment at 4.4% moves bear-case weight up five points.</span>
+  <b>Nov 10</b><span>October CPI. Core above 2.8% confirms the December hike and a sequence into 2027.</span>
+  <b>Nov 17</b><span>Nvidia earnings. Consensus revenue near $109 billion. A guide-down, or hyperscaler capex cuts on the call, is the single clearest bear-case confirmation.</span>
+  <b>Dec 9</b><span>FOMC. A hike is priced; the statement language on 2027 is what matters.</span>
+  <b>Ongoing</b><span>Brent under $85 (bull), 10-year above 5.25% (bear), AI-debt spreads widening past 500bp (bear), a Hormuz settlement (bull).</span>
+  <b>Jan–Feb 2027</b><span>Q4 earnings and 2027 capex guidance from Alphabet, Microsoft, Amazon and Meta. Base case needs a plateau near $1 trillion; a $1.3 trillion aggregate without matching revenue tips toward bear.</span>
+</div>
+
+<h2>What the named sources actually say</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Source</th><th>Position, as of this report</th><th>Lean</th></tr></thead>
+<tbody>
+<tr><td>Federal Reserve</td><td>Held 3.75%–4.00% on Oct 28 after a September hike; "inflation remains elevated"; dots show no 2027 cuts; two dissents favored another hike.</td><td><span class="pill warn">Hawkish</span></td></tr>
+<tr><td>Vanguard</td><td>U.S. equities 4.2%–6.2% a year for ten years (June 2026 model); value and ex-U.S. ranked highest; "AI exuberance: economic upside, stock market downside."</td><td><span class="pill warn">Cautious</span></td></tr>
+<tr><td>Fidelity</td><td>Q4 2026 business cycle update: U.S. in "sturdy mid-cycle dynamics," global expansion solid but unsynchronized, inflation risen.</td><td><span class="pill base">Constructive</span></td></tr>
+<tr><td>Goldman Sachs</td><td>S&P 8,000 end-2026, 8,700 end-2027; earnings +36% then +11%; roughly $300 billion a year of AI revenue needed to justify capex; Democratic Congress may trim data-center incentives.</td><td><span class="pill base">Constructive</span></td></tr>
+<tr><td>Bloomberg</td><td>Survey of 19 forecasters averaged about 7,970 for end-2026; October Markets Pulse respondents most often expected yields up and stocks down under Democratic control; coverage frames AI debt, not demand, as the stress point.</td><td><span class="pill warn">Mixed</span></td></tr>
+<tr><td>CNBC</td><td>Fed Survey: 26% recession odds, S&P 7,600 end-2026 and 8,033 end-2027, 76% expect a December hike. Cramer: AI "circular financing" echoes dot-com.</td><td><span class="pill warn">Mixed</span></td></tr>
+<tr><td>Harvard economists</td><td>Rogoff: fiscal fix only after a shock; dollar dominance eroding. Furman: productivity running twice pre-pandemic pace; AI firms seeking monopoly structures. (Summers left Harvard in February 2026; no current market view sourced.)</td><td><span class="pill warn">Cautious</span></td></tr>
+<tr><td>Elon Musk</td><td>AI boom hits a power wall by end-2026; neoclouds consolidate; data-center investment slows in 2027; bullish on Tesla AI and Optimus, with issues "solved around the end of next year."</td><td><span class="pill bear">Bearish on AI capex</span></td></tr>
+<tr><td>Jefferies / Yardeni</td><td>9,000 by end-2027 on $450 EPS; Yardeni 7,900 for 2026, 8,400 by mid-2027 after an October cut.</td><td><span class="pill bull">Bullish</span></td></tr>
+<tr><td>Panmure Liberum</td><td>5,000 by end-2027 on an AI bust.</td><td><span class="pill bear">Bearish</span></td></tr>
+</tbody></table></div>
+
+<h2 class="sources">Sources</h2>
+<div class="sources"><ol>
+<li>Federal Reserve, FOMC statement, October 28, 2026 — <a href="https://www.federalreserve.gov/monetarypolicy/files/monetary20261028a1.pdf">federalreserve.gov</a></li>
+<li>Federal Reserve, FOMC minutes, September 15–16, 2026 — <a href="https://www.federalreserve.gov/monetarypolicy/fomcminutes20260916.htm">federalreserve.gov</a></li>
+<li>FRED Blog, "FOMC Summary of Economic Projections, September 2026" — <a href="https://fredblog.stlouisfed.org/2026/09/fomc-summary-of-economic-projections-september-2026/">fredblog.stlouisfed.org</a></li>
+<li>Federal Reserve H.15 Selected Interest Rates, November 3, 2026 — <a href="https://www.federalreserve.gov/releases/h15/">federalreserve.gov</a></li>
+<li>CNBC, "Fed holds rates steady," October 28, 2026 — <a href="https://www.cnbc.com/2026/10/28/fed-interest-rate-decision-october-2026.html">cnbc.com</a></li>
+<li>CNBC Fed Survey, October 27, 2026 — <a href="https://www.cnbc.com/2026/10/27/federal-reserve-rate-hike-timing-expectations.html">cnbc.com</a></li>
+<li>CNBC, September 2026 CPI report, October 14, 2026 — <a href="https://www.cnbc.com/2026/10/14/cpi-inflation-report-september-2026.html">cnbc.com</a>; BLS CPI home — <a href="https://www.bls.gov/cpi/">bls.gov</a></li>
+<li>CNBC, September 2026 jobs report, October 2, 2026 — <a href="https://www.cnbc.com/2026/10/02/jobs-report-september-2026.html">cnbc.com</a></li>
+<li>Fortune, Q3 2026 GDP, October 30, 2026 — <a href="https://fortune.com/2026/10/30/gdp-third-quarter-haunted-housing-market-ai-spending-september-stall">fortune.com</a></li>
+<li>Al Jazeera, Kevin Warsh sworn in, May 22, 2026 — <a href="https://www.aljazeera.com/economy/2026/5/22/kevin-warsh-sworn-in-as-new-us-fed-chair">aljazeera.com</a></li>
+<li>24/7 Wall St., 10-year yield back above 5%, October 29, 2026 — <a href="https://247wallst.com/investing/2026/10/29/the-10-year-treasury-yield-just-jumped-back-above-5/">247wallst.com</a>; Forbes Treasury rates, November 2, 2026 — <a href="https://www.forbes.com/advisor/investing/treasury-rates/">forbes.com</a></li>
+<li>FactSet Earnings Insight (forward P/E, 2027 EPS growth) — <a href="https://www.factset.com/earningsinsight">factset.com</a>; GuruFocus Shiller CAPE — <a href="https://www.gurufocus.com/economic_indicators/56/sp-500-shiller-cape-ratio">gurufocus.com</a></li>
+<li>Bloomberg, "Tech Stocks Drive S&P 500 Higher With Midterm Vote Underway," November 3, 2026 — <a href="https://www.bloomberg.com/news/articles/2026-11-03/us-stocks-waver-as-election-ai-bubble-risks-weigh-on-outlook">bloomberg.com</a></li>
+<li>Bloomberg, 2026 election markets survey (Markets Pulse, Oct 2–17) — <a href="https://www.bloomberg.com/graphics/2026-us-election-results/markets/">bloomberg.com</a></li>
+<li>Bloomberg, Rogoff on U.S. debt, August 28, 2026 — <a href="https://www.bloomberg.com/news/articles/2026-08-28/harvard-s-rogoff-says-us-needs-shock-to-trigger-action-on-debt">bloomberg.com</a></li>
+<li>Bloomberg, 2026 investment outlooks — <a href="https://www.bloomberg.com/graphics/2026-investment-outlooks/">bloomberg.com</a></li>
+<li>CNBC, Alphabet Q3 2026 earnings and capex, October 28, 2026 — <a href="https://www.cnbc.com/2026/10/28/alphabet-googl-earnings-q3-2026.html">cnbc.com</a></li>
+<li>CNBC, Cramer on AI circular financing, July 27, 2026 — <a href="https://www.cnbc.com/2026/07/27/jim-cramer-warns-ai-circular-financing-echoes-dot-com-bubble.html">cnbc.com</a></li>
+<li>Forbes, "Big Tech Will Spend Over $700 Billion On AI This Year," October 7, 2026 — <a href="https://www.forbes.com/sites/jasonkirsch/2026/10/07/big-tech-will-spend-over-700-billion-on-ai-this-year-follow-the-money-not-the-hype/">forbes.com</a></li>
+<li>Nvidia 8-K, Q2 FY2027 results — <a href="https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000073/q2fy27pr.htm">sec.gov</a>; earnings date — <a href="https://www.earningstoday.com/stocks/NVDA/earnings-date">earningstoday.com</a></li>
+<li>CNBC, Goldman raises S&P 500 forecast, May 27, 2026 — <a href="https://www.cnbc.com/2026/05/27/goldman-raises-its-sp-500-year-end-forecast-its-for-one-simple-reason.html">cnbc.com</a></li>
+<li>Yahoo Finance, Jefferies 9,000 by end-2027 — <a href="https://finance.yahoo.com/markets/stocks/articles/jefferies-stays-bullish-p-500-223344444.html">finance.yahoo.com</a>; Yardeni cuts 2026 target — <a href="https://finance.yahoo.com/markets/stocks/articles/1-wall-streets-most-bullish-182701372.html">finance.yahoo.com</a></li>
+<li>TradingView / GuruFocus, Panmure Liberum 5,000 target — <a href="https://www.tradingview.com/news/gurufocus:ae5c8bbbd094b:0-analyst-sets-stark-s-p-500-target-for-2027/">tradingview.com</a></li>
+<li>Vanguard, Economic and Market Outlook for 2026 (PDF) — <a href="https://corporate.vanguard.com/content/dam/corp/research/pdf/isg_vemo_2026.pdf">corporate.vanguard.com</a>; return forecasts page — <a href="https://corporate.vanguard.com/content/corporatesite/us/en/corp/vemo/vemo-return-forecasts.html">corporate.vanguard.com</a></li>
+<li>Fidelity, Business Cycle Update (Q4 2026) — <a href="https://www.fidelity.com/learning-center/trading-investing/markets-sectors/business-cycle-update">fidelity.com</a>; Q3 2026 update — <a href="https://institutional.fidelity.com/advisors/insights/topics/market-commentary/third-quarter-2026-quarterly-business-cycle-update">institutional.fidelity.com</a></li>
+<li>Motley Fool on Musk's AI infrastructure comments, October 27, 2026 — <a href="https://www.fool.com/investing/2026/10/27/prediction-the-stock-market-could-crash-in-2027-an/">fool.com</a>; CNBC, Tesla Q3 2026 earnings — <a href="https://www.cnbc.com/2026/10/21/tesla-tsla-q3-2026-earnings-report.html">cnbc.com</a></li>
+<li>CF40 Research, 2026 Bund Summit (Furman on AI and productivity) — <a href="https://cf40research.substack.com/p/2026-bund-summit-ai-and-the-productivity">cf40research.substack.com</a></li>
+<li>CNBC, midterms and the stock market, November 3, 2026 — <a href="https://www.cnbc.com/2026/11/03/midterm-election-stock-market.html">cnbc.com</a>; CBS News live results — <a href="https://www.cbsnews.com/live-updates/election-day-2026-midterms/">cbsnews.com</a>; analyst reactions — <a href="https://finance.yahoo.com/markets/stocks/articles/analysts-react-us-midterm-election-025738421.html">finance.yahoo.com</a></li>
+<li>Supreme Court, Learning Resources v. Trump, February 20, 2026 — <a href="https://www.supremecourt.gov/opinions/25pdf/24-1287_4gcj.pdf">supremecourt.gov</a>; EY analysis — <a href="https://www.ey.com/en_us/insights/strategy/macroeconomics/what-the-supreme-court-ruling-against-ieepa-tariffs-means-in-practice">ey.com</a></li>
+<li>CNBC, oil and Iran war talks, November 2, 2026 — <a href="https://www.cnbc.com/amp/2026/11/02/oil-slips-more-than-1percent-as-talks-continue-on-ending-iran-war.html">cnbc.com</a></li>
+<li>Polymarket, U.S. recession by end of 2027 — <a href="https://polymarket.com/event/us-recession-by-end-of-2027-20260807185409760">polymarket.com</a></li>
+<li>Wikipedia, closing milestones of the S&P 500 — <a href="https://en.wikipedia.org/wiki/Closing_milestones_of_the_S&P_500">wikipedia.org</a>; 2025 close via Reuters — <a href="https://www.thestar.com.my/business/2026/01/01/wall-street-indices-end-year039s-final-session-lower">thestar.com.my</a></li>
+<li>Forbes, international stocks beating the U.S., October 12, 2026 — <a href="https://www.forbes.com/sites/jasonkirsch/2026/10/12/international-stocks-are-beating-the-us-again-look-closer-before-you-chase-them/">forbes.com</a></li>
+</ol></div>
+
+<p class="foot">Method notes. Scenario probabilities and index paths are this report's own estimates, anchored to the published targets and surveys above. The S&P 500 chart uses dated milestone closes; the March 2026 low is approximated from the reported 9% drawdown. Historical hit rates by holding period are the widely cited rolling-period figures for 1926–2025. The course-of-action table is an illustrative model of generic mixes, not a projection of any specific account. Several 2026 figures (hyperscaler capex totals, neocloud bond yields, money-market yields) come from secondary trackers and should be confirmed against primary filings before any trade. This is research for a decision, not a personal recommendation; Drew and Ian should review any change before it is executed.</p>
+</div>
+
+<script>
+(function(){
+const NS='http://www.w3.org/2000/svg';
+const css=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+function txt(x,y,s,a,p){const t=el('text',Object.assign({x,y,'font-size':12,fill:css('--fg2')},a||{}),p);t.textContent=s;return t;}
+function tip(chart){let t=chart.querySelector('.tip');if(!t){t=document.createElement('div');t.className='tip';chart.appendChild(t);}return t;}
+function hover(node,chart,label,getXY){const t=tip(chart);
+  const show=()=>{const [x,y]=getXY();t.textContent=label;t.style.left=x+'px';t.style.top=y+'px';t.classList.add('on');};
+  const hide=()=>t.classList.remove('on');
+  node.addEventListener('mouseenter',show);node.addEventListener('mouseleave',hide);node.addEventListener('focus',show);node.addEventListener('blur',hide);
+  node.setAttribute('tabindex','0');node.style.cursor='default';const ti=el('title',{},node);ti.textContent=label;}
+function svgPt(svg,chart,x,y){const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,c=chart.getBoundingClientRect();return [r.left-c.left+x*r.width/vb.width, r.top-c.top+y*r.height/vb.height];}
+function fmtK(v){return v>=1000?v.toLocaleString('en-US'):String(v);}
+const M={t:14,r:16,b:34,l:52};
+
+function lineChart(id,cfg){const chart=document.getElementById(id),host=chart.querySelector('.plot');host.innerHTML='';
+  const W=Math.max(320,host.clientWidth),H=cfg.height||300,ml=cfg.ml||M.l,mr=cfg.mr||M.r;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':chart.querySelector('h3').textContent},host);
+  const pw=W-ml-mr,ph=H-M.t-M.b;
+  const X=i=>ml+(cfg.xPos?cfg.xPos[i]:i/(cfg.x.length-1))*pw;
+  const Y=v=>M.t+ph-(v-cfg.yMin)/(cfg.yMax-cfg.yMin)*ph;
+  cfg.yTicks.forEach(v=>{el('line',{x1:ml,x2:ml+pw,y1:Y(v),y2:Y(v),stroke:css('--grid'),'stroke-width':1},svg);txt(ml-8,Y(v)+4,cfg.yFmt(v),{'text-anchor':'end',fill:css('--muted'),'font-size':11},svg);});
+  el('line',{x1:ml,x2:ml+pw,y1:Y(cfg.yMin),y2:Y(cfg.yMin),stroke:css('--axis')},svg);
+  cfg.x.forEach((lab,i)=>{if(cfg.xSkip&&i%cfg.xSkip)return;txt(X(i),H-M.b+18,lab,{'text-anchor':'middle',fill:css('--muted'),'font-size':11},svg);});
+  (cfg.refLines||[]).forEach(r=>{el('line',{x1:ml,x2:ml+pw,y1:Y(r.y),y2:Y(r.y),stroke:css('--axis'),'stroke-width':1,'stroke-dasharray':'2 4'},svg);txt(ml+pw,Y(r.y)-5,r.label,{'text-anchor':'end',fill:css('--muted'),'font-size':11},svg);});
+  cfg.series.forEach(s=>{const col=css(s.color);const pts=s.values.map((v,i)=>v==null?null:[X(i),Y(v)]);
+    let d='',started=false;pts.forEach(p=>{if(!p){started=false;return;}d+=(started?'L':'M')+p[0]+' '+p[1];started=true;});
+    if(s.area){el('path',{d:d+`L${pts[pts.length-1][0]} ${Y(cfg.yMin)}L${pts[0][0]} ${Y(cfg.yMin)}Z`,fill:col,opacity:.1},svg);}
+    el('path',{d,fill:'none',stroke:s.dotted?css('--muted'):col,'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round','stroke-dasharray':s.dotted?'2 5':(s.dashed?'6 5':'none')},svg);
+    if(s.step===false)return;
+    pts.forEach((p,i)=>{if(!p)return;const g=el('g',{},svg);el('circle',{cx:p[0],cy:p[1],r:6,fill:css('--surface')},g);el('circle',{cx:p[0],cy:p[1],r:4,fill:s.dotted?css('--muted'):col},g);
+      el('circle',{cx:p[0],cy:p[1],r:14,fill:'transparent'},g);
+      hover(g,chart,`${s.name} · ${cfg.x[i]}: ${cfg.yFmt(s.values[i])}`,()=>svgPt(svg,chart,p[0],p[1]-6));});
+    if(s.endLabel){const i=pts.length-1;txt(pts[i][0]+(s.endLabel.dx||0),pts[i][1]+(s.endLabel.dy||4),s.endLabel.text,{'text-anchor':s.endLabel.anchor||'start','font-weight':600,fill:css('--fg')},svg);}
+  });
+  (cfg.annot||[]).forEach(a=>{txt(X(a.i)+(a.dx||0),Y(a.y)+(a.dy||-12),a.text,{'text-anchor':a.anchor||'middle','font-size':11,fill:css('--fg2')},svg);});
+}
+
+function barChart(id,cfg){const chart=document.getElementById(id),host=chart.querySelector('.plot');host.innerHTML='';
+  const W=Math.max(320,host.clientWidth),H=cfg.height||300,ml=cfg.ml||M.l,mr=cfg.mr||M.r;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':chart.querySelector('h3').textContent},host);
+  const pw=W-ml-mr,ph=H-M.t-M.b,n=cfg.cats.length,ns=cfg.series.length;
+  const Y=v=>M.t+ph-(v-cfg.yMin)/(cfg.yMax-cfg.yMin)*ph;
+  cfg.yTicks.forEach(v=>{el('line',{x1:ml,x2:ml+pw,y1:Y(v),y2:Y(v),stroke:css('--grid')},svg);txt(ml-8,Y(v)+4,cfg.yFmt(v),{'text-anchor':'end',fill:css('--muted'),'font-size':11},svg);});
+  const band=pw/n,bw=Math.min(24,(band*0.7-2*(ns-1))/ns),gw=bw*ns+2*(ns-1);
+  cfg.cats.forEach((c,i)=>{const cx=ml+band*(i+.5);
+    const lines=Array.isArray(c)?c:[c];lines.forEach((l,k)=>txt(cx,H-M.b+18+k*13,l,{'text-anchor':'middle',fill:css('--muted'),'font-size':11},svg));
+    cfg.series.forEach((s,j)=>{const v=s.values[i];if(v==null)return;const col=css(s.color);const x=cx-gw/2+j*(bw+2);const y0=Y(Math.max(0,cfg.yMin)),y1=Y(v);const top=Math.min(y0,y1),h=Math.abs(y0-y1);
+      const r=Math.min(4,h/2);const up=v>=0;
+      const d=up?`M${x} ${y0}V${top+r}a${r} ${r} 0 0 1 ${r} ${-r}h${bw-2*r}a${r} ${r} 0 0 1 ${r} ${r}V${y0}Z`:`M${x} ${y0}V${top+h-r}a${r} ${r} 0 0 0 ${r} ${r}h${bw-2*r}a${r} ${r} 0 0 0 ${r} ${-r}V${y0}Z`;
+      const p=el('path',{d,fill:col},svg);hover(p,chart,`${s.name?s.name+' · ':''}${lines.join(' ')}: ${cfg.yFmt(v)}${s.extra&&s.extra[i]?' '+s.extra[i]:''}`,()=>svgPt(svg,chart,x+bw/2,top));
+      if(cfg.labels)txt(x+bw/2,up?top-6:top+h+13,cfg.yFmt(v),{'text-anchor':'middle','font-size':11,fill:css('--fg')},svg);
+      if(s.range&&s.range[i]){const [lo,hi]=s.range[i];el('line',{x1:x+bw/2,x2:x+bw/2,y1:Y(lo),y2:Y(hi),stroke:css('--fg2'),'stroke-width':1.5},svg);[lo,hi].forEach(e=>el('line',{x1:x+bw/2-5,x2:x+bw/2+5,y1:Y(e),y2:Y(e),stroke:css('--fg2'),'stroke-width':1.5},svg));}
+    });
+    if(cfg.marker){const v=cfg.marker[i];const x1=cx-gw/2-4,x2=cx+gw/2+4;el('line',{x1,x2,y1:Y(v),y2:Y(v),stroke:css('--fg'),'stroke-width':2},svg);txt(x2+4,Y(v)+4,cfg.yFmt(v),{'font-size':11,fill:css('--fg'),'font-weight':600},svg);}
+  });
+  el('line',{x1:ml,x2:ml+pw,y1:Y(Math.max(0,cfg.yMin)),y2:Y(Math.max(0,cfg.yMin)),stroke:css('--axis')},svg);
+}
+
+function dotChart(id,cfg){const chart=document.getElementById(id),host=chart.querySelector('.plot');host.innerHTML='';
+  const W=Math.max(320,host.clientWidth),narrow=W<480,rowH=34,ml=narrow?100:170,mr=20,H=M.t+rowH*cfg.rows.length+44;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':chart.querySelector('h3').textContent},host);
+  const pw=W-ml-mr;const X=v=>ml+(v-cfg.xMin)/(cfg.xMax-cfg.xMin)*pw;const bottom=M.t+rowH*cfg.rows.length;
+  cfg.xTicks.forEach((v,k)=>{el('line',{x1:X(v),x2:X(v),y1:M.t,y2:bottom,stroke:css('--grid')},svg);if(narrow&&k%2)return;txt(X(v),H-10,fmtK(v),{'text-anchor':'middle',fill:css('--muted'),'font-size':11},svg);});
+  (cfg.refLines||[]).forEach(r=>{el('line',{x1:X(r.x),x2:X(r.x),y1:M.t-4,y2:bottom+4,stroke:css('--fg2'),'stroke-width':1.5},svg);txt(X(r.x)+5,bottom+14,r.label,{'font-size':11,fill:css('--fg2'),'font-weight':600},svg);});
+  cfg.rows.forEach((r,i)=>{const y=M.t+rowH*(i+.5);
+    const lab=narrow&&r.short?r.short:r.label;txt(ml-10,y+4,lab,{'text-anchor':'end','font-size':12,fill:css('--fg')},svg);
+    if(r.range){el('line',{x1:X(r.range[0]),x2:X(r.range[1]),y1:y,y2:y,stroke:css('--s1'),'stroke-width':6,opacity:.25,'stroke-linecap':'round'},svg);}
+    r.dots.forEach(d=>{const col=css(d.series===0?'--s1-light':'--s1');const g=el('g',{},svg);el('circle',{cx:X(d.x),cy:y,r:7,fill:css('--surface')},g);el('circle',{cx:X(d.x),cy:y,r:5,fill:col},g);el('circle',{cx:X(d.x),cy:y,r:14,fill:'transparent'},g);
+      hover(g,chart,`${r.label} · ${d.series===0?'end-2026':'end-2027'}: ${fmtK(d.x)}${d.note?' ('+d.note+')':''}`,()=>svgPt(svg,chart,X(d.x),y-7));
+      const crowded=r.dots.some(o=>o!==d&&Math.abs(X(o.x)-X(d.x))<40);
+      if(!crowded||d.series===1)txt(X(d.x)+(crowded?12:0),y-10,fmtK(d.x),{'text-anchor':crowded?'start':'middle','font-size':11,fill:css('--fg2')},svg);});
+  });
+}
+
+function legend(id,items){const chart=document.getElementById(id);let l=chart.querySelector('.legend');if(!l){l=document.createElement('div');l.className='legend';chart.querySelector('.plot').after(l);}
+  l.innerHTML=items.map(it=>`<span><i class="${it.cls||''}" style="${it.color?'background:'+css(it.color):''}"></i>${it.label}</span>`).join('');}
+
+function draw(){
+  lineChart('c-path',{x:['Dec 31 2025','Mar 6','Jun 2','Aug 13','Oct 6','Nov 3 2026'],xPos:[0,.19,.45,.66,.82,.9],yMin:5500,yMax:8500,yTicks:[6000,7000,8000],yFmt:v=>v.toLocaleString('en-US'),
+    series:[{name:'S&P 500 close',color:'--s1',values:[6845.5,6230,7609.8,7713,7818.9,7568.9],area:true,endLabel:{text:'7,569',dx:10,dy:4}}],
+    refLines:[{y:7818.9,label:'Record close 7,819 (Oct 6)'}],annot:[{i:1,y:6230,text:'2026 low, −9%',dy:22},{i:0,y:6845.5,text:'6,846',dy:-12,anchor:'start',dx:-6}]});
+
+  barChart('c-capex',{cats:['2024','2025','2026','2027 est.'],yMin:0,yMax:1400,yTicks:[0,400,800,1200],yFmt:v=>'$'+v+'B',labels:true,
+    series:[{name:'Capex',color:'--s1',values:[230,410,735,1140],range:[null,null,null,[935,1300]],extra:['','','guidance','consensus; range 935–1,300']}]});
+
+  lineChart('c-fed',{x:['Dec 23','Sep 24','Nov 24','Dec 24','Sep 25','Oct 25','Dec 25','Sep 26','Dec 26','Dec 27','Dec 28'],xPos:[0,.2,.235,.27,.42,.44,.47,.63,.72,.86,1],xSkip:0,yMin:3,yMax:5.75,yTicks:[3,3.5,4,4.5,5,5.5],yFmt:v=>v.toFixed(2)+'%',mr:24,
+    series:[{name:'Target midpoint',color:'--s1',values:[5.375,4.875,4.625,4.375,4.125,3.875,3.625,3.875,null,null,null]},
+            {name:'Dot plot median',color:'--s1',dashed:true,values:[null,null,null,null,null,null,null,3.875,4.125,4.125,3.875],endLabel:{text:'3.875%',dx:-2,dy:-16,anchor:'end'}}],
+    annot:[{i:7,y:3.875,text:'Sep 2026 hike',dy:22}]});
+  document.querySelectorAll('#c-fed .plot text').forEach(t=>{const s=t.textContent;if(['Nov 24','Oct 25','Sep 25'].includes(s))t.remove();});
+  legend('c-fed',[{cls:'line',color:'--s1',label:'Realized target midpoint'},{cls:'line',color:'--s1-light',label:'September 2026 projection (dashed)'}]);
+
+  barChart('c-yield',{cats:[['S&P 500','earnings yield'],['10-year','Treasury'],['12-month','T-bill'],['3-month','T-bill'],['Money','market'],['S&P 500','dividend yield']],yMin:0,yMax:6,yTicks:[0,2,4,6],yFmt:v=>v.toFixed(1)+'%',labels:true,
+    series:[{name:'',color:'--s1',values:[5.3,4.9,4.4,4.2,3.9,1.2]}]});
+
+  lineChart('c-fan',{x:['Now','12 months','24 months','36 months'],yMin:5500,yMax:11000,yTicks:[6000,7000,8000,9000,10000,11000],yFmt:v=>v.toLocaleString('en-US'),mr:112,
+    series:[{name:'Bull (20%)',color:'--s3',values:[7569,8700,9700,10800],endLabel:{text:'Bull 10,800',dx:10}},
+            {name:'Base (50%)',color:'--s1',values:[7569,8000,8500,9100],endLabel:{text:'Base 9,100',dx:10,dy:-6}},
+            {name:'Bear (30%)',color:'--s2',values:[7569,6100,6900,7700],endLabel:{text:'Bear 7,700',dx:10}},
+            {name:'Weighted',color:'--muted',dotted:true,values:[7569,7570,8260,9020],endLabel:{text:'Weighted 9,020',dx:10,dy:12}}]});
+  legend('c-fan',[{cls:'line',color:'--s3',label:'Bull, 20%'},{cls:'line',color:'--s1',label:'Base, 50%'},{cls:'line',color:'--s2',label:'Bear, 30%'},{cls:'dotted',label:'Probability-weighted'}]);
+
+  dotChart('c-targets',{xMin:4500,xMax:11000,xTicks:[5000,6000,7000,8000,9000,10000,11000],refLines:[{x:7569,label:'Nov 3: 7,569'}],
+    rows:[{label:'Jefferies',dots:[{x:9000,series:1}],range:[6900,10500]},
+          {label:'Goldman Sachs',short:'Goldman',dots:[{x:8000,series:0},{x:8700,series:1}]},
+          {label:'Ed Yardeni',short:'Yardeni',dots:[{x:7900,series:0},{x:8400,series:1,note:'mid-2027'}]},
+          {label:'CNBC Fed Survey',short:'CNBC survey',dots:[{x:7600,series:0},{x:8033,series:1}]},
+          {label:'Bank of America',short:'BofA',dots:[{x:7100,series:0}]},
+          {label:'Panmure Liberum',short:'Panmure',dots:[{x:5000,series:1}]}]});
+  legend('c-targets',[{color:'--s1-light',label:'End-2026 target'},{color:'--s1',label:'End-2027 target'}]);
+
+  barChart('c-odds',{cats:['1 year','3 years','5 years','10 years','15 years','20 years'],yMin:0,yMax:100,yTicks:[0,25,50,75,100],yFmt:v=>v+'%',labels:true,
+    series:[{name:'',color:'--s1',values:[74,84,88,94,99,100]}]});
+
+  barChart('c-courses',{cats:[['A · Stay','fully invested'],['B · Recommended','65 / 20 / 15'],['C · Heavy cash','40 / 20 / 40'],['D · All cash']],yMin:0,yMax:45,yTicks:[0,10,20,30,40],yFmt:v=>'+'+v+'%',marker:[22,20,17,11],
+    series:[{name:'Bear',color:'--s2',values:[9,10,11,11]},{name:'Base',color:'--s1',values:[22,20,17,12]},{name:'Bull',color:'--s3',values:[41,36,26,10]}]});
+  legend('c-courses',[{color:'--s2',label:'Bear case'},{color:'--s1',label:'Base case'},{color:'--s3',label:'Bull case'},{cls:'line',color:'--fg',label:'Probability-weighted'}]);
+}
+draw();
+let to;window.addEventListener('resize',()=>{clearTimeout(to);to=setTimeout(draw,150);});
+const mq=window.matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',draw);
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+})();
+</script>
