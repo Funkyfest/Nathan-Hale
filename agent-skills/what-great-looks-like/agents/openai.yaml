@@ -1,0 +1,4 @@
+interface:
+  display_name: "What great looks like"
+  short_description: "Run visual quizzes and capture explicit Great examples"
+  default_prompt: "Use $what-great-looks-like to run three clickable visual comparisons and capture my exact ratings."
