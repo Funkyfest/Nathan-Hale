@@ -8,6 +8,7 @@ skills folder.
 
 | Skill | What it does | Added |
 |---|---|---|
+| [decisions-api-pilot](decisions-api-pilot/SKILL.md) | Small measured Decisions API trials; compare useful classifications with rules and review effort | 2026-11-16 |
 | [inbox-triage](inbox-triage/SKILL.md) | Ten threads at a time; close the noise, ask only real decisions as clickable choices, log everything to Open Brain | 2026-11-17 |
 | [specificity](specificity/SKILL.md) | Fixed context card (what, why, origin, status, decision, value, cost, outcome) before every question | 2026-10-16 |
 | [skill-harvest](skill-harvest/SKILL.md) | After a task works, decide whether it becomes a skill; quiz, then scaffold and log | 2026-10-09 |

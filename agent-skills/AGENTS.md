@@ -6,6 +6,7 @@ your default approach.
 
 | Skill | Use when | File |
 |---|---|---|
+| decisions-api-pilot | "make the Decisions API useful", "baby steps", "test this classifier", "measure the next batch" | `decisions-api-pilot/SKILL.md` |
 | inbox-triage | "triage my inbox", "go through my email", "next 10", an inbox screenshot with no text, "what needs my attention in email" | `inbox-triage/SKILL.md` |
 | specificity | Before any question to Nathan: a decision, quiz, yes/no, or choice | `specificity/SKILL.md` |
 | skill-harvest | A task Nathan asked for is finished and verified; or a skill run exposed a gap | `skill-harvest/SKILL.md` |
