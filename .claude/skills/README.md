@@ -22,6 +22,7 @@ the folders here are symlinks to them. Install into Claude Code and Codex with
 
 | Skill | Purpose | Added | Last changed | Improvements |
 |---|---|---|---|---|
+| decisions-api-pilot | Small supervised Decisions API pilots with baseline comparison; instructions and synthetic fixtures, cross-harness live execution unverified | 2026-11-16 | 2026-11-16 | 0 |
 | inbox-triage | Ten inbox threads at a time; close noise, ask only real decisions as choices with recommendation, why and confidence; log to Open Brain | 2026-11-17 | 2026-11-17 | 0 |
 
 ## Candidates
