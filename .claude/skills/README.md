@@ -13,6 +13,7 @@ Maintained by the `skill-harvest` skill. Edit only through an approved harvest.
 | specificity | Fixed context card (what, why, origin, duration, project, status, next, decision, value, cost, time, outcome) before every question to Nathan | 2026-10-16 | 2026-10-16 | 0 |
 | deck-edit | Small change to an existing HTML deck: edit, bump build tag, deck-verify, publish-check, push | 2026-10-24 | 2026-10-24 | 0 |
 | publish-check | Scan files for exposed names, comp figures, and contacts before anything goes public; pre-push hook; test.sh; check every copy after a redaction | 2026-10-10 | 2026-10-24 | 3 |
+| what-great-looks-like | Three visual rounds, clickable Good/Great ratings and contextual example capture; shared source: `../../agent-skills/what-great-looks-like/SKILL.md` | 2026-11-17 | 2026-11-17 | 0 |
 
 ## Candidates
 
