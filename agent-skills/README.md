@@ -9,10 +9,20 @@ skills folder.
 | Skill | What it does | Added |
 |---|---|---|
 | [inbox-triage](inbox-triage/SKILL.md) | Ten threads at a time; close the noise, ask only real decisions as clickable choices, log everything to Open Brain | 2026-11-17 |
+| [specificity](specificity/SKILL.md) | Fixed context card (what, why, origin, status, decision, value, cost, outcome) before every question | 2026-10-16 |
+| [skill-harvest](skill-harvest/SKILL.md) | After a task works, decide whether it becomes a skill; quiz, then scaffold and log | 2026-10-09 |
+| [role-pursuit-kit](role-pursuit-kit/SKILL.md) | Research sheet, firm analysis, and follow-up HTML deck for a senior-role pursuit | 2026-10-10 |
+| [deck-edit](deck-edit/SKILL.md) | Small change to an existing HTML deck: edit, bump build tag, verify, scan, push | 2026-10-24 |
+| [deck-verify](deck-verify/SKILL.md) | Headless render check for any single-file HTML deck (needs Node + Playwright) | 2026-10-10 |
+| [publish-check](publish-check/SKILL.md) | Scan files for names, comp figures and contacts before anything goes public (bash) | 2026-10-10 |
 
-Repo-specific skills (deck-verify, publish-check, role-pursuit-kit, and others) still
-live in `../.claude/skills/` and are tracked in that folder's ledger. Move one here
-when you want it in other harnesses.
+This folder is the single home for every skill. `../.claude/skills/<name>` are
+symlinks back here, so paths written inside skills as `.claude/skills/...` still
+work in this repo, and the ledger stays at `../.claude/skills/README.md`.
+
+The deck and publish skills mention this repo's `index.html` as their reference
+deck and run their scripts by repo-relative path. In another repo or harness, run
+them from `~/.claude/skills/<name>/` or `~/.codex/skills/<name>/` instead.
 
 ## Install
 

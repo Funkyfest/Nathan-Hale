@@ -16,8 +16,9 @@ Maintained by the `skill-harvest` skill. Edit only through an approved harvest.
 
 ## Cross-harness skills (`agent-skills/`)
 
-Portable skills for Claude Code, Codex, ChatGPT and Gemini live in `../../agent-skills/`
-and install into each harness with `agent-skills/install.sh`.
+All skills now live in `../../agent-skills/` (moved 2026-11-17 at Nathan's direction);
+the folders here are symlinks to them. Install into Claude Code and Codex with
+`agent-skills/install.sh`. The Active skills table above remains the history of record.
 
 | Skill | Purpose | Added | Last changed | Improvements |
 |---|---|---|---|---|
