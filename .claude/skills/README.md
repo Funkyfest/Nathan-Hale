@@ -14,7 +14,18 @@ Maintained by the `skill-harvest` skill. Edit only through an approved harvest.
 | deck-edit | Small change to an existing HTML deck: edit, bump build tag, deck-verify, publish-check, push | 2026-10-24 | 2026-10-24 | 0 |
 | publish-check | Scan files for exposed names, comp figures, and contacts before anything goes public; pre-push hook; test.sh; check every copy after a redaction | 2026-10-10 | 2026-10-24 | 3 |
 
+## Cross-harness skills (`agent-skills/`)
+
+Portable skills for Claude Code, Codex, ChatGPT and Gemini live in `../../agent-skills/`
+and install into each harness with `agent-skills/install.sh`.
+
+| Skill | Purpose | Added | Last changed | Improvements |
+|---|---|---|---|---|
+| inbox-triage | Ten inbox threads at a time; close noise, ask only real decisions as choices with recommendation, why and confidence; log to Open Brain | 2026-11-17 | 2026-11-17 | 0 |
+
 ## Candidates
+
+- 2026-11-17: Job-posting scorecard (pull a posting, score fit against Nathan's career criteria, tier it). Equinix Sr Director BD, Americas scored once. Promote on second occurrence.
 
 One line each: date, what happened, why it might be a skill. Promote on second occurrence.
 
