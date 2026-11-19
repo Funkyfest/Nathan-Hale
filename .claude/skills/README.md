@@ -15,7 +15,19 @@ Maintained by the `skill-harvest` skill. Edit only through an approved harvest.
 | publish-check | Scan files for exposed names, comp figures, and contacts before anything goes public; pre-push hook; test.sh; check every copy after a redaction | 2026-10-10 | 2026-10-24 | 3 |
 | what-great-looks-like | Three visual rounds, clickable Good/Great ratings and contextual example capture; shared source: `../../agent-skills/what-great-looks-like/SKILL.md` | 2026-11-17 | 2026-11-17 | 0 |
 
+## Cross-harness skills (`agent-skills/`)
+
+All skills now live in `../../agent-skills/` (moved 2026-11-17 at Nathan's direction);
+the folders here are symlinks to them. Install into Claude Code and Codex with
+`agent-skills/install.sh`. The Active skills table above remains the history of record.
+
+| Skill | Purpose | Added | Last changed | Improvements |
+|---|---|---|---|---|
+| inbox-triage | Ten inbox threads at a time; close noise, ask only real decisions as choices with recommendation, why and confidence; log to Open Brain | 2026-11-17 | 2026-11-17 | 0 |
+
 ## Candidates
+
+- 2026-11-17: Job-posting scorecard (pull a posting, score fit against Nathan's career criteria, tier it). Equinix Sr Director BD, Americas scored once. Promote on second occurrence.
 
 One line each: date, what happened, why it might be a skill. Promote on second occurrence.
 
