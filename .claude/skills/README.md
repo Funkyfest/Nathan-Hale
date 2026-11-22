@@ -19,6 +19,7 @@ Maintained by the `skill-harvest` skill. Edit only through an approved harvest.
 
 One line each: date, what happened, why it might be a skill. Promote on second occurrence.
 
+- 2026-11-22: nate-hale-eval added under agent-skills/ (operator playbook for the v6.1 r6 model and harness eval). Agreed by Claude, Codex and Grok; Nathan accepted the framework and the skill and approved this pull request.
 - 2026-10-25: Whole-task close. Nine successes from October 9 to 25 reviewed in one quiz; all covered by skills or rules on main. Nathan confirmed. Task closed.
 - 2026-10-24: Run the repo's checks before every push. Covered by deck-verify, publish-check, and the pre-push hook. Nathan confirmed.
 - 2026-10-24: Merge only after Nathan's explicit yes, then confirm main. Covered by his standing preferences. Nathan confirmed.
